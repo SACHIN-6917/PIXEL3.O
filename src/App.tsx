@@ -1,96 +1,46 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { Navbar } from './components/Navbar';
-import { Hero } from './components/Hero';
-import { CountdownSection } from './components/CountdownSection';
-import { AboutSection } from './components/AboutSection';
-import { EventsSection } from './components/EventsSection';
-import { AgendaSection } from './components/AgendaSection';
-import { VenuesSection } from './components/VenuesSection';
-import { ExperienceSection } from './components/ExperienceSection';
-import { StaffCoordinatorsSection } from './components/StaffCoordinatorsSection';
-import { StudentCoordinatorsSection } from './components/StudentCoordinatorsSection';
-import { FinalCTASection } from './components/FinalCTASection';
 import { Footer } from './components/Footer';
-import { RegistrationModal } from './components/RegistrationModal';
+import { HomePage } from './pages/HomePage';
+import { AboutPage } from './pages/AboutPage';
+import { RegistrationPage } from './pages/RegistrationPage';
+import { AgendaPage } from './pages/AgendaPage';
+import { VenuesPage } from './pages/VenuesPage';
+import { StaffCoordinatorsPage } from './pages/StaffCoordinatorsPage';
+import { StudentCoordinatorsPage } from './pages/StudentCoordinatorsPage';
 
-export const App: React.FC = () => {
-  const [isRegistrationOpen, setIsRegistrationOpen] = useState(false);
-  const [selectedEventForReg, setSelectedEventForReg] = useState<string | undefined>(undefined);
-  const [isRegistrationClosed, setIsRegistrationClosed] = useState(false);
-
-  const handleOpenRegistration = (eventId?: string) => {
-    setSelectedEventForReg(eventId);
-    setIsRegistrationOpen(true);
-  };
-
-  const handleScrollToEvents = () => {
-    const eventsElem = document.getElementById('events');
-    if (eventsElem) {
-      eventsElem.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+function AppRoutes() {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col font-sans selection:bg-phoenix-orange/20 selection:text-phoenix-red">
-      {/* Sticky Navbar */}
-      <Navbar onRegisterClick={() => handleOpenRegistration()} />
-
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
       <main className="flex-1">
-        {/* 100vh Hero Section with Phoenix Background */}
-        <Hero
-          onRegisterClick={() => handleOpenRegistration()}
-          onExploreEventsClick={handleScrollToEvents}
-        />
-
-        {/* Live Registration Countdown */}
-        <CountdownSection
-          onRegisterClick={() => handleOpenRegistration()}
-          isClosed={isRegistrationClosed}
-          setIsClosed={setIsRegistrationClosed}
-        />
-
-        {/* 01 / About Section & What Awaits You */}
-        <AboutSection />
-
-        {/* 02 / Confirmed 4 Events Section */}
-        <EventsSection
-          onRegisterEvent={(eventId) => handleOpenRegistration(eventId)}
-        />
-
-        {/* 03 / Symposium Agenda Timeline */}
-        <AgendaSection />
-
-        {/* 04 / Interactive Venues Guide */}
-        <VenuesSection />
-
-        {/* Participant Perks & Experience */}
-        <ExperienceSection />
-
-        {/* 05 / Staff Coordinators & Leadership */}
-        <StaffCoordinatorsSection />
-
-        {/* 06 / Student Coordinators */}
-        <StudentCoordinatorsSection />
-
-        {/* Warm White Final CTA */}
-        <FinalCTASection
-          onRegisterClick={() => handleOpenRegistration()}
-          isClosed={isRegistrationClosed}
-        />
+        <AnimatePresence mode="wait">
+          <Routes location={location} key={location.pathname}>
+            <Route path="/"                     element={<HomePage />} />
+            <Route path="/about"                element={<AboutPage />} />
+            <Route path="/registration"         element={<RegistrationPage />} />
+            <Route path="/agenda"               element={<AgendaPage />} />
+            <Route path="/venues"               element={<VenuesPage />} />
+            <Route path="/staff-coordinators"   element={<StaffCoordinatorsPage />} />
+            <Route path="/student-coordinators" element={<StudentCoordinatorsPage />} />
+          </Routes>
+        </AnimatePresence>
       </main>
-
-      {/* Compact Dark Footer */}
-      <Footer onRegisterClick={() => handleOpenRegistration()} />
-
-      {/* Global Interactive Registration Modal */}
-      <RegistrationModal
-        isOpen={isRegistrationOpen}
-        onClose={() => setIsRegistrationOpen(false)}
-        preSelectedEventId={selectedEventForReg}
-        isClosed={isRegistrationClosed}
-      />
+      {/* Footer only on non-hero pages for cleaner look, always shown */}
+      <Footer />
     </div>
   );
-};
+}
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  );
+}
