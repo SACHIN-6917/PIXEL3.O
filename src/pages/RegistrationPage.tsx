@@ -167,9 +167,9 @@ const Step2: React.FC<{
       </div>
 
       <div className="space-y-3">
-        <EventCard name="PAPERQUEST" sub="Team of 3 Members" icon={<Cpu className="w-5 h-5" />}
+        <EventCard name="PAPERQUEST" sub="Team of 4 Members" icon={<Cpu className="w-5 h-5" />}
           selected={techEvent === 'PaperQuest'} disabled={techEvent === 'AI FilmForge'}
-          onClick={() => { onEventChange('PaperQuest'); onMembersChange(['', '']); }} />
+          onClick={() => { onEventChange('PaperQuest'); onMembersChange(['', '', '']); }} />
         <EventCard name="AI FILMFORGE" sub="Solo Event" icon={<Film className="w-5 h-5" />}
           selected={techEvent === 'AI FilmForge'} disabled={techEvent === 'PaperQuest'}
           onClick={() => { onEventChange('AI FilmForge'); onMembersChange([]); }} />
@@ -183,7 +183,7 @@ const Step2: React.FC<{
           <div className="px-4 py-3 rounded-xl bg-phoenix-orange/10 border border-phoenix-orange/20 text-sm font-semibold text-foreground">
             Member 1 — {name || 'You (Participant)'}
           </div>
-          {(['Member 2', 'Member 3'] as const).map((label, i) => (
+          {(['Member 2', 'Member 3', 'Member 4'] as const).map((label, i) => (
             <div key={label}>
               <Input placeholder={`${label} name`} value={techMembers[i] || ''} hasError={!!errors[i]}
                 onChange={e => { const m = [...techMembers]; m[i] = e.target.value; onMembersChange(m); }} />
