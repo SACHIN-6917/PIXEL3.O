@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #171717;
+    background-color: #FFFFFF;
+  }
+
+  /* Custom subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #FFF9F4;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #E9E5E2;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FF6A00;
+  }
+}
+
+/* Gradient accents */
+.phoenix-gradient-text {
+  background: linear-gradient(135deg, #FF6A00 0%, #E51B23 50%, #E0008A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.phoenix-gradient-btn {
+  background: linear-gradient(135deg, #FF6A00 0%, #E51B23 100%);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.phoenix-gradient-btn:hover {
+  background: linear-gradient(135deg, #E51B23 0%, #E0008A 100%);
+  box-shadow: 0 10px 25px -5px rgba(229, 27, 35, 0.35);
+  transform: translateY(-2px);
+}
+
+.phoenix-border-gradient {
+  border-image: linear-gradient(to right, #FF6A00, #E51B23, #E0008A, #6A00FF) 1;
+}
+
+/* Animated embers canvas container */
+.ember-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
