@@ -25,6 +25,8 @@ export interface Coordinator {
   role: string;
   department?: string;
   titleBadge?: string;
+  year?: string;
+  phone?: string;
 }
 
 export const CONFIRMED_EVENTS: PixeloEvent[] = [
@@ -186,34 +188,44 @@ export const STAFF_COORDINATORS: Coordinator[] = [
 
 export const STUDENT_COORDINATORS: Coordinator[] = [
   {
-    name: 'Ms. SACHIN',
+    name: 'SACHIN',
     role: 'PRESIDENT',
-    department: 'CSE Final Year',
-    titleBadge: 'President'
+    department: 'CSE',
+    titleBadge: 'President',
+    year: 'Final Year',
+    phone: '9940764517',
   },
   {
-    name: 'Ms. SHAJITHA K.',
+    name: 'SHAJITHA K.',
     role: 'TREASURER',
-    department: 'CSE Final Year',
-    titleBadge: 'Treasurer'
+    department: 'CSE',
+    titleBadge: 'Treasurer',
+    year: 'Final Year',
+    phone: '',
   },
   {
-    name: 'Ms. Padmapriya S.',
+    name: 'PADMAPRIYA S.',
     role: 'VICE PRESIDENT',
-    department: 'CSE Final Year',
-    titleBadge: 'Vice President'
+    department: 'CSE',
+    titleBadge: 'Vice President',
+    year: 'Third Year',
+    phone: '',
   },
   {
-    name: 'Ms. SATHISH Kumar S.',
+    name: 'SATHISH KUMAR S.',
     role: 'SECRETARY',
-    department: 'CSE Final Year',
-    titleBadge: 'Secretary'
+    department: 'CSE',
+    titleBadge: 'Secretary',
+    year: 'Third Year',
+    phone: '9360500694',
   },
   {
-    name: 'Mr. Bharath S.',
+    name: 'BHARATH S.',
     role: 'JOINT SECRETARY',
-    department: 'CSE Third Year',
-    titleBadge: 'Joint Secretary'
+    department: 'CSE',
+    titleBadge: 'Joint Secretary',
+    year: 'Second Year',
+    phone: '',
   }
 ];
 

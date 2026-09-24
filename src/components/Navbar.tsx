@@ -23,16 +23,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onRegisterClick }) => {
   }, []);
 
   const navLinks = [
-    { label: 'HOME', href: '#home' },
-    { label: 'ABOUT US', href: '#about' },
-    { label: 'AGENDA', href: '#agenda' },
-    { label: 'VENUES', href: '#venues' },
-    { label: 'STAFF COORDINATORS', href: '#staff' },
-    { label: 'STUDENT COORDINATORS', href: '#students' },
+    { label: 'HOME', href: '#home', newTab: false },
+    { label: 'ABOUT US', href: '#about', newTab: false },
+    { label: 'AGENDA', href: '#agenda', newTab: false },
+    { label: 'VENUES', href: '#venues', newTab: false },
+    { label: 'STAFF COORDINATORS', href: '/staff-coordinators.html', newTab: true },
+    { label: 'STUDENT COORDINATORS', href: '/student-coordinators.html', newTab: true },
   ];
 
-  const handleLinkClick = (href: string) => {
+  const handleLinkClick = (href: string, newTab?: boolean) => {
     setMobileMenuOpen(false);
+    if (newTab) {
+      window.open(href, '_blank');
+      return;
+    }
     const element = document.querySelector(href);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
@@ -67,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onRegisterClick }) => {
           {navLinks.map((link) => (
             <button
               key={link.label}
-              onClick={() => handleLinkClick(link.href)}
+              onClick={() => handleLinkClick(link.href, link.newTab)}
               className="text-xs xl:text-sm font-semibold tracking-wider text-foreground-secondary hover:text-phoenix-orange transition-colors duration-200"
             >
               {link.label}
@@ -103,7 +107,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onRegisterClick }) => {
             {navLinks.map((link) => (
               <button
                 key={link.label}
-                onClick={() => handleLinkClick(link.href)}
+                onClick={() => handleLinkClick(link.href, link.newTab)}
                 className="text-left text-sm font-semibold tracking-wider text-foreground hover:text-phoenix-orange py-1.5 transition-colors border-b border-border/40"
               >
                 {link.label}
