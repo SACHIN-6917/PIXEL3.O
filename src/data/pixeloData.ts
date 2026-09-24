@@ -41,10 +41,10 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     rules: [
       'Presentation duration: 8 mins presentation + 2 mins Q&A',
       'Topics cover AI/ML, Cloud Computing, Cyber Security, IoT, and Emerging Technologies',
-      'Team composition: 1 to 3 members per team',
+      'Team composition: Exactly 3 members per team',
       'Presentation slides must be brought in PPT/PDF format on a USB drive'
     ],
-    teamSize: '1 – 3 Members',
+    teamSize: 'Team of 3',
     coordinators: 'Faculty & Student Technical Leads'
   },
   {
@@ -59,9 +59,9 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
       'Participants will use approved Generative AI tools and creative workflows',
       'Theme will be unveiled at the commencement of the session',
       'Evaluation criteria: Narrative coherence, prompt mastery, visual fidelity, and audio-visual design',
-      'Individual or team of 2 participants allowed'
+      'Solo / Individual participation only'
     ],
-    teamSize: '1 – 2 Members',
+    teamSize: 'Solo (1 Member)',
     coordinators: 'Multimedia & AI Lab Team'
   },
   {
@@ -95,7 +95,7 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
       'Penalty seconds added for missed obstacles or step violations',
       'Dynamic fun, coordination, and team synergy'
     ],
-    teamSize: '2 – 4 Members',
+    teamSize: 'Team of 4',
     coordinators: 'Event Experience Crew'
   }
 ];
@@ -161,7 +161,7 @@ export const STAFF_COORDINATORS: Coordinator[] = [
     titleBadge: 'Convener'
   },
   {
-    name: 'Mr. K. Chaitramuthurai',
+    name: 'Mr. K. Charimadhurai',
     role: 'STAFF COORDINATOR',
     department: 'Assistant Professor / CSE',
     titleBadge: 'Staff Coordinator'

@@ -8,7 +8,7 @@ const STAFF = [
   { name: 'Dr. V. Ramasamy',        role: 'DEAN',               dept: 'Adhiparasakthi Engineering College',  badge: 'Co-Patron' },
   { name: 'Dr. C. Dhaya',           role: 'HEAD OF DEPARTMENT', dept: 'Dept. of Computer Science & Engg.',   badge: 'HOD' },
   { name: 'Mrs. P. Gajalakshmi',    role: 'CONVENER',           dept: 'Asst. Professor / CSE',               badge: 'Convener' },
-  { name: 'Mr. K. Chaitramuthurai', role: 'STAFF COORDINATOR',  dept: 'Asst. Professor / CSE',               badge: 'Coordinator' },
+  { name: 'Mr. K. Charimadhurai',   role: 'STAFF COORDINATOR',  dept: 'Asst. Professor / CSE',               badge: 'Coordinator' },
 ];
 
 export const StaffCoordinatorsPage: React.FC = () => (

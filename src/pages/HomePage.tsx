@@ -7,7 +7,7 @@ import { ArrowRight, Cpu, Film, Swords, Zap, UtensilsCrossed, Coffee, Trophy, Aw
 import { PageTransition } from '../components/PageTransition';
 
 const EVENTS_PREVIEW = [
-  { name: 'PAPERQUEST',   category: 'TECHNICAL',      icon: <Cpu className="w-6 h-6" />,    color: 'from-phoenix-orange to-phoenix-red',    team: 'Team of 4',  desc: 'Present your research paper before an expert panel.' },
+  { name: 'PAPERQUEST',   category: 'TECHNICAL',      icon: <Cpu className="w-6 h-6" />,    color: 'from-phoenix-orange to-phoenix-red',    team: 'Team of 3',  desc: 'Present your research paper before an expert panel.' },
   { name: 'AI FILMFORGE', category: 'TECHNICAL',      icon: <Film className="w-6 h-6" />,   color: 'from-phoenix-red to-phoenix-magenta',   team: 'Solo',       desc: 'Craft a compelling AI-generated short film.' },
   { name: 'CHECKMATE',    category: 'NON-TECHNICAL',  icon: <Swords className="w-6 h-6" />, color: 'from-phoenix-magenta to-phoenix-purple', team: 'Solo',       desc: 'Prove your strategic mastery on the chess board.' },
   { name: 'MINE RELAY',   category: 'NON-TECHNICAL',  icon: <Zap className="w-6 h-6" />,   color: 'from-phoenix-purple to-phoenix-orange',  team: 'Team of 4',  desc: 'Navigate the minefield as a team and win together.' },
