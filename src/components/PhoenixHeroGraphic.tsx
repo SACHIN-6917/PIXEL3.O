@@ -106,10 +106,23 @@ export const PhoenixHeroGraphic: React.FC = () => {
         }}
       />
 
-      {/* SVG Cinematic Phoenix Emblem Graphic (Centered, stays in position, flaps/glows subtly) */}
+      {/* Cinematic Phoenix Emblem / Video Graphic */}
       <div className="relative w-full max-w-[720px] h-[480px] md:h-[560px] flex items-center justify-center transform -translate-y-4">
         {/* Soft atmospheric fire glow ring */}
         <div className="absolute w-[440px] h-[440px] rounded-full bg-gradient-to-tr from-phoenix-orange/20 via-phoenix-red/15 to-phoenix-purple/10 blur-3xl animate-pulse-slow" />
+
+        {/* Video layer if available */}
+        <video
+          src="/phoenix.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-contain mix-blend-multiply opacity-95 transition-opacity duration-1000 z-10"
+          onError={(e) => {
+            (e.currentTarget as HTMLVideoElement).style.display = 'none';
+          }}
+        />
 
         {/* Cinematic Phoenix Artwork SVG */}
         <svg
