@@ -80,26 +80,18 @@ export const PhoenixHeroGraphic: React.FC = () => {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-      {/* ── LAYER 1: Phoenix Video — full coverage behind everything ── */}
+      {/* ── LAYER 1: Phoenix Video — full coverage, no overlay ── */}
       <video
         src="/phoenix.mp4"
         autoPlay
         loop
         muted
         playsInline
-        className="absolute inset-0 w-full h-full object-cover opacity-70"
-        style={{ mixBlendMode: 'multiply' }}
+        className="absolute inset-0 w-full h-full object-cover opacity-100"
         onError={(e) => { (e.currentTarget as HTMLVideoElement).style.display = 'none'; }}
       />
 
-      {/* ── LAYER 2: Warm white fog over video so text stays readable ── */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse 80% 70% at 50% 50%, rgba(255,249,244,0.18) 0%, rgba(255,255,255,0.70) 100%)',
-        }}
-      />
+
 
       {/* ── LAYER 3: Phoenix fire atmospheric glow (centre) ── */}
       <div

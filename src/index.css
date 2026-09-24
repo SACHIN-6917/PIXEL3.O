@@ -11,22 +11,73 @@
   }
 
   /* Custom subtle scrollbar */
-  ::-webkit-scrollbar {
-    width: 7px;
-  }
-  ::-webkit-scrollbar-track {
-    background: #FFF9F4;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #E9E5E2;
-    border-radius: 9999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #FF6A00;
-  }
+  ::-webkit-scrollbar { width: 7px; }
+  ::-webkit-scrollbar-track { background: #FFF9F4; }
+  ::-webkit-scrollbar-thumb { background: #E9E5E2; border-radius: 9999px; }
+  ::-webkit-scrollbar-thumb:hover { background: #FF6A00; }
 }
 
-/* Gradient accents */
+/* ─────────────────────────────────────────────────────────
+   SCROLL REVEAL — BASE STATES (hidden before intersection)
+   ───────────────────────────────────────────────────────── */
+
+/* Fade up — default section reveal */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.72s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fade in — gentle opacity-only reveal */
+.reveal-fade {
+  opacity: 0;
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-fade.visible { opacity: 1; }
+
+/* Slide in from left */
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-48px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+/* Slide in from right */
+.reveal-right {
+  opacity: 0;
+  transform: translateX(48px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+/* Scale up — for cards and highlighted items */
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.93);
+  transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal-scale.visible { opacity: 1; transform: scale(1); }
+
+/* Stagger delays for child grids/lists */
+.stagger-1 { transition-delay: 0ms !important; }
+.stagger-2 { transition-delay: 80ms !important; }
+.stagger-3 { transition-delay: 160ms !important; }
+.stagger-4 { transition-delay: 240ms !important; }
+.stagger-5 { transition-delay: 320ms !important; }
+.stagger-6 { transition-delay: 400ms !important; }
+
+/* ─────────────────────────────────────────────────────────
+   GRADIENT UTILITIES
+   ───────────────────────────────────────────────────────── */
 .phoenix-gradient-text {
   background: linear-gradient(135deg, #FF6A00 0%, #E51B23 50%, #E0008A 100%);
   -webkit-background-clip: text;
@@ -50,9 +101,16 @@
 /* Animated embers canvas container */
 .ember-canvas {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up, .reveal-fade, .reveal-left, .reveal-right, .reveal-scale {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
 }
