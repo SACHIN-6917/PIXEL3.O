@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Student Coordinators — PIXELO 3.O</title>
-    <meta name="description" content="Official Student Coordinators of PIXELO 3.O - National Level Technical Symposium, Adhiparasakthi Engineering College." />
+    <title>Student Committee — PIXELO 3.O</title>
+    <meta name="description" content="Official Student Committee of PIXELO 3.O - National Level Technical Symposium, Adhiparasakthi Engineering College." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -21,237 +21,133 @@
         --dark: #111111;
         --orange: #FF6A00;
         --red: #E51B23;
-        --gold: #FFC21A;
         --magenta: #E0008A;
-        --purple: #6A00FF;
       }
       html { font-family: 'Space Grotesk', sans-serif; background: var(--warm); color: var(--text); }
       body { min-height: 100vh; }
 
+      /* ─── page header ─── */
       .page-header {
-        background: var(--white);
-        border-bottom: 1px solid var(--border);
-        padding: 20px 32px;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
+        background: var(--white); border-bottom: 1px solid var(--border);
+        padding: 18px 32px; position: sticky; top: 0; z-index: 10;
+        display: flex; align-items: center; justify-content: space-between; gap: 16px;
       }
-      .header-brand { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
-      .header-brand span {
-        background: linear-gradient(135deg, #FF6A00, #E51B23, #E0008A);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-      }
+      .header-brand { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text); }
+      .header-brand span { background: linear-gradient(135deg, #FF6A00, #E51B23, #E0008A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
       .back-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: var(--text2);
-        background: var(--bg2);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 8px 18px;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all 0.2s;
+        display: inline-flex; align-items: center; gap: 6px;
+        font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+        color: var(--text2); background: var(--bg2); border: 1px solid var(--border);
+        border-radius: 999px; padding: 7px 16px; cursor: pointer; text-decoration: none; transition: all 0.2s;
       }
       .back-btn:hover { color: var(--orange); border-color: var(--orange); background: var(--warm); }
 
+      /* ─── hero band ─── */
       .hero-band {
         background: linear-gradient(135deg, var(--dark) 0%, #1c0a00 100%);
-        color: white;
-        padding: 60px 32px 48px;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
+        color: white; padding: 60px 32px 48px; text-align: center; position: relative; overflow: hidden;
       }
       .hero-band::before {
-        content: '';
-        position: absolute;
-        inset: 0;
+        content: ''; position: absolute; inset: 0;
         background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,106,0,0.22) 0%, rgba(224,0,138,0.1) 60%, transparent 80%);
       }
       .section-label {
-        font-size: 0.7rem;
-        font-weight: 700;
-        letter-spacing: 0.25em;
-        text-transform: uppercase;
-        color: var(--orange);
-        margin-bottom: 10px;
-        position: relative;
-        z-index: 1;
+        font-size: 0.68rem; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase;
+        color: var(--orange); margin-bottom: 10px; position: relative; z-index: 1;
       }
-      .hero-band h1 {
-        font-size: clamp(2rem, 5vw, 3.5rem);
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: #fff;
-        position: relative;
-        z-index: 1;
-      }
-      .hero-band p {
-        margin-top: 10px;
-        font-size: 0.9rem;
-        color: rgba(255,255,255,0.55);
-        position: relative;
-        z-index: 1;
-        letter-spacing: 0.05em;
-      }
-      .accent-line {
-        height: 3px;
-        width: 60px;
-        background: linear-gradient(90deg, var(--orange), var(--red), var(--magenta));
-        border-radius: 999px;
-        margin: 16px auto 0;
-      }
+      .hero-band h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 700; letter-spacing: -0.02em; color: #fff; position: relative; z-index: 1; }
+      .hero-band p { margin-top: 10px; font-size: 0.88rem; color: rgba(255,255,255,0.5); position: relative; z-index: 1; letter-spacing: 0.05em; }
+      .accent-line { height: 3px; width: 60px; background: linear-gradient(90deg, var(--orange), var(--red), var(--magenta)); border-radius: 999px; margin: 16px auto 0; }
 
-      .container { max-width: 1100px; margin: 0 auto; padding: 60px 24px 80px; }
+      /* ─── container & layout ─── */
+      .container { max-width: 1150px; margin: 0 auto; padding: 56px 24px 80px; }
+      .section-block { margin-bottom: 60px; }
 
-      .grid {
+      .sub-label {
+        font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+        color: var(--orange); margin-bottom: 6px;
+      }
+      .sub-heading {
+        font-size: 1.6rem; font-weight: 700; color: var(--text); letter-spacing: -0.02em; margin-bottom: 4px;
+      }
+      .sub-desc { font-size: 0.82rem; color: var(--text2); margin-bottom: 28px; }
+      .divider { height: 1px; background: var(--border); margin-bottom: 28px; }
+
+      /* ─── leadership grid ─── */
+      .leadership-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 24px;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
       }
+      .leadership-card {
+        background: var(--white); border: 2px solid var(--border); border-radius: 18px;
+        padding: 26px 22px 20px; position: relative; transition: all 0.28s;
+        display: flex; flex-direction: column; justify-content: space-between; overflow: hidden;
+      }
+      .leadership-card::before {
+        content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+        background: linear-gradient(90deg, var(--orange), var(--red), var(--magenta));
+      }
+      .leadership-card:hover { box-shadow: 0 10px 32px -8px rgba(255,106,0,0.2); border-color: var(--orange); transform: translateY(-2px); }
 
-      .card {
-        background: var(--white);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 28px 28px 22px;
-        position: relative;
-        transition: all 0.3s;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
+      /* ─── coordinator grid ─── */
+      .coord-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 18px;
       }
-      .card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 32px; right: 32px;
-        height: 3px;
-        border-radius: 0 0 4px 4px;
-        background: var(--border);
-        transition: background 0.3s;
+      .coord-card {
+        background: var(--white); border: 1px solid var(--border); border-radius: 16px;
+        padding: 22px 22px 18px; position: relative; transition: all 0.28s;
+        display: flex; flex-direction: column; justify-content: space-between;
       }
-      .card:hover { box-shadow: 0 8px 28px -6px rgba(229,27,35,0.14); border-color: var(--orange); transform: translateY(-2px); }
-      .card:hover::before { background: linear-gradient(90deg, var(--orange), var(--red), var(--magenta)); }
+      .coord-card::before {
+        content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 2px;
+        border-radius: 0 0 3px 3px; background: var(--border); transition: background 0.3s;
+      }
+      .coord-card:hover { box-shadow: 0 8px 24px -6px rgba(229,27,35,0.14); border-color: var(--orange); transform: translateY(-2px); }
+      .coord-card:hover::before { background: linear-gradient(90deg, var(--orange), var(--red), var(--magenta)); }
 
-      .role-badge {
-        display: inline-block;
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: var(--red);
-        background: var(--warm);
-        border: 1px solid var(--border);
-        border-radius: 999px;
-        padding: 4px 14px;
-        margin-bottom: 14px;
+      /* ─── badges ─── */
+      .role-badge-leadership {
+        display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase;
+        color: var(--orange); background: var(--warm); border: 1px solid var(--border);
+        border-radius: 999px; padding: 4px 12px; margin-bottom: 14px; line-height: 1.5;
       }
-
-      .card h2 {
-        font-size: 1.35rem;
-        font-weight: 700;
-        color: var(--text);
-        letter-spacing: -0.01em;
-        margin-bottom: 4px;
+      .role-badge-coord {
+        display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+        color: var(--red); background: var(--warm); border: 1px solid var(--border);
+        border-radius: 999px; padding: 4px 12px; margin-bottom: 12px; line-height: 1.5;
       }
-      .card .year-label {
-        font-size: 0.78rem;
-        color: var(--magenta);
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        margin-bottom: 2px;
-      }
-      .card .dept {
-        font-size: 0.8rem;
-        color: var(--text2);
-        font-weight: 500;
-      }
-
-      .phone-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-top: 14px;
-        padding: 10px 14px;
-        background: var(--warm);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        transition: all 0.2s;
-      }
-      .phone-row:hover { border-color: var(--orange); }
-      .phone-icon {
-        width: 20px; height: 20px;
-        background: linear-gradient(135deg, var(--orange), var(--red));
-        border-radius: 6px;
-        display: flex; align-items: center; justify-content: center;
-        flex-shrink: 0;
-      }
-      .phone-row a {
-        font-size: 0.88rem;
-        font-weight: 700;
-        color: var(--text);
-        text-decoration: none;
-        letter-spacing: 0.04em;
-        transition: color 0.2s;
-      }
-      .phone-row a:hover { color: var(--orange); }
-      .phone-row .no-phone {
-        font-size: 0.8rem;
-        color: var(--muted);
-        font-style: italic;
-      }
+      .card h2 { font-size: 1.25rem; font-weight: 700; color: var(--text); letter-spacing: -0.01em; margin-bottom: 4px; }
+      .card h2 + h2 { margin-top: 4px; }
 
       .card-footer {
-        margin-top: 18px;
-        padding-top: 14px;
-        border-top: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 0.7rem;
-        color: var(--muted);
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
+        margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border);
+        display: flex; align-items: center; justify-content: space-between;
+        font-size: 0.68rem; color: var(--muted); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
       }
-      .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
-      .card:hover .dot { background: var(--orange); }
+      .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background 0.3s; }
+      .leadership-card:hover .dot, .coord-card:hover .dot { background: var(--orange); }
 
+      /* ─── footer ─── */
       .page-footer {
-        background: var(--dark);
-        color: rgba(255,255,255,0.5);
-        text-align: center;
-        padding: 28px 16px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
+        background: var(--dark); color: rgba(255,255,255,0.45); text-align: center;
+        padding: 24px 16px; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
       }
       .page-footer a { color: var(--orange); text-decoration: none; cursor: pointer; }
 
       @media (max-width: 600px) {
         .page-header { padding: 14px 16px; }
-        .grid { grid-template-columns: 1fr; }
-        .container { padding: 40px 16px 60px; }
+        .leadership-grid, .coord-grid { grid-template-columns: 1fr; }
+        .container { padding: 36px 16px 60px; }
         .hero-band { padding: 44px 16px 36px; }
       }
     </style>
   </head>
   <body>
 
-    <!-- Header -->
+    <!-- Page Header -->
     <header class="page-header">
       <div class="header-brand">PIXELO <span>3.O</span></div>
       <a class="back-btn" onclick="window.close()">← Close</a>
@@ -259,112 +155,219 @@
 
     <!-- Hero Band -->
     <div class="hero-band">
-      <div class="section-label">06 / STUDENT COORDINATORS</div>
-      <h1>STUDENT COORDINATORS</h1>
-      <p>EXECUTIVE STUDENT COMMITTEE · PIXELO 3.O 2026 · CSE DEPARTMENT</p>
+      <div class="section-label">CSE DEPT · PIXELO 3.O 2026</div>
+      <h1>STUDENT COMMITTEE</h1>
+      <p>ADHIPARASAKTHI ENGINEERING COLLEGE · MELMARUVATHUR</p>
       <div class="accent-line"></div>
     </div>
 
-    <!-- Main Content -->
+    <!-- ══════════════════════════════════════════
+         MAIN CONTENT
+    ══════════════════════════════════════════ -->
     <div class="container">
-      <div class="grid">
 
-        <!-- SACHIN — President -->
-        <div class="card">
-          <div>
-            <div class="role-badge">PRESIDENT</div>
-            <h2>SACHIN</h2>
-            <p class="year-label">Final Year</p>
-            <p class="dept">Department of Computer Science &amp; Engineering</p>
-            <div class="phone-row">
-              <div class="phone-icon">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1.19h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.92v1z"/>
-                </svg>
-              </div>
-              <a href="tel:9940764517">9940764517</a>
+      <!-- ── SECTION 1: STUDENT COMMITTEE LEADERSHIP ── -->
+      <div class="section-block">
+        <div class="sub-label">01 / LEADERSHIP</div>
+        <div class="sub-heading">STUDENT COMMITTEE LEADERSHIP</div>
+        <div class="sub-desc">Core executive positions of the PIXELO 3.O student body.</div>
+        <div class="divider"></div>
+
+        <div class="leadership-grid">
+
+          <div class="leadership-card card">
+            <div>
+              <div class="role-badge-leadership">President</div>
+              <h2>Mr. Sachin</h2>
             </div>
+            <div class="card-footer"><span>Executive</span><span class="dot"></span></div>
           </div>
-          <div class="card-footer"><span>President · PIXELO 3.O</span><span class="dot"></span></div>
-        </div>
 
-        <!-- SHAJITHA K. — Treasurer -->
-        <div class="card">
-          <div>
-            <div class="role-badge">TREASURER</div>
-            <h2>SHAJITHA K.</h2>
-            <p class="year-label">Final Year</p>
-            <p class="dept">Department of Computer Science &amp; Engineering</p>
-            <div class="phone-row">
-              <div class="phone-icon">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1.19h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.92v1z"/>
-                </svg>
-              </div>
-              <span class="no-phone">Contact via college</span>
+          <div class="leadership-card card">
+            <div>
+              <div class="role-badge-leadership">Treasurer</div>
+              <h2>Ms. Shajitha</h2>
             </div>
+            <div class="card-footer"><span>Executive</span><span class="dot"></span></div>
           </div>
-          <div class="card-footer"><span>Treasurer · PIXELO 3.O</span><span class="dot"></span></div>
-        </div>
 
-        <!-- PADMAPRIYA S. — Vice President -->
-        <div class="card">
-          <div>
-            <div class="role-badge">VICE PRESIDENT</div>
-            <h2>PADMAPRIYA S.</h2>
-            <p class="year-label">Third Year</p>
-            <p class="dept">Department of Computer Science &amp; Engineering</p>
-            <div class="phone-row">
-              <div class="phone-icon">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1.19h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.92v1z"/>
-                </svg>
-              </div>
-              <span class="no-phone">Contact via college</span>
+          <div class="leadership-card card">
+            <div>
+              <div class="role-badge-leadership">Vice President</div>
+              <h2>Ms. Padmapriya</h2>
             </div>
+            <div class="card-footer"><span>Executive</span><span class="dot"></span></div>
           </div>
-          <div class="card-footer"><span>Vice President · PIXELO 3.O</span><span class="dot"></span></div>
-        </div>
 
-        <!-- SATHISH KUMAR S. — Secretary -->
-        <div class="card">
-          <div>
-            <div class="role-badge">SECRETARY</div>
-            <h2>SATHISH KUMAR S.</h2>
-            <p class="year-label">Third Year</p>
-            <p class="dept">Department of Computer Science &amp; Engineering</p>
-            <div class="phone-row">
-              <div class="phone-icon">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1.19h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.92v1z"/>
-                </svg>
-              </div>
-              <a href="tel:9360500694">9360500694</a>
+          <div class="leadership-card card">
+            <div>
+              <div class="role-badge-leadership">Secretary</div>
+              <h2>Mr. Sathish Kumar</h2>
             </div>
+            <div class="card-footer"><span>Executive</span><span class="dot"></span></div>
           </div>
-          <div class="card-footer"><span>Secretary · PIXELO 3.O</span><span class="dot"></span></div>
-        </div>
 
-        <!-- BHARATH S. — Joint Secretary -->
-        <div class="card">
-          <div>
-            <div class="role-badge">JOINT SECRETARY</div>
-            <h2>BHARATH S.</h2>
-            <p class="year-label">Second Year</p>
-            <p class="dept">Department of Computer Science &amp; Engineering</p>
-            <div class="phone-row">
-              <div class="phone-icon">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10a19.79 19.79 0 01-3.07-8.67A2 2 0 012 1.19h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 15.92v1z"/>
-                </svg>
-              </div>
-              <span class="no-phone">Contact via college</span>
+          <div class="leadership-card card">
+            <div>
+              <div class="role-badge-leadership">Joint Secretary</div>
+              <h2>Mr. Bharath</h2>
             </div>
+            <div class="card-footer"><span>Executive</span><span class="dot"></span></div>
           </div>
-          <div class="card-footer"><span>Joint Secretary · PIXELO 3.O</span><span class="dot"></span></div>
-        </div>
 
+        </div>
       </div>
+
+      <!-- ── SECTION 2: STUDENT COORDINATORS ── -->
+      <div class="section-block">
+        <div class="sub-label">02 / COMMITTEE HEADS</div>
+        <div class="sub-heading">STUDENT COORDINATORS</div>
+        <div class="sub-desc">Committee-wise student heads responsible for each domain.</div>
+        <div class="divider"></div>
+
+        <div class="coord-grid">
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Event Management Committee</div>
+              <h2>Ms. Padamapriya</h2>
+              <h2>Mr. Sathish Kumar</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Technical Committee</div>
+              <h2>Mr. Gokul Kumar P</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Non-Technical Committee</div>
+              <h2>Mr. Mohanraj K</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Registration Committee</div>
+              <h2>Mr. Sairam R</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Food Committee</div>
+              <h2>Mr. Abu Bakkar Siddiq Raja</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Certificate Committee</div>
+              <h2>Mr. Vishnu Prasath</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Treasurer</div>
+              <h2>Ms. Shajitha</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Social Media Committee</div>
+              <h2>Mr. Ajai Adhithiyan</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Graphic Design Committee</div>
+              <h2>Mr. Sriram</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Reception Committee</div>
+              <h2>Ms. Rajakumari</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Prize &amp; Memento Committee</div>
+              <h2>Mr. Sanjaikumar</h2>
+              <h2>Mr. Kiranraj</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Photography Committee</div>
+              <h2>Mr. Dhilip</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Stage &amp; Saami Committee</div>
+              <h2>Ms. Harini</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Design &amp; Decoration Committee</div>
+              <h2>Ms. Lavanya</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Outreach Committee</div>
+              <h2>Mr. Pranav Kumaran</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Discipline Committee</div>
+              <h2>Mr. Bharath</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+          <div class="coord-card card">
+            <div>
+              <div class="role-badge-coord">Banner Committee</div>
+              <h2>Mr. Kalaiyarasan</h2>
+            </div>
+            <div class="card-footer"><span>Student Head</span><span class="dot"></span></div>
+          </div>
+
+        </div>
+      </div>
+
     </div>
 
     <!-- Footer -->

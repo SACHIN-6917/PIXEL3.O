@@ -6,7 +6,7 @@ import { Clock } from 'lucide-react';
 const TIMELINE = [
   { time: '09:00 AM', title: 'REGISTRATION & CHECK-IN', desc: 'Report at the venue, collect ID cards and event kits.', badge: 'ARRIVAL', highlight: false },
   { time: '09:30 AM', title: 'INAUGURATION', desc: 'Opening ceremony with the Principal, HOD and CSI chapter president.', badge: 'CEREMONY', highlight: false },
-  { time: '10:30 AM', title: 'TECHNICAL EVENTS BEGIN', desc: 'PaperQuest in Main Auditorium · AI FilmForge in MM Lab', badge: 'TECHNICAL', highlight: true },
+  { time: '10:30 AM', title: 'TECHNICAL EVENTS BEGIN', desc: 'PaperQuest in Main Auditorium · AI FilmForge in Main CSE Lab', badge: 'TECHNICAL', highlight: true },
   { time: '12:10 PM', title: 'TECHNICAL EVENTS CONCLUDE', desc: 'Wrapping up technical event rounds.', badge: '', highlight: false },
   { time: '12:20 PM', title: 'LUNCH BREAK', desc: 'Complimentary vegetarian lunch and refreshments at College Canteen.', badge: 'LUNCH', highlight: false },
   { time: '01:40 PM', title: 'NON-TECHNICAL EVENTS BEGIN', desc: 'Checkmate in Main CSE Lab · Mine Relay in Auditorium', badge: 'NON-TECHNICAL', highlight: true },

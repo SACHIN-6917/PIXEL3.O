@@ -67,7 +67,7 @@ export const AboutPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {[
-                { name: 'PAPERQUEST', cat: 'TECHNICAL', icon: <Cpu className="w-6 h-6 text-white" />, color: 'from-phoenix-orange to-phoenix-red', team: 'Team of 3', rules: ['Present a research paper before a panel', 'Topics related to CS, AI, ML, IoT', 'Q&A round after presentation', 'Synopsis submission mandatory'] },
+                { name: 'PAPERQUEST', cat: 'TECHNICAL', icon: <Cpu className="w-6 h-6 text-white" />, color: 'from-phoenix-orange to-phoenix-red', team: 'Team of 4', rules: ['Present a research paper before a panel', 'Topics related to CS, AI, ML, IoT', 'Q&A round after presentation', 'Synopsis submission mandatory'] },
                 { name: 'AI FILMFORGE', cat: 'TECHNICAL', icon: <Film className="w-6 h-6 text-white" />, color: 'from-phoenix-red to-phoenix-magenta', team: 'Solo', rules: ['Generate a short AI film (5–7 min)', 'Must use AI tools for visuals/script', 'Submit before 10:00 AM on event day', 'Judged on creativity and concept'] },
                 { name: 'CHECKMATE', cat: 'NON-TECHNICAL', icon: <Swords className="w-6 h-6 text-white" />, color: 'from-phoenix-magenta to-phoenix-purple', team: 'Solo', rules: ['Standard chess rules apply', 'Timed rounds', 'Tournament bracket format', 'Top 3 players receive prizes'] },
                 { name: 'MINE RELAY', cat: 'NON-TECHNICAL', icon: <Zap className="w-6 h-6 text-white" />, color: 'from-phoenix-purple to-phoenix-orange', team: 'Team of 4', rules: ['Navigate a virtual minefield as a team', 'Communication and strategy are key', 'Fastest team wins each round', 'Double elimination format'] },

@@ -18,7 +18,8 @@ import {
   ExternalLink,
   QrCode,
   ShieldCheck,
-  Sparkles
+  Sparkles,
+  Plus,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import QRCode from 'qrcode';
@@ -44,18 +45,62 @@ interface Step1Data {
   email: string;
 }
 
+/**
+ * NEW: Unified master participant list.
+ * masterParticipants[0] = main participant (auto, locked = step1.fullName)
+ * masterParticipants[1..n] = additional unique members entered by the user
+ *
+ * techAssignment   = indices into masterParticipants for the tech event
+ * nonTechAssignment = indices into masterParticipants for the non-tech event
+ *
+ * PaperQuest   → exactly 4 indices
+ * AI FilmForge → exactly 1 index
+ * Checkmate    → exactly 1 index
+ * Mine Relay   → exactly 4 indices
+ */
 interface FormState {
   step1: Step1Data;
   techEvent: TechEvent;
-  // PaperQuest: [member2, member3] (member1 is step1.fullName, member4 is blank)
-  techMembers: string[];
   nonTechEvent: NonTechEvent;
-  // Mine Relay: [member2, member3, member4] (member1 is step1.fullName)
-  nonTechMembers: string[];
+  masterParticipants: string[];   // ['Main Name', 'M2', 'M3', …]
+  techAssignment: number[];       // indices for tech event participants
+  nonTechAssignment: number[];    // indices for non-tech event participants
   paymentId: string;
 }
 
-// ─── Progress Indicator (6 Steps) ─────────────────────────────────
+// ─── helpers ──────────────────────────────────────────────────────
+
+/** returns names (strings) for each event from the master list */
+function resolveNames(master: string[], indices: number[]): string[] {
+  return indices.map(i => (master[i] ?? '').trim()).filter(Boolean);
+}
+
+/** Build a fresh set of default assignments given the current events & master list */
+function defaultAssignments(
+  techEvent: TechEvent,
+  nonTechEvent: NonTechEvent,
+  master: string[]
+): { techAssignment: number[]; nonTechAssignment: number[] } {
+  const validIndices = master.map((_, i) => i).filter(i => master[i]?.trim());
+
+  let techAssignment: number[] = [];
+  if (techEvent === 'PaperQuest') {
+    techAssignment = validIndices.slice(0, 4);
+  } else if (techEvent === 'AI FilmForge') {
+    techAssignment = [0];
+  }
+
+  let nonTechAssignment: number[] = [];
+  if (nonTechEvent === 'Mine Relay') {
+    nonTechAssignment = validIndices.slice(0, 4);
+  } else if (nonTechEvent === 'Checkmate') {
+    nonTechAssignment = [0];
+  }
+
+  return { techAssignment, nonTechAssignment };
+}
+
+// ─── Progress Indicator ───────────────────────────────────────────
 const PROGRESS_STEPS = [
   '01 PARTICIPANT',
   '02 EVENTS',
@@ -343,35 +388,26 @@ const Step2Events: React.FC<{
 
         <EventSelectCard
           name="PAPERQUEST"
-          sub="Team of 3 Members"
+          sub="Team of 4 Members"
           venue="Main Auditorium"
           icon={<Cpu className="w-5 h-5" />}
           selected={techEvent === 'PaperQuest'}
-          onClick={() => {
-            setError('');
-            onTechChange('PaperQuest');
-          }}
+          onClick={() => { setError(''); onTechChange('PaperQuest'); }}
         />
 
         <EventSelectCard
           name="AI FILMFORGE"
           sub="Solo Event (1 Member)"
-          venue="MM Lab"
+          venue="Main CSE Lab"
           icon={<Film className="w-5 h-5" />}
           selected={techEvent === 'AI FilmForge'}
-          onClick={() => {
-            setError('');
-            onTechChange('AI FilmForge');
-          }}
+          onClick={() => { setError(''); onTechChange('AI FilmForge'); }}
         />
 
         <SkipOptionBtn
           label="No Technical Event"
           selected={techEvent === null}
-          onClick={() => {
-            setError('');
-            onTechChange(null);
-          }}
+          onClick={() => { setError(''); onTechChange(null); }}
         />
       </div>
 
@@ -392,14 +428,11 @@ const Step2Events: React.FC<{
 
         <EventSelectCard
           name="CHECKMATE"
-          sub="Solo Event (1 Member)"
+          sub="Solo Event (1 Member) · Chess"
           venue="Main CSE Lab"
           icon={<Swords className="w-5 h-5" />}
           selected={nonTechEvent === 'Checkmate'}
-          onClick={() => {
-            setError('');
-            onNonTechChange('Checkmate');
-          }}
+          onClick={() => { setError(''); onNonTechChange('Checkmate'); }}
         />
 
         <EventSelectCard
@@ -408,19 +441,13 @@ const Step2Events: React.FC<{
           venue="Auditorium"
           icon={<Zap className="w-5 h-5" />}
           selected={nonTechEvent === 'Mine Relay'}
-          onClick={() => {
-            setError('');
-            onNonTechChange('Mine Relay');
-          }}
+          onClick={() => { setError(''); onNonTechChange('Mine Relay'); }}
         />
 
         <SkipOptionBtn
           label="No Non-Technical Event"
           selected={nonTechEvent === null}
-          onClick={() => {
-            setError('');
-            onNonTechChange(null);
-          }}
+          onClick={() => { setError(''); onNonTechChange(null); }}
         />
       </div>
 
@@ -445,87 +472,142 @@ const Step2Events: React.FC<{
 };
 
 // ═══════════════════════════════════════════════════════════════════
-// STEP 3 — TEAM DETAILS
+// STEP 3 — MASTER PARTICIPANT LIST + EVENT ASSIGNMENTS
 // ═══════════════════════════════════════════════════════════════════
 const Step3Team: React.FC<{
   techEvent: TechEvent;
-  techMembers: string[];
-  onTechMembersChange: (m: string[]) => void;
   nonTechEvent: NonTechEvent;
-  nonTechMembers: string[];
-  onNonTechMembersChange: (m: string[]) => void;
-  fullName: string;
+  masterParticipants: string[];
+  onMasterChange: (m: string[]) => void;
+  techAssignment: number[];
+  onTechAssignment: (a: number[]) => void;
+  nonTechAssignment: number[];
+  onNonTechAssignment: (a: number[]) => void;
   onNext: () => void;
   onBack: () => void;
 }> = ({
   techEvent,
-  techMembers,
-  onTechMembersChange,
   nonTechEvent,
-  nonTechMembers,
-  onNonTechMembersChange,
-  fullName,
+  masterParticipants,
+  onMasterChange,
+  techAssignment,
+  onTechAssignment,
+  nonTechAssignment,
+  onNonTechAssignment,
   onNext,
   onBack,
 }) => {
-  const [techErrors, setTechErrors] = useState<string[]>([]);
-  const [nonTechErrors, setNonTechErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [assignError, setAssignError] = useState('');
 
-  const validate = () => {
-    let valid = true;
+  const mainName = masterParticipants[0] || 'Main Participant';
 
-    if (techEvent === 'PaperQuest') {
-      const errs = [
-        !techMembers[0]?.trim() ? 'Member 2 name is required' : '',
-        !techMembers[1]?.trim() ? 'Member 3 name is required' : '',
-      ];
-      setTechErrors(errs);
-      if (errs.some(Boolean)) valid = false;
-    } else {
-      setTechErrors([]);
+  // How many ADDITIONAL member inputs to show (beyond main participant)
+  const techNeedsTeam = techEvent === 'PaperQuest';
+  const nonTechNeedsTeam = nonTechEvent === 'Mine Relay';
+  const needsTeam = techNeedsTeam || nonTechNeedsTeam;
+
+  // Minimum additional slots needed
+  const minAdditional = needsTeam ? 3 : 0;
+  // Current additional slots (at least minAdditional, or however many the user has)
+  const currentAdditional = masterParticipants.length - 1;
+  const slotsToShow = Math.max(minAdditional, currentAdditional);
+
+  // Filled (valid) participants in master list
+  const validMaster = masterParticipants.filter(m => m.trim());
+  const validIndices = masterParticipants
+    .map((m, i) => ({ m, i }))
+    .filter(({ m }) => m.trim())
+    .map(({ i }) => i);
+
+  // Both team events selected — need checkboxes for assignment
+  const bothTeamEvents = techNeedsTeam && nonTechNeedsTeam;
+
+  // Solo event has multiple pool members → show radio selection
+  const soloTechNeedsRadio = techEvent === 'AI FilmForge' && validMaster.length > 1;
+  const soloNonTechNeedsRadio = nonTechEvent === 'Checkmate' && validMaster.length > 1;
+  const isBothSolo =
+    (techEvent === 'AI FilmForge' || !techEvent) &&
+    (nonTechEvent === 'Checkmate' || !nonTechEvent);
+
+  const validate = (): boolean => {
+    setAssignError('');
+    const newErrors: string[] = [];
+
+    // Team event member validation
+    if (needsTeam) {
+      for (let i = 0; i < minAdditional; i++) {
+        const val = masterParticipants[i + 1] ?? '';
+        if (!val.trim()) {
+          newErrors[i] = `Member ${i + 2} name is required`;
+        } else {
+          newErrors[i] = '';
+        }
+      }
+      setErrors(newErrors);
+      if (newErrors.some(Boolean)) return false;
     }
 
-    if (nonTechEvent === 'Mine Relay') {
-      const errs = [
-        !nonTechMembers[0]?.trim() ? 'Member 2 name is required' : '',
-        !nonTechMembers[1]?.trim() ? 'Member 3 name is required' : '',
-        !nonTechMembers[2]?.trim() ? 'Member 4 name is required' : '',
-      ];
-      setNonTechErrors(errs);
-      if (errs.some(Boolean)) valid = false;
-    } else {
-      setNonTechErrors([]);
+    // Validate team assignments
+    if (techNeedsTeam && techAssignment.length !== 4) {
+      setAssignError('Please select exactly 4 participants for PAPERQUEST.');
+      return false;
+    }
+    if (nonTechNeedsTeam && nonTechAssignment.length !== 4) {
+      setAssignError('Please select exactly 4 participants for MINE RELAY.');
+      return false;
     }
 
-    return valid;
+    return true;
   };
 
-  const isSoloOnly =
-    (techEvent === 'AI FilmForge' || techEvent === null) &&
-    (nonTechEvent === 'Checkmate' || nonTechEvent === null);
+  // Update an additional participant slot
+  const updateMember = (slotIndex: number, value: string) => {
+    const arr = [...masterParticipants];
+    arr[slotIndex + 1] = value;
+    onMasterChange(arr);
+
+    // Auto-update assignments after filling members
+    const updatedValid = arr.map((m, i) => ({ m, i })).filter(({ m }) => m.trim()).map(({ i }) => i);
+
+    if (techNeedsTeam && !bothTeamEvents) {
+      onTechAssignment(updatedValid.slice(0, 4));
+    }
+    if (nonTechNeedsTeam && !bothTeamEvents) {
+      onNonTechAssignment(updatedValid.slice(0, 4));
+    }
+    if (bothTeamEvents) {
+      // Both events auto-assign all available (user can change via checkboxes)
+      onTechAssignment(updatedValid.slice(0, Math.min(4, updatedValid.length)));
+      onNonTechAssignment(updatedValid.slice(0, Math.min(4, updatedValid.length)));
+    }
+  };
+
+  // Toggle checkbox for team events
+  const toggleTeamAssignment = (
+    idx: number,
+    current: number[],
+    onChange: (a: number[]) => void
+  ) => {
+    setAssignError('');
+    if (current.includes(idx)) {
+      onChange(current.filter(x => x !== idx));
+    } else if (current.length < 4) {
+      onChange([...current, idx]);
+    }
+  };
 
   return (
     <div className="space-y-6">
       <div className="mb-4">
         <h3 className="text-xl font-bold tracking-tight text-foreground mb-1">TEAM MEMBERS</h3>
         <p className="text-xs sm:text-sm text-foreground-secondary">
-          Member 1 is automatically set to you (<strong>{fullName || 'Participant'}</strong>).
+          Add all participants <strong>once</strong>. The same names will be reused across both selected events — no duplicate entry.
         </p>
       </div>
 
-      {/* Helpful notification if both team events are picked */}
-      {techEvent === 'PaperQuest' && nonTechEvent === 'Mine Relay' && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <strong className="font-bold">Unique Participant Fee Notice:</strong> The registration fee is{' '}
-            <strong>₹129 per unique participant</strong>. If a friend is in both your PaperQuest and Mine Relay teams, spell their name identically so they are only counted once!
-          </div>
-        </div>
-      )}
-
-      {/* Solo only announcement */}
-      {isSoloOnly && (
+      {/* ── Both solo events ── */}
+      {isBothSolo && (
         <div className="p-6 rounded-2xl bg-phoenix-orange/5 border border-phoenix-orange/20 text-center space-y-2">
           <div className="w-12 h-12 rounded-full bg-phoenix-orange/10 text-phoenix-orange flex items-center justify-center mx-auto">
             <Users className="w-6 h-6" />
@@ -533,137 +615,183 @@ const Step3Team: React.FC<{
           <h4 className="text-base font-bold text-foreground">Solo Participation</h4>
           <p className="text-xs text-foreground-secondary max-w-md mx-auto">
             You have selected solo competitions ({[techEvent, nonTechEvent].filter(Boolean).join(' + ')}).
-            No extra team members are required.
+            No extra team members are required — you compete alone.
           </p>
+          <div className="pt-1 p-3 rounded-xl bg-white border border-border text-xs sm:text-sm flex items-center justify-between max-w-sm mx-auto">
+            <span className="font-semibold text-foreground">Member 1: {mainName}</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-phoenix-orange/10 text-phoenix-orange">
+              You
+            </span>
+          </div>
         </div>
       )}
 
-      {/* PAPERQUEST TEAM FORM (Team of 3) */}
-      {techEvent === 'PaperQuest' && (
+      {/* ── MASTER PARTICIPANT POOL (when team events are selected) ── */}
+      {needsTeam && (
         <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
-              PAPERQUEST — TEAM OF 3
+              PARTICIPANT POOL — ADD MEMBERS ONCE
             </span>
-            <span className="text-[10px] font-bold text-foreground-muted">Auditorium</span>
+            <span className="text-[10px] font-bold text-foreground-muted">
+              {validMaster.length} / {needsTeam ? '4+' : '1'} filled
+            </span>
           </div>
 
           <div className="p-3 rounded-xl bg-white border border-border flex items-center justify-between text-xs sm:text-sm">
-            <span className="font-semibold text-foreground">Member 1: {fullName}</span>
+            <span className="font-semibold text-foreground">Member 1: {mainName}</span>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-phoenix-orange/10 text-phoenix-orange">
               Main Participant
             </span>
           </div>
 
-          <Field label="Member 2 Name" error={techErrors[0]} required>
-            <Input
-              placeholder="Enter Member 2 Full Name"
-              value={techMembers[0] || ''}
-              hasError={!!techErrors[0]}
-              onChange={e => {
-                const arr = [...techMembers];
-                arr[0] = e.target.value;
-                onTechMembersChange(arr);
-              }}
-            />
-          </Field>
+          {Array.from({ length: slotsToShow }).map((_, i) => (
+            <Field key={i} label={`Member ${i + 2} Name`} error={errors[i]} required={i < minAdditional}>
+              <Input
+                placeholder={`Enter Member ${i + 2} Full Name`}
+                value={masterParticipants[i + 1] || ''}
+                hasError={!!errors[i]}
+                onChange={e => updateMember(i, e.target.value)}
+              />
+            </Field>
+          ))}
 
-          <Field label="Member 3 Name" error={techErrors[1]} required>
-            <Input
-              placeholder="Enter Member 3 Full Name"
-              value={techMembers[1] || ''}
-              hasError={!!techErrors[1]}
-              onChange={e => {
-                const arr = [...techMembers];
-                arr[1] = e.target.value;
-                onTechMembersChange(arr);
-              }}
-            />
-          </Field>
-
-          <p className="text-[11px] text-foreground-muted italic">
-            * Member 4 remains blank (PaperQuest is strictly a 3-member team event).
-          </p>
+          {/* Add more participants button (only for PQ + MR where teams might differ) */}
+          {bothTeamEvents && slotsToShow >= 3 && (
+            <button
+              type="button"
+              onClick={() => onMasterChange([...masterParticipants, ''])}
+              className="w-full py-2.5 px-4 rounded-xl border border-dashed border-border hover:border-phoenix-orange text-xs font-bold text-foreground-muted hover:text-phoenix-orange tracking-wider uppercase flex items-center justify-center gap-2 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" /> ADD MORE PARTICIPANTS (for different Mine Relay team)
+            </button>
+          )}
         </div>
       )}
 
-      {/* AI FILMFORGE SOLO */}
-      {techEvent === 'AI FilmForge' && !isSoloOnly && (
-        <div className="p-4 rounded-xl bg-background-warm border border-border flex items-center justify-between text-xs sm:text-sm">
+      {/* ── Notification for PQ + MR unique fee ── */}
+      {techEvent === 'PaperQuest' && nonTechEvent === 'Mine Relay' && (
+        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
+          <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <div className="font-bold text-foreground">AI FilmForge (Solo)</div>
-            <div className="text-[11px] text-foreground-muted">MM Lab</div>
+            <strong className="font-bold">Unique Participant Fee Notice:</strong> Fee is{' '}
+            <strong>₹129 per unique participant</strong>. If both events share the same 4 members,
+            total = ₹516. Each participant is counted only once.
           </div>
-          <span className="font-semibold text-phoenix-orange">{fullName}</span>
         </div>
       )}
 
-      {/* CHECKMATE SOLO */}
-      {nonTechEvent === 'Checkmate' && !isSoloOnly && (
-        <div className="p-4 rounded-xl bg-background-warm border border-border flex items-center justify-between text-xs sm:text-sm">
-          <div>
-            <div className="font-bold text-foreground">Checkmate (Solo)</div>
-            <div className="text-[11px] text-foreground-muted">Main CSE Lab</div>
+      {/* ── PAPERQUEST ASSIGNMENT (when >4 in pool) ── */}
+      {techNeedsTeam && validMaster.length > 4 && (
+        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
+              PAPERQUEST — Select Your 4 Members
+            </span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${techAssignment.length === 4 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+              {techAssignment.length}/4 selected
+            </span>
           </div>
-          <span className="font-semibold text-phoenix-magenta">{fullName}</span>
+          <div className="space-y-2">
+            {validIndices.map(idx => (
+              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-orange cursor-pointer transition-colors group">
+                <input
+                  type="checkbox"
+                  checked={techAssignment.includes(idx)}
+                  onChange={() => toggleTeamAssignment(idx, techAssignment, onTechAssignment)}
+                  className="w-4 h-4 accent-phoenix-orange"
+                />
+                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
+                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
+                </span>
+              </label>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* MINE RELAY TEAM FORM (Team of 4) */}
-      {nonTechEvent === 'Mine Relay' && (
-        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3.5">
+      {/* ── MINE RELAY ASSIGNMENT ── */}
+      {nonTechNeedsTeam && validMaster.length > 4 && (
+        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold tracking-wider uppercase text-phoenix-magenta">
-              MINE RELAY — TEAM OF 4
+              MINE RELAY — Select Your 4 Members
             </span>
-            <span className="text-[10px] font-bold text-foreground-muted">Auditorium</span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-white border border-border flex items-center justify-between text-xs sm:text-sm">
-            <span className="font-semibold text-foreground">Member 1: {fullName}</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-phoenix-magenta/10 text-phoenix-magenta">
-              Main Participant
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${nonTechAssignment.length === 4 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
+              {nonTechAssignment.length}/4 selected
             </span>
           </div>
+          <div className="space-y-2">
+            {validIndices.map(idx => (
+              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-magenta cursor-pointer transition-colors group">
+                <input
+                  type="checkbox"
+                  checked={nonTechAssignment.includes(idx)}
+                  onChange={() => toggleTeamAssignment(idx, nonTechAssignment, onNonTechAssignment)}
+                  className="w-4 h-4 accent-phoenix-orange"
+                />
+                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
+                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
-          <Field label="Member 2 Name" error={nonTechErrors[0]} required>
-            <Input
-              placeholder="Enter Member 2 Full Name"
-              value={nonTechMembers[0] || ''}
-              hasError={!!nonTechErrors[0]}
-              onChange={e => {
-                const arr = [...nonTechMembers];
-                arr[0] = e.target.value;
-                onNonTechMembersChange(arr);
-              }}
-            />
-          </Field>
+      {/* ── AI FILMFORGE — solo, select 1 from pool ── */}
+      {soloTechNeedsRadio && (
+        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
+          <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
+            AI FILMFORGE — Solo Participant (Select 1)
+          </span>
+          <div className="space-y-2">
+            {validIndices.map(idx => (
+              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-orange cursor-pointer transition-colors group">
+                <input
+                  type="radio"
+                  name="filmforge-participant"
+                  checked={techAssignment[0] === idx}
+                  onChange={() => onTechAssignment([idx])}
+                  className="w-4 h-4 accent-phoenix-orange"
+                />
+                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
+                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
-          <Field label="Member 3 Name" error={nonTechErrors[1]} required>
-            <Input
-              placeholder="Enter Member 3 Full Name"
-              value={nonTechMembers[1] || ''}
-              hasError={!!nonTechErrors[1]}
-              onChange={e => {
-                const arr = [...nonTechMembers];
-                arr[1] = e.target.value;
-                onNonTechMembersChange(arr);
-              }}
-            />
-          </Field>
+      {/* ── CHECKMATE — solo, select 1 from pool ── */}
+      {soloNonTechNeedsRadio && (
+        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
+          <span className="text-xs font-bold tracking-wider uppercase text-phoenix-magenta">
+            CHECKMATE — Solo Participant (Select 1)
+          </span>
+          <div className="space-y-2">
+            {validIndices.map(idx => (
+              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-magenta cursor-pointer transition-colors group">
+                <input
+                  type="radio"
+                  name="checkmate-participant"
+                  checked={nonTechAssignment[0] === idx}
+                  onChange={() => onNonTechAssignment([idx])}
+                  className="w-4 h-4 accent-phoenix-orange"
+                />
+                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
+                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
-          <Field label="Member 4 Name" error={nonTechErrors[2]} required>
-            <Input
-              placeholder="Enter Member 4 Full Name"
-              value={nonTechMembers[2] || ''}
-              hasError={!!nonTechErrors[2]}
-              onChange={e => {
-                const arr = [...nonTechMembers];
-                arr[2] = e.target.value;
-                onNonTechMembersChange(arr);
-              }}
-            />
-          </Field>
+      {assignError && (
+        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 font-semibold flex items-center gap-2">
+          <AlertCircle className="w-3.5 h-3.5" /> {assignError}
         </div>
       )}
 
@@ -695,14 +823,23 @@ const Step4Review: React.FC<{
   onNext: () => void;
   onBack: () => void;
 }> = ({ form, onNext, onBack }) => {
-  const { step1, techEvent, techMembers, nonTechEvent, nonTechMembers } = form;
+  const { step1, techEvent, nonTechEvent, masterParticipants, techAssignment, nonTechAssignment } = form;
+
+  // Resolve participant names from master list + assignments
+  const techNames = techEvent ? resolveNames(masterParticipants, techAssignment) : [];
+  const nonTechNames = nonTechEvent ? resolveNames(masterParticipants, nonTechAssignment) : [];
+
+  // Derive member arrays for fee calculation (same interface as before)
+  // techMembers = all names for tech event except the first (main participant)
+  const techMembersForCalc = techNames.slice(1);
+  const nonTechMembersForCalc = nonTechNames.slice(1);
 
   const calculation = calculateUniqueMembersAndFee(
     step1.fullName,
     techEvent,
-    techMembers,
+    techMembersForCalc,
     nonTechEvent,
-    nonTechMembers
+    nonTechMembersForCalc
   );
 
   return (
@@ -743,7 +880,7 @@ const Step4Review: React.FC<{
         </div>
       </div>
 
-      {/* Events Summary */}
+      {/* Events Summary — event-wise participant list */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Tech */}
         <div className="p-4 rounded-2xl bg-white border border-border">
@@ -754,16 +891,10 @@ const Step4Review: React.FC<{
             {techEvent ? (
               <div>
                 <div>{techEvent}</div>
-                <div className="text-[11px] text-foreground-muted font-normal mt-1">
-                  {techEvent === 'PaperQuest' ? (
-                    <div>
-                      <div>1. {step1.fullName}</div>
-                      <div>2. {techMembers[0] || '—'}</div>
-                      <div>3. {techMembers[1] || '—'}</div>
-                    </div>
-                  ) : (
-                    <div>Solo: {step1.fullName}</div>
-                  )}
+                <div className="text-[11px] text-foreground-muted font-normal mt-1 space-y-0.5">
+                  {techNames.map((n, i) => (
+                    <div key={i}>{i + 1}. {n}</div>
+                  ))}
                 </div>
               </div>
             ) : (
@@ -781,17 +912,10 @@ const Step4Review: React.FC<{
             {nonTechEvent ? (
               <div>
                 <div>{nonTechEvent}</div>
-                <div className="text-[11px] text-foreground-muted font-normal mt-1">
-                  {nonTechEvent === 'Mine Relay' ? (
-                    <div>
-                      <div>1. {step1.fullName}</div>
-                      <div>2. {nonTechMembers[0] || '—'}</div>
-                      <div>3. {nonTechMembers[1] || '—'}</div>
-                      <div>4. {nonTechMembers[2] || '—'}</div>
-                    </div>
-                  ) : (
-                    <div>Solo: {step1.fullName}</div>
-                  )}
+                <div className="text-[11px] text-foreground-muted font-normal mt-1 space-y-0.5">
+                  {nonTechNames.map((n, i) => (
+                    <div key={i}>{i + 1}. {n}</div>
+                  ))}
                 </div>
               </div>
             ) : (
@@ -895,12 +1019,17 @@ const Step5Payment: React.FC<{
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [utrError, setUtrError] = useState('');
 
+  const { step1, techEvent, nonTechEvent, masterParticipants, techAssignment, nonTechAssignment } = form;
+
+  const techNames = techEvent ? resolveNames(masterParticipants, techAssignment) : [];
+  const nonTechNames = nonTechEvent ? resolveNames(masterParticipants, nonTechAssignment) : [];
+
   const calculation = calculateUniqueMembersAndFee(
-    form.step1.fullName,
-    form.techEvent,
-    form.techMembers,
-    form.nonTechEvent,
-    form.nonTechMembers
+    step1.fullName,
+    techEvent,
+    techNames.slice(1),
+    nonTechEvent,
+    nonTechNames.slice(1)
   );
 
   const upiId = DEFAULT_UPI_ID;
@@ -911,10 +1040,7 @@ const Step5Payment: React.FC<{
     QRCode.toDataURL(upiUrl, {
       width: 280,
       margin: 2,
-      color: {
-        dark: '#171717',
-        light: '#ffffff',
-      },
+      color: { dark: '#171717', light: '#ffffff' },
     })
       .then(setQrDataUrl)
       .catch(err => console.error('Error generating UPI QR code:', err));
@@ -926,9 +1052,7 @@ const Step5Payment: React.FC<{
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handlePayViaApp = () => {
-    window.location.href = upiUrl;
-  };
+  const handlePayViaApp = () => { window.location.href = upiUrl; };
 
   const handleSubmitCheck = () => {
     if (!form.paymentId.trim()) {
@@ -964,7 +1088,6 @@ const Step5Payment: React.FC<{
           DYNAMIC UPI PAYMENT
         </div>
 
-        {/* Big Amount */}
         <div className="text-4xl font-extrabold text-foreground tabular-nums">
           ₹{totalAmount}
         </div>
@@ -972,7 +1095,6 @@ const Step5Payment: React.FC<{
           For {calculation.totalMembers} Unique Participant{calculation.totalMembers > 1 ? 's' : ''} (₹{FEE_PER_HEAD} per head)
         </p>
 
-        {/* QR Code image */}
         <div className="bg-white p-3.5 rounded-2xl shadow-sm border border-border inline-block mx-auto">
           {qrDataUrl ? (
             <img
@@ -987,7 +1109,6 @@ const Step5Payment: React.FC<{
           )}
         </div>
 
-        {/* UPI Details & Mobile Trigger */}
         <div className="space-y-2 max-w-sm mx-auto">
           <div className="p-2.5 rounded-xl bg-white border border-border flex items-center justify-between text-xs">
             <div className="text-left truncate mr-2">
@@ -1004,7 +1125,6 @@ const Step5Payment: React.FC<{
             </button>
           </div>
 
-          {/* Pay via UPI App button for mobile */}
           <button
             type="button"
             onClick={handlePayViaApp}
@@ -1012,10 +1132,28 @@ const Step5Payment: React.FC<{
           >
             <ExternalLink className="w-3.5 h-3.5" /> PAY VIA ANY UPI APP
           </button>
+
+          <div className="pt-2 text-center">
+            <details className="cursor-pointer group">
+              <summary className="text-[11px] font-semibold text-foreground-muted hover:text-phoenix-orange transition-colors list-none flex items-center justify-center gap-1">
+                <span>View Static Organizer QR (Reference)</span>
+                <span className="text-[9px] bg-background-warm border border-border px-1.5 py-0.5 rounded">Fallback</span>
+              </summary>
+              <div className="mt-3 p-3 bg-white rounded-2xl border border-border inline-block shadow-sm">
+                <img
+                  src="/Payment-Qr.jpeg"
+                  alt="Organizer Reference UPI QR"
+                  className="w-44 h-44 object-contain mx-auto rounded-lg"
+                />
+                <p className="text-[10px] text-foreground-muted mt-2 max-w-[200px] mx-auto leading-tight">
+                  Reference organizer QR for UPI ID <strong>{upiId}</strong>. Use dynamic QR above for pre-filled amount.
+                </p>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
 
-      {/* STEPS INSTRUCTIONS */}
       <div className="p-4 rounded-2xl bg-white border border-border space-y-2 text-xs text-foreground-secondary">
         <p className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
           <ShieldCheck className="w-4 h-4 text-emerald-600" /> HOW TO COMPLETE REGISTRATION:
@@ -1028,16 +1166,12 @@ const Step5Payment: React.FC<{
         </ol>
       </div>
 
-      {/* UTR INPUT FIELD */}
       <Field label="Payment ID / UTR (Transaction Reference Number)" error={utrError} required>
         <Input
           placeholder="e.g. 12-digit UTR from GPay / PhonePe / Paytm"
           value={form.paymentId}
           disabled={loading}
-          onChange={e => {
-            setUtrError('');
-            onPaymentIdChange(e.target.value);
-          }}
+          onChange={e => { setUtrError(''); onPaymentIdChange(e.target.value); }}
           hasError={!!utrError}
         />
         <p className="text-[11px] text-foreground-muted mt-1.5">
@@ -1045,7 +1179,6 @@ const Step5Payment: React.FC<{
         </p>
       </Field>
 
-      {/* SUBMISSION BUTTONS WITH DOUBLE-SUBMISSION PROTECTION */}
       <div className="flex gap-3 pt-2">
         <button
           type="button"
@@ -1154,7 +1287,6 @@ Please display this Pass or Registration ID at the Welcome Desk.
         </p>
       </div>
 
-      {/* ID PASS CARD */}
       <div className="p-6 rounded-3xl bg-darkAccent text-white text-center space-y-3 relative overflow-hidden shadow-phoenix-glow">
         <div
           className="absolute inset-0 pointer-events-none"
@@ -1195,7 +1327,6 @@ Please display this Pass or Registration ID at the Welcome Desk.
         </div>
       </div>
 
-      {/* EVENT BADGES */}
       <div className="grid grid-cols-2 gap-3 text-xs">
         <div className="p-3.5 rounded-xl bg-phoenix-orange/10 border border-phoenix-orange/20 text-center">
           <p className="text-[9px] font-bold tracking-widest text-phoenix-orange uppercase mb-0.5">TECHNICAL</p>
@@ -1211,17 +1342,15 @@ Please display this Pass or Registration ID at the Welcome Desk.
         📍 <strong>Adhiparasakthi Engineering College</strong> · 14 October 2026 · Reporting: 09:00 AM
       </div>
 
-      {/* WHATSAPP COMMUNITY */}
       <a
-        href="https://chat.whatsapp.com/YOUR_WHATSAPP_INVITE_LINK"
+        href="https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v"
         target="_blank"
         rel="noreferrer"
         className="w-full py-4 rounded-full bg-[#25D366] hover:bg-[#20B858] text-white font-bold tracking-wider uppercase text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
       >
-        <MessageCircle className="w-5 h-5" /> JOIN OFFICIAL WHATSAPP GROUP
+        <MessageCircle className="w-5 h-5" /> JOIN PIXELO 3.O WHATSAPP GROUP
       </a>
 
-      {/* DOWNLOAD PASS */}
       <button
         type="button"
         onClick={handleDownloadConfirmation}
@@ -1256,18 +1385,53 @@ export const RegistrationPage: React.FC = () => {
   const [form, setForm] = useState<FormState>({
     step1: { fullName: '', college: '', department: '', phone: '', email: '' },
     techEvent: null,
-    techMembers: ['', ''], // PaperQuest has Member 2 and Member 3
     nonTechEvent: null,
-    nonTechMembers: ['', '', ''], // Mine Relay has Member 2, 3, 4
+    masterParticipants: [''], // index 0 = main participant (synced from step1.fullName)
+    techAssignment: [0],
+    nonTechAssignment: [0],
     paymentId: '',
   });
 
   const deadlinePassed = isDeadlinePassed();
 
+  // Keep masterParticipants[0] in sync with step1.fullName
+  useEffect(() => {
+    setForm(f => {
+      const arr = [...f.masterParticipants];
+      arr[0] = f.step1.fullName;
+      return { ...f, masterParticipants: arr };
+    });
+  }, [form.step1.fullName]);
+
   // Scroll to top on step change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
+
+  // When events change, recalculate default assignments
+  const handleTechEventChange = (e: TechEvent) => {
+    setForm(f => {
+      const newMaster = e === 'PaperQuest'
+        ? [f.masterParticipants[0], '', '', '']
+        : [f.masterParticipants[0]];
+      const { techAssignment, nonTechAssignment } = defaultAssignments(e, f.nonTechEvent, newMaster);
+      return { ...f, techEvent: e, masterParticipants: newMaster, techAssignment, nonTechAssignment };
+    });
+  };
+
+  const handleNonTechEventChange = (e: NonTechEvent) => {
+    setForm(f => {
+      // If non-tech needs a team and there's no team event, ensure master has 4 slots
+      let newMaster = [...f.masterParticipants];
+      if (e === 'Mine Relay' && f.techEvent !== 'PaperQuest' && newMaster.length < 4) {
+        while (newMaster.length < 4) newMaster.push('');
+      } else if (e !== 'Mine Relay' && f.techEvent !== 'PaperQuest' && newMaster.length > 1) {
+        newMaster = [newMaster[0]];
+      }
+      const { techAssignment, nonTechAssignment } = defaultAssignments(f.techEvent, e, newMaster);
+      return { ...f, nonTechEvent: e, masterParticipants: newMaster, techAssignment, nonTechAssignment };
+    });
+  };
 
   // Final submission to Google Apps Script Backend
   const handleFinalSubmit = async () => {
@@ -1290,27 +1454,31 @@ export const RegistrationPage: React.FC = () => {
     setLoading(true);
 
     try {
+      const { techEvent, nonTechEvent, masterParticipants, techAssignment, nonTechAssignment } = form;
+
+      const techNames = techEvent ? resolveNames(masterParticipants, techAssignment) : [];
+      const nonTechNames = nonTechEvent ? resolveNames(masterParticipants, nonTechAssignment) : [];
+
       const payload = {
         fullName: form.step1.fullName.trim(),
         college: form.step1.college.trim(),
         department: form.step1.department.trim(),
         phone: form.step1.phone.trim(),
         email: form.step1.email.trim(),
-        technicalEvent: form.techEvent === 'PaperQuest' ? 'PAPERQUEST' : form.techEvent === 'AI FilmForge' ? 'AI FILMFORGE' : '',
-        technicalMember1: form.techEvent ? form.step1.fullName.trim() : '',
-        technicalMember2: form.techEvent === 'PaperQuest' ? (form.techMembers[0] || '').trim() : '',
-        technicalMember3: form.techEvent === 'PaperQuest' ? (form.techMembers[1] || '').trim() : '',
-        technicalMember4: '', // PaperQuest team size 3: member 4 blank
-        nonTechnicalEvent: form.nonTechEvent === 'Mine Relay' ? 'MINE RELAY' : form.nonTechEvent === 'Checkmate' ? 'CHECKMATE' : '',
-        nonTechnicalMember1: form.nonTechEvent ? form.step1.fullName.trim() : '',
-        nonTechnicalMember2: form.nonTechEvent === 'Mine Relay' ? (form.nonTechMembers[0] || '').trim() : '',
-        nonTechnicalMember3: form.nonTechEvent === 'Mine Relay' ? (form.nonTechMembers[1] || '').trim() : '',
-        nonTechnicalMember4: form.nonTechEvent === 'Mine Relay' ? (form.nonTechMembers[2] || '').trim() : '',
+        technicalEvent: techEvent === 'PaperQuest' ? 'PAPERQUEST' : techEvent === 'AI FilmForge' ? 'AI FILMFORGE' : '',
+        technicalMember1: techNames[0] || '',
+        technicalMember2: techNames[1] || '',
+        technicalMember3: techNames[2] || '',
+        technicalMember4: techNames[3] || '',
+        nonTechnicalEvent: nonTechEvent === 'Mine Relay' ? 'MINE RELAY' : nonTechEvent === 'Checkmate' ? 'CHECKMATE' : '',
+        nonTechnicalMember1: nonTechNames[0] || '',
+        nonTechnicalMember2: nonTechNames[1] || '',
+        nonTechnicalMember3: nonTechNames[2] || '',
+        nonTechnicalMember4: nonTechNames[3] || '',
         paymentId: form.paymentId.trim(),
       };
 
       const result = await submitToGoogleSheet(payload);
-
       setSuccessResult(result);
       setStep(5); // 06 CONFIRMED
     } catch (err: unknown) {
@@ -1326,7 +1494,6 @@ export const RegistrationPage: React.FC = () => {
       <div className="min-h-screen bg-background-warm/40 pt-24 pb-20">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
 
-          {/* Page Header */}
           <div className="text-center mb-8">
             <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-2">
               PIXELO 3.O · NATIONAL LEVEL SYMPOSIUM
@@ -1341,7 +1508,6 @@ export const RegistrationPage: React.FC = () => {
             )}
           </div>
 
-          {/* DEADLINE PASSED BANNER */}
           {deadlinePassed ? (
             <div className="bg-white rounded-3xl border border-red-200 shadow-sm p-8 text-center space-y-4">
               <div className="w-14 h-14 rounded-full bg-red-50 text-red-500 flex items-center justify-center mx-auto">
@@ -1363,7 +1529,6 @@ export const RegistrationPage: React.FC = () => {
               </div>
             </div>
           ) : (
-            /* WIZARD CARD */
             <div className="bg-white rounded-3xl border border-border shadow-sm p-6 sm:p-8">
               <ProgressBar current={step} />
 
@@ -1379,20 +1544,8 @@ export const RegistrationPage: React.FC = () => {
                 <Step2Events
                   techEvent={form.techEvent}
                   nonTechEvent={form.nonTechEvent}
-                  onTechChange={e => {
-                    setForm(f => ({
-                      ...f,
-                      techEvent: e,
-                      techMembers: e === 'PaperQuest' ? ['', ''] : [],
-                    }));
-                  }}
-                  onNonTechChange={e => {
-                    setForm(f => ({
-                      ...f,
-                      nonTechEvent: e,
-                      nonTechMembers: e === 'Mine Relay' ? ['', '', ''] : [],
-                    }));
-                  }}
+                  onTechChange={handleTechEventChange}
+                  onNonTechChange={handleNonTechEventChange}
                   onNext={() => setStep(2)}
                   onBack={() => setStep(0)}
                 />
@@ -1401,12 +1554,13 @@ export const RegistrationPage: React.FC = () => {
               {step === 2 && (
                 <Step3Team
                   techEvent={form.techEvent}
-                  techMembers={form.techMembers}
-                  onTechMembersChange={m => setForm(f => ({ ...f, techMembers: m }))}
                   nonTechEvent={form.nonTechEvent}
-                  nonTechMembers={form.nonTechMembers}
-                  onNonTechMembersChange={m => setForm(f => ({ ...f, nonTechMembers: m }))}
-                  fullName={form.step1.fullName}
+                  masterParticipants={form.masterParticipants}
+                  onMasterChange={m => setForm(f => ({ ...f, masterParticipants: m }))}
+                  techAssignment={form.techAssignment}
+                  onTechAssignment={a => setForm(f => ({ ...f, techAssignment: a }))}
+                  nonTechAssignment={form.nonTechAssignment}
+                  onNonTechAssignment={a => setForm(f => ({ ...f, nonTechAssignment: a }))}
                   onNext={() => setStep(3)}
                   onBack={() => setStep(1)}
                 />

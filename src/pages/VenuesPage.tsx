@@ -6,7 +6,7 @@ import { MapPin, Clock } from 'lucide-react';
 const VENUES = [
   { session: 'MORNING SESSION', time: '10:30 AM – 12:10 PM', events: [
     { name: 'PAPERQUEST',   venue: 'Main Auditorium', cat: 'Technical', color: 'from-phoenix-orange to-phoenix-red', desc: 'Large seating, projector, presentation setup for paper reading.' },
-    { name: 'AI FILMFORGE', venue: 'MM Lab',           cat: 'Technical', color: 'from-phoenix-red to-phoenix-magenta', desc: 'Multimedia lab with high-speed systems for AI content screening.' },
+    { name: 'AI FILMFORGE', venue: 'Main CSE Lab',  cat: 'Technical', color: 'from-phoenix-red to-phoenix-magenta', desc: 'Main CSE Lab with high-speed systems for AI content creation and screening.' },
   ]},
   { session: 'AFTERNOON SESSION', time: '01:40 PM – 03:30 PM', events: [
     { name: 'CHECKMATE',  venue: 'Main CSE Lab',  cat: 'Non-Technical', color: 'from-phoenix-magenta to-phoenix-purple', desc: 'Spacious lab set up with chess boards for tournament play.' },

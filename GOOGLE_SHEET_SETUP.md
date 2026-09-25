@@ -52,9 +52,34 @@ This guide explains how to connect your **PIXELO 3.O** website registration to y
 
 ---
 
-### Verification
+### Verification & Features
 Once deployed:
 1. The script will automatically create the 23 exact columns with orange header formatting on the first submission.
 2. Every registration will be saved as **EXACTLY ONE ROW**.
-3. Sequential IDs will be concurrency-safely created as `PIXELO3.O-001`, `PIXELO3.O-002`, etc.
-4. Deadline enforcement stops registrations after **13 October 2026, 10:00 PM IST**.
+3. Strict team sizes enforced:
+   - **PAPERQUEST**: Exactly 4 members
+   - **AI FILMFORGE**: Exactly 1 member (Solo)
+   - **CHECKMATE**: Exactly 1 member (Solo)
+   - **MINE RELAY**: Exactly 4 members
+4. ₹129 fee per unique participant with cross-event deduplication.
+5. Dynamic UPI QR with UPI ID `sachinvelu6925-2@oksbi` and pre-filled amount.
+6. Static fallback/reference QR available from `/Payment-Qr.jpeg`.
+7. Concurrency-safe sequential IDs: `PIXELO3.O-001`, `PIXELO3.O-002`, etc.
+8. Deadline enforcement stops registrations after **13 October 2026, 10:00 PM IST**.
+9. Official WhatsApp Group Link: `https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v`
+
+---
+
+### Step 5: Admin Portal Access
+- **Admin Hotkey / Shortcut**: Press **`Ctrl + F1`** on any page to immediately open the portal!
+- **Admin Login Route**: `/admin/login`
+- **Username**: `PIXEL3.O`
+- **Password**: `PIXEL@26`
+- **Admin Dashboard**: `/admin/dashboard`
+- **Manage Registrations & Verify Payments**: `/admin/registrations`
+- **Unique Participants Directory**: `/admin/participants`
+- **Payments Management**: `/admin/payments`
+- **Events & Quotas**: `/admin/events`
+- **Analytics & Charts**: `/admin/analytics`
+- **System Settings**: `/admin/settings`
+- **CSV Export**: Direct filtered CSV exports available on Registrations, Payments, and Participants.

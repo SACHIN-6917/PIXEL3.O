@@ -20,9 +20,15 @@ export interface AgendaItem {
   highlight?: boolean;
 }
 
+export interface CommitteeItem {
+  role: string;
+  members: string[];
+}
+
 export interface Coordinator {
   name: string;
   role: string;
+  members?: string[];
   department?: string;
   titleBadge?: string;
   year?: string;
@@ -41,10 +47,10 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     rules: [
       'Presentation duration: 8 mins presentation + 2 mins Q&A',
       'Topics cover AI/ML, Cloud Computing, Cyber Security, IoT, and Emerging Technologies',
-      'Team composition: Exactly 3 members per team',
+      'Team composition: Exactly 4 members per team',
       'Presentation slides must be brought in PPT/PDF format on a USB drive'
     ],
-    teamSize: 'Team of 3',
+    teamSize: 'Team of 4',
     coordinators: 'Faculty & Student Technical Leads'
   },
   {
@@ -52,7 +58,7 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     number: '02',
     name: 'AI FILMFORGE',
     category: 'Technical Event',
-    venue: 'MM LAB',
+    venue: 'MAIN CSE LAB',
     timing: '10:30 AM – 12:10 PM',
     description: 'Unleash next-generation generative AI, cinematic storytelling, and multimedia prompt engineering to architect creative short films and visual narratives.',
     rules: [
@@ -120,7 +126,7 @@ export const AGENDA_ITEMS: AgendaItem[] = [
     time: '10:30 AM – 12:10 PM',
     title: 'TECHNICAL EVENTS',
     subtitle: 'PaperQuest · AI FilmForge',
-    description: 'Simultaneous technical sessions: PaperQuest paper presentations in the Main Auditorium and AI FilmForge in the MM Lab.',
+    description: 'Simultaneous technical sessions: PaperQuest paper presentations in the Main Auditorium and AI FilmForge in the Main CSE Lab.',
     badge: 'Morning Session'
   },
   {
@@ -147,87 +153,94 @@ export const AGENDA_ITEMS: AgendaItem[] = [
   }
 ];
 
-export const STAFF_COORDINATORS: Coordinator[] = [
-  {
-    name: 'Dr. C. Dhaya',
-    role: 'HOD / CSE',
-    department: 'Department of Computer Science and Engineering',
-    titleBadge: 'Head of Department'
-  },
-  {
-    name: 'Mrs. P. Gajalakshmi',
-    role: 'CONVENER',
-    department: 'Assistant Professor / CSE',
-    titleBadge: 'Convener'
-  },
-  {
-    name: 'Mr. K. Charimadhurai',
-    role: 'STAFF COORDINATOR',
-    department: 'Assistant Professor / CSE',
-    titleBadge: 'Staff Coordinator'
-  },
-  {
-    name: 'Dr. A. Bhuwaneswari',
-    role: 'VICE PRINCIPAL',
-    department: 'Adhiparasakthi Engineering College',
-    titleBadge: 'Vice Principal'
-  },
-  {
-    name: 'Dr. V. Ramasamy',
-    role: 'DEAN',
-    department: 'Adhiparasakthi Engineering College',
-    titleBadge: 'Dean'
-  },
-  {
-    name: 'Dr. J. Raja',
-    role: 'PRINCIPAL',
-    department: 'Adhiparasakthi Engineering College',
-    titleBadge: 'Principal'
-  }
+export const STAFF_COMMITTEE: CommitteeItem[] = [
+  { role: 'Convener', members: ['Mrs. P. Gajalakshmi'] },
+  { role: 'Staff Coordinator', members: ['Mr. K. Chairmadhurai'] },
+  { role: 'Treasurer', members: ['Mr. G. Sekar'] },
+  { role: 'Event & Technical Coordinator', members: ['Mrs. M. Padmapriya'] },
+  { role: 'Technical Events', members: ['Mrs. M. Padmapriya'] },
+  { role: 'Non-Technical Events', members: ['Ms. Kavitha'] },
+  { role: 'Registration & Payment', members: ['Ms. S. Swetha', 'Mrs. S. Swathy'] },
+  { role: 'Design, Décor & Reception', members: ['Ms. Jayanthi', 'Ms. Sangavi', 'Ms. Rubini'] },
+  { role: 'Guest Lunch & Hospitality', members: ['Mrs. V. Thamaraiselvi', 'Ms. D. Teena'] },
+  { role: 'Food Committee', members: ['Mr. G. Srinivasan', 'Mr. A. Arunachalam'] },
+  { role: 'Social Media & Promotion', members: ['Mr. M. Sudhashan'] },
+  { role: 'Photography', members: ['Mr. R. Prasanna'] },
+  { role: 'Certificate, Prize & Memento Committee', members: ['Ms. Sumitra'] }
 ];
 
-export const STUDENT_COORDINATORS: Coordinator[] = [
-  {
-    name: 'SACHIN',
-    role: 'PRESIDENT',
-    department: 'CSE',
-    titleBadge: 'President',
-    year: 'Final Year',
-    phone: '9940764517',
-  },
-  {
-    name: 'SHAJITHA K.',
-    role: 'TREASURER',
-    department: 'CSE',
-    titleBadge: 'Treasurer',
-    year: 'Final Year',
-    phone: '',
-  },
-  {
-    name: 'PADMAPRIYA S.',
-    role: 'VICE PRESIDENT',
-    department: 'CSE',
-    titleBadge: 'Vice President',
-    year: 'Third Year',
-    phone: '',
-  },
-  {
-    name: 'SATHISH KUMAR S.',
-    role: 'SECRETARY',
-    department: 'CSE',
-    titleBadge: 'Secretary',
-    year: 'Third Year',
-    phone: '9360500694',
-  },
-  {
-    name: 'BHARATH S.',
-    role: 'JOINT SECRETARY',
-    department: 'CSE',
-    titleBadge: 'Joint Secretary',
-    year: 'Second Year',
-    phone: '',
-  }
+export const STUDENT_LEADERSHIP: CommitteeItem[] = [
+  { role: 'President',       members: ['Mr. Sachin'] },
+  { role: 'Treasurer',       members: ['Ms. Shajitha'] },
+  { role: 'Vice President',  members: ['Ms. Padmapriya'] },
+  { role: 'Secretary',       members: ['Mr. Sathish Kumar'] },
+  { role: 'Joint Secretary', members: ['Mr. Bharath'] },
 ];
+
+export const STUDENT_COMMITTEE: CommitteeItem[] = [
+  { role: 'Event Management Committee', members: ['Ms. Padamapriya', 'Mr. Sathish Kumar'] },
+  { role: 'Technical Committee', members: ['Mr. Gokul Kumar P'] },
+  { role: 'Non-Technical Committee', members: ['Mr. Mohanraj K'] },
+  { role: 'Registration Committee', members: ['Mr. Sairam R'] },
+  { role: 'Food Committee', members: ['Mr. Abu Bakkar Siddiq Raja'] },
+  { role: 'Certificate Committee', members: ['Mr. Vishnu Prasath'] },
+  { role: 'Treasurer', members: ['Ms. Shajitha'] },
+  { role: 'Social Media Committee', members: ['Mr. Ajai Adhithiyan'] },
+  { role: 'Graphic Design Committee', members: ['Mr. Sriram'] },
+  { role: 'Reception Committee', members: ['Ms. Rajakumari'] },
+  { role: 'Prize & Memento Committee', members: ['Mr. Sanjaikumar', 'Mr. Kiranraj'] },
+  { role: 'Photography Committee', members: ['Mr. Dhilip'] },
+  { role: 'Stage & Saami Committee', members: ['Ms. Harini'] },
+  { role: 'Design & Decoration Committee', members: ['Ms. Lavanya'] },
+  { role: 'Outreach Committee', members: ['Mr. Pranav Kumaran'] },
+  { role: 'Discipline Committee', members: ['Mr. Bharath'] },
+  { role: 'Banner Committee', members: ['Mr. Kalaiyarasan'] }
+];
+
+export interface EventCoordinatorGroup {
+  event: string;
+  category: 'Technical' | 'Non-Technical';
+  coordinators: string[];
+}
+
+export const EVENT_COORDINATORS: EventCoordinatorGroup[] = [
+  {
+    event: 'PAPERQUEST',
+    category: 'Technical',
+    coordinators: ['Ms. Duragadevi', 'Ms. Cathrine'],
+  },
+  {
+    event: 'AI FILMFORGE',
+    category: 'Technical',
+    coordinators: ['Ms. Ragavi', 'Ms. Shiyamala'],
+  },
+  {
+    event: 'CHECKMATE',
+    category: 'Non-Technical',
+    coordinators: ['Mr. Gokul Raju', 'Mr. Anandh', 'Mr. Surendar'],
+  },
+  {
+    event: 'MINE RELAY',
+    category: 'Non-Technical',
+    coordinators: ['Ms. Yuvashree', 'Ms. Vijayalakshmi'],
+  },
+];
+
+export const STAFF_COORDINATORS: Coordinator[] = STAFF_COMMITTEE.map((item) => ({
+  name: item.members.join(', '),
+  role: item.role,
+  members: item.members,
+  department: 'Adhiparasakthi Engineering College',
+  titleBadge: 'Staff Committee'
+}));
+
+export const STUDENT_COORDINATORS: Coordinator[] = STUDENT_COMMITTEE.map((item) => ({
+  name: item.members.join(', '),
+  role: item.role,
+  members: item.members,
+  department: 'Dept. of CSE',
+  titleBadge: 'Student Committee'
+}));
 
 export const VENUES_DATA = [
   {
@@ -244,9 +257,9 @@ export const VENUES_DATA = [
       {
         eventName: 'AI FILMFORGE',
         category: 'Technical Event',
-        venueName: 'MM Lab (Multimedia Lab)',
-        floor: 'Second Floor, IT/CSE Wing',
-        capacity: 'High-Performance Workstations & GPU Cluster',
+        venueName: 'Main CSE Lab',
+        floor: 'First Floor, CSE Department Wing',
+        capacity: 'High-Performance Workstations · AI/Generative Tools Lab',
         icon: 'Video'
       }
     ]
@@ -324,4 +337,4 @@ export const REGISTRATION_DEADLINE = '2026-10-13T22:00:00';
 export const EVENT_DATE_STRING = '14 OCTOBER 2026';
 export const REPORTING_TIME = '09:00 AM';
 export const VENUE_COLLEGE = 'Adhiparasakthi Engineering College, Melmaruvathur';
-export const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/pixelo3-symposium-official';
+export const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v';
