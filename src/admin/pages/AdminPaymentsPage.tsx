@@ -91,7 +91,7 @@ export const AdminPaymentsPage: React.FC = () => {
       r.registeredAt,
     ]);
 
-    exportToCsv('PIXELO_3.0_Payments', headers, rows);
+    exportToCsv('PIXEL_3.O_Payments', headers, rows);
   };
 
   // Payment Verification Action

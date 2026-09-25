@@ -1,7 +1,7 @@
 /**
- * PIXELO 3.O — Google Apps Script Backend (Production Master)
+ * PIXEL-3.O — Google Apps Script Backend (Production Master)
  * 
- * Spreadsheet Name: "PIXELO 3.O – Event Registrations 2026"
+ * Spreadsheet Name: "PIXEL-3.O – Event Registrations 2026"
  * Tab Name: "Registrations"
  * 
  * Exact 23 Columns:
@@ -118,7 +118,7 @@ function doGet(e) {
     var isDeadlinePassed = new Date().getTime() > CONFIG.DEADLINE_EPOCH;
     return createJsonResponse({
       status: "online",
-      system: "PIXELO 3.O Master Registration & Admin API",
+      system: "PIXEL-3.O Master Registration & Admin API",
       feePerHead: CONFIG.FEE_PER_HEAD,
       deadlinePassed: isDeadlinePassed,
       timestamp: Utilities.formatDate(new Date(), "GMT+05:30", "yyyy-MM-dd HH:mm:ss 'IST'")
@@ -268,9 +268,9 @@ function handlePublicRegistration(data) {
       });
     }
 
-    // Generate Concurrency-Safe Sequential Registration_ID: PIXELO3.O-001
+    // Generate Concurrency-Safe Sequential Registration_ID: PIXEL-3.O-001
     var props = PropertiesService.getScriptProperties();
-    var counterStr = props.getProperty("PIXELO_REG_COUNTER");
+    var counterStr = props.getProperty("PIXEL_REG_COUNTER") || props.getProperty("PIXELO_REG_COUNTER");
     var counter = counterStr ? parseInt(counterStr, 10) : 0;
 
     if (counter === 0) {
@@ -281,8 +281,8 @@ function handlePublicRegistration(data) {
     }
 
     counter += 1;
-    props.setProperty("PIXELO_REG_COUNTER", counter.toString());
-    registrationId = "PIXELO3.O-" + padZero(counter, 3);
+    props.setProperty("PIXEL_REG_COUNTER", counter.toString());
+    registrationId = "PIXEL-3.O-" + padZero(counter, 3);
 
     var timestamp = Utilities.formatDate(new Date(), "GMT+05:30", "yyyy-MM-dd HH:mm:ss 'IST'");
 
@@ -354,7 +354,7 @@ function handleAdminLogin(data) {
   var configuredPass = props.getProperty("PIXELO_ADMIN_KEY") || "PIXEL@26";
 
   var uUpper = username.toUpperCase();
-  var isUserMatch = (uUpper === configuredUser.toUpperCase() || uUpper === "PIXEL3.O" || uUpper === "ADMIN" || uUpper === "ADMIN@PIXELO.ORG");
+  var isUserMatch = (uUpper === configuredUser.toUpperCase() || uUpper === "PIXEL-3.O" || uUpper === "PIXEL3.O" || uUpper === "ADMIN" || uUpper === "ADMIN@PIXEL.ORG" || uUpper === "ADMIN@PIXELO.ORG");
   var isPassMatch = (password === configuredPass || password === "PIXEL@26" || password === "pixelo2026@admin");
 
   if (isUserMatch && isPassMatch) {

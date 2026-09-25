@@ -1,6 +1,6 @@
-# PIXELO 3.O — Google Sheet Backend Setup Guide
+# PIXEL-3.O — Google Sheet Backend Setup Guide
 
-This guide explains how to connect your **PIXELO 3.O** website registration to your Google Spreadsheet.
+This guide explains how to connect your **PIXEL-3.O** website registration to your Google Spreadsheet.
 
 ---
 
@@ -8,7 +8,7 @@ This guide explains how to connect your **PIXELO 3.O** website registration to y
 1. Open [Google Sheets](https://sheets.new).
 2. Name the spreadsheet:
    ```
-   PIXELO 3.O – Event Registrations 2026
+   PIXEL-3.O – Event Registrations 2026
    ```
 3. Rename the first sheet/tab at the bottom to:
    ```
@@ -31,7 +31,7 @@ This guide explains how to connect your **PIXELO 3.O** website registration to y
 1. In the top right corner of Apps Script, click **Deploy** > **New deployment**.
 2. Click the gear icon ⚙️ next to "Select type" and choose **Web app**.
 3. Fill in:
-   - **Description**: `PIXELO 3.O Registration API`
+   - **Description**: `PIXEL-3.O Registration API`
    - **Execute as**: `Me (your email)`
    - **Who has access**: `Anyone` *(Crucial so participants can submit from the website)*
 4. Click **Deploy**.
@@ -64,7 +64,7 @@ Once deployed:
 4. ₹129 fee per unique participant with cross-event deduplication.
 5. Dynamic UPI QR with UPI ID `sachinvelu6925-2@oksbi` and pre-filled amount.
 6. Static fallback/reference QR available from `/Payment-Qr.jpeg`.
-7. Concurrency-safe sequential IDs: `PIXELO3.O-001`, `PIXELO3.O-002`, etc.
+7. Concurrency-safe sequential IDs: `PIXEL-3.O-001`, `PIXEL-3.O-002`, etc.
 8. Deadline enforcement stops registrations after **13 October 2026, 10:00 PM IST**.
 9. Official WhatsApp Group Link: `https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v`
 

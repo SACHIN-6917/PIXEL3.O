@@ -75,7 +75,7 @@ export const AdminDashboardPage: React.FC = () => {
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">ADMIN DASHBOARD</h1>
           <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Real-time overview of PIXELO 3.O symposium registrations & revenue
+            Real-time overview of PIXEL-3.O symposium registrations & revenue
           </p>
         </div>
         <button

@@ -118,7 +118,7 @@ export const AGENDA_ITEMS: AgendaItem[] = [
     time: '09:30 AM',
     title: 'INAUGURATION',
     subtitle: 'Main Auditorium',
-    description: 'Ceremonial lamp lighting, presidential address by dignitaries, keynote speech, and official unveiling of PIXELO 3.O.',
+    description: 'Ceremonial lamp lighting, presidential address by dignitaries, keynote speech, and official unveiling of PIXEL-3.O.',
     badge: 'Ceremony',
     highlight: true
   },

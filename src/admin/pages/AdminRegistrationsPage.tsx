@@ -160,7 +160,7 @@ export const AdminRegistrationsPage: React.FC = () => {
       r.registeredAt,
     ]);
 
-    exportToCsv('PIXELO_3.0_Registrations', headers, rows);
+    exportToCsv('PIXEL_3.O_Registrations', headers, rows);
   };
 
   // Status Actions

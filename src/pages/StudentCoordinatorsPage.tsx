@@ -18,7 +18,7 @@ export const StudentCoordinatorsPage: React.FC = () => (
           style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 100%, rgba(229,27,35,0.18) 0%, transparent 70%)' }}
         />
         <div className="relative z-10">
-          <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-2">CSE DEPT · PIXELO 3.O 2026</div>
+          <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-2">CSE DEPT · PIXEL-3.O 2026</div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">STUDENT COMMITTEE</h1>
           <div className="w-12 h-[3px] bg-gradient-to-r from-phoenix-orange to-phoenix-magenta rounded-full mx-auto mb-4" />
           <p className="text-white/60 text-sm">ADHIPARASAKTHI ENGINEERING COLLEGE</p>
@@ -35,7 +35,7 @@ export const StudentCoordinatorsPage: React.FC = () => (
             <div className="mb-10 pb-6 border-b border-border">
               <div className="text-xs font-bold tracking-[0.25em] text-phoenix-orange uppercase mb-2">01 / LEADERSHIP</div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">STUDENT COMMITTEE LEADERSHIP</h2>
-              <p className="text-sm text-foreground-secondary mt-2">Core executive positions of PIXELO 3.O student body.</p>
+              <p className="text-sm text-foreground-secondary mt-2">Core executive positions of PIXEL-3.O student body.</p>
             </div>
           </ScrollReveal>
 
@@ -114,7 +114,7 @@ export const StudentCoordinatorsPage: React.FC = () => (
             <div className="mb-10 pb-6 border-b border-border">
               <div className="text-xs font-bold tracking-[0.25em] text-phoenix-orange uppercase mb-2">03 / EVENT COORDINATORS</div>
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">EVENT COORDINATORS</h2>
-              <p className="text-sm text-foreground-secondary mt-2">Student coordinators assigned event-wise for PIXELO 3.O 2026.</p>
+              <p className="text-sm text-foreground-secondary mt-2">Student coordinators assigned event-wise for PIXEL-3.O 2026.</p>
             </div>
           </ScrollReveal>
 

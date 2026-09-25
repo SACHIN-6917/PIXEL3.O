@@ -57,7 +57,7 @@ export const AdminLayout: React.FC = () => {
               </div>
               <div className="truncate">
                 <span className="font-extrabold text-sm tracking-wider uppercase block text-[#171717]">
-                  PIXELO 3.O
+                  PIXEL-3.O
                 </span>
                 <span className="text-[10px] text-gray-500 font-semibold tracking-wider uppercase block">
                   ADMIN PORTAL
@@ -162,7 +162,7 @@ export const AdminLayout: React.FC = () => {
             </div>
             <div>
               <span className="font-extrabold text-sm tracking-wider uppercase block text-[#171717]">
-                PIXELO 3.O
+                PIXEL-3.O
               </span>
               <span className="text-[10px] text-gray-500 font-semibold tracking-wider uppercase block">
                 ADMIN PORTAL

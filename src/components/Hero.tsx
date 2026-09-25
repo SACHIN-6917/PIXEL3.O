@@ -26,8 +26,8 @@ export const Hero: React.FC = () => {
         </div>
 
         <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white select-none leading-none mb-3 drop-shadow-2xl">
-          <span>PIXELO</span>{' '}
-          <span className="bg-gradient-to-r from-phoenix-orange via-phoenix-red to-phoenix-magenta bg-clip-text text-transparent">3.O</span>
+          <span>PIXEL</span>
+          <span className="bg-gradient-to-r from-phoenix-orange via-phoenix-red to-phoenix-magenta bg-clip-text text-transparent">-3.O</span>
         </h1>
 
         <h2 className="text-xs sm:text-sm md:text-base font-semibold tracking-[0.25em] text-white/70 uppercase mb-4">

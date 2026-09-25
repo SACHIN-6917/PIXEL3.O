@@ -143,7 +143,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
             name: formData.fullName,
             college: formData.college,
             events: formData.selectedEvents,
-            symposium: 'PIXELO 3.O',
+            symposium: 'PIXEL-3.O',
             date: '14-OCT-2026'
           }),
           { width: 200, margin: 1, color: { dark: '#171717', light: '#FFFFFF' } }
@@ -197,7 +197,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               Registration Closed
             </h3>
             <p className="text-sm text-foreground-secondary max-w-md mx-auto">
-              The deadline for PIXELO 3.O (13 October 2026, 10:00 PM) has ended. On-spot registrations may be subject to availability at the registration desk on 14 October 2026.
+              The deadline for PIXEL-3.O (13 October 2026, 10:00 PM) has ended. On-spot registrations may be subject to availability at the registration desk on 14 October 2026.
             </p>
             <button
               onClick={onClose}
@@ -215,7 +215,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 <span>OFFICIAL PARTICIPANT REGISTRATION</span>
               </div>
               <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-                REGISTER FOR PIXELO 3.O
+                REGISTER FOR PIXEL-3.O
               </h3>
               <p className="text-xs sm:text-sm text-foreground-secondary mt-1">
                 Fill in your details and select your events. Unique ID will be generated upon confirmation.
@@ -425,7 +425,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 REGISTRATION SUCCESSFUL
               </span>
               <h3 className="text-2xl sm:text-3xl font-extrabold text-foreground mt-1">
-                WELCOME TO PIXELO 3.O
+                WELCOME TO PIXEL-3.O
               </h3>
               <p className="text-xs text-foreground-secondary mt-1">
                 Your pass has been securely confirmed. Show your Registration ID or QR code at the check-in desk.

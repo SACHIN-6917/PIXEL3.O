@@ -15,7 +15,7 @@ export const AboutPage: React.FC = () => {
           <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse 70% 60% at 50% 100%, rgba(255,106,0,0.18) 0%, transparent 70%)' }} />
           <div className="relative z-10 max-w-4xl mx-auto">
             <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-3">ABOUT</div>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-4">PIXELO 3.O</h1>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white mb-4">PIXEL-3.O</h1>
             <div className="w-16 h-[3px] bg-gradient-to-r from-phoenix-orange to-phoenix-magenta rounded-full mx-auto mb-6" />
             <p className="text-white/70 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed">
               National Level Technical Symposium · Adhiparasakthi Engineering College · 14 October 2026
@@ -32,7 +32,7 @@ export const AboutPage: React.FC = () => {
                 <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-3">WHO WE ARE</div>
                 <h2 className="text-3xl font-bold tracking-tight text-foreground mb-5">ABOUT THE SYMPOSIUM</h2>
                 <p className="text-foreground-secondary leading-relaxed mb-4">
-                  PIXELO 3.O is a National Level Technical Symposium organized by the <strong className="text-foreground">Department of Computer Science and Engineering</strong>,
+                  PIXEL-3.O is a National Level Technical Symposium organized by the <strong className="text-foreground">Department of Computer Science and Engineering</strong>,
                   Adhiparasakthi Engineering College, Melmaruvathur, in association with the <strong className="text-foreground">Computer Society of India – Kanchipuram Chapter</strong>.
                 </p>
                 <p className="text-foreground-secondary leading-relaxed">
@@ -99,7 +99,7 @@ export const AboutPage: React.FC = () => {
               <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-3">IN ASSOCIATION WITH</div>
               <h2 className="text-2xl font-bold text-foreground mb-3">COMPUTER SOCIETY OF INDIA</h2>
               <p className="text-foreground-secondary max-w-2xl mx-auto">
-                PIXELO 3.O is proudly conducted in association with the <strong className="text-foreground">CSI – Kanchipuram Chapter</strong>, bringing the credibility and network of India's premier computer science professional body to the symposium.
+                PIXEL-3.O is proudly conducted in association with the <strong className="text-foreground">CSI – Kanchipuram Chapter</strong>, bringing the credibility and network of India's premier computer science professional body to the symposium.
               </p>
             </div>
           </ScrollReveal>

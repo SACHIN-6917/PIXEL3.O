@@ -1,4 +1,4 @@
-# 🔥 PIXELO 3.O — National Level Technical Symposium
+# 🔥 PIXEL-3.O — National Level Technical Symposium
 
 **Organized by:**  
 Department of Computer Science and Engineering  
@@ -26,7 +26,7 @@ Department of Computer Science and Engineering
 ---
 
 ## 🌟 Overview & Aesthetics
-**PIXELO 3.O** is a premium, high-performance web platform architected for a national-level engineering symposium. The design is built around the mythological **Phoenix** — symbolizing energy, rebirth, and analytical excellence — featuring rich dark charcoal accents, vibrant flame gradients (Gold, Orange, Red, Magenta, Purple), smooth Framer Motion micro-animations, and responsive layouts across mobile, tablet, and desktop devices.
+**PIXEL-3.O** is a premium, high-performance web platform architected for a national-level engineering symposium. The design is built around the mythological **Phoenix** — symbolizing energy, rebirth, and analytical excellence — featuring rich dark charcoal accents, vibrant flame gradients (Gold, Orange, Red, Magenta, Purple), smooth Framer Motion micro-animations, and responsive layouts across mobile, tablet, and desktop devices.
 
 ---
 
@@ -39,7 +39,7 @@ Department of Computer Science and Engineering
 - **QR Engine:** `qrcode` (real-time dynamic SVG/DataURL generation)
 - **Celebration Effects:** `canvas-confetti`
 - **Backend:** Google Apps Script Web App (Serverless, Concurrency-Safe, Single Google Sheet)
-- **Database:** Google Spreadsheet (`PIXELO 3.O – Event Registrations 2026`)
+- **Database:** Google Spreadsheet (`PIXEL-3.O – Event Registrations 2026`)
 
 ---
 
@@ -114,15 +114,15 @@ The registration flow is a 6-step interactive wizard accessible at `/registratio
    - Displays clear pricing breakdown: Total Unique Members, ₹129 fee per head, and Total Amount.
 5. **Step 5 — Payment & Dynamic UPI QR:**
    - Real-time dynamic UPI QR code rendered with exact calculated amount.
-   - Payee: `PIXELO 3.O`, UPI ID: `sachinvelu6925-2@oksbi`.
+   - Payee: `PIXEL-3.O`, UPI ID: `sachinvelu6925-2@oksbi`.
    - "PAY VIA ANY UPI APP" deep link button for mobile devices.
    - "View Static Organizer QR (Reference)" toggle to inspect the fallback organizer image.
    - Participant enters the 12-digit UTR / Transaction Reference ID.
    - Double-click and duplicate submission prevention disabled on click.
 6. **Step 6 — Confirmation & Pass:**
-   - Displays official Registration ID (e.g. `PIXELO3.O-001`).
+   - Displays official Registration ID (e.g. `PIXEL-3.O-001`).
    - Payment Status marked as `Submitted` (awaiting admin audit).
-   - **"JOIN PIXELO 3.O WHATSAPP GROUP"** button: Direct invite link to `https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v`.
+   - **"JOIN PIXEL-3.O WHATSAPP GROUP"** button: Direct invite link to `https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v`.
    - **"DOWNLOAD CONFIRMATION PASS"** button: Generates an official text pass with all symposium reporting details.
 
 ---
@@ -132,10 +132,10 @@ The registration flow is a 6-step interactive wizard accessible at `/registratio
 ### 1. Dynamic UPI QR:
 The website encodes the exact total calculated fee dynamically for every user:
 ```
-upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXELO%203.O&am={TOTAL_AMOUNT}&cu=INR&tn={REGISTRATION_NOTE}
+upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am={TOTAL_AMOUNT}&cu=INR&tn={REGISTRATION_NOTE}
 ```
-* **₹129:** `upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXELO%203.O&am=129&cu=INR&tn=PIXELO3.O`
-* **₹516:** `upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXELO%203.O&am=516&cu=INR&tn=PIXELO3.O`
+* **₹129:** `upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am=129&cu=INR&tn=PIXEL-3.O`
+* **₹516:** `upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am=516&cu=INR&tn=PIXEL-3.O`
 
 ### 2. Static Reference QR:
 - Located at `/Payment-Qr.jpeg` in the public folder.
@@ -152,12 +152,12 @@ https://script.google.com/macros/s/AKfycbxzUn5hFzvTP3GotvliByvdKDeMBLAO61WLjbpMe
 ```
 
 ### Google Spreadsheet Specifications:
-- **Spreadsheet Name:** `PIXELO 3.O – Event Registrations 2026`
+- **Spreadsheet Name:** `PIXEL-3.O – Event Registrations 2026`
 - **Tab Name:** `Registrations` (Single tab only. No separate tabs for events or payments).
 - **Storage Rule:** Every registration creates **EXACTLY ONE ROW**.
 
 ### Exact 23 Columns Order:
-1. `Registration_ID` (Concurrency-safe format: `PIXELO3.O-001`, `PIXELO3.O-002`...)
+1. `Registration_ID` (Concurrency-safe format: `PIXEL-3.O-001`, `PIXEL-3.O-002`...)
 2. `Full_Name`
 3. `College`
 4. `Department`
@@ -284,7 +284,7 @@ npm run preview
 
 ---
 
-**PIXELO 3.O Organizing Committee**  
+**PIXEL-3.O Organizing Committee**  
 Department of Computer Science and Engineering  
 Adhiparasakthi Engineering College, Melmaruvathur  
 *Let the Phoenix Rise! 🔥*

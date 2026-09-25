@@ -33,6 +33,7 @@ export const AdminSettingsPage: React.FC = () => {
 
   const handleClearLocalCache = () => {
     if (confirm('Clear local registrations cache? Real Google Sheet data will not be affected.')) {
+      localStorage.removeItem('PIXEL_REGISTRATIONS_STORE');
       localStorage.removeItem('PIXELO_REGISTRATIONS_STORE');
       setCleared(true);
       setTimeout(() => setCleared(false), 3000);
@@ -73,7 +74,7 @@ export const AdminSettingsPage: React.FC = () => {
           <div className="space-y-2 text-xs text-gray-600 pt-2">
             <div className="flex justify-between py-1.5 border-b border-gray-100">
               <span className="text-gray-400">Target Spreadsheet:</span>
-              <strong className="text-gray-900">PIXELO 3.O – Event Registrations 2026</strong>
+              <strong className="text-gray-900">PIXEL-3.O – Event Registrations 2026</strong>
             </div>
             <div className="flex justify-between py-1.5 border-b border-gray-100">
               <span className="text-gray-400">Target Tab Name:</span>

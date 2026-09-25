@@ -37,7 +37,7 @@ export const HomePage: React.FC = () => {
           <ScrollReveal animation="up">
             <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-4">WELCOME</div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6">
-              WELCOME TO PIXELO 3.O
+              WELCOME TO PIXEL-3.O
             </h2>
             <p className="text-base sm:text-lg text-foreground-secondary max-w-3xl mx-auto leading-relaxed mb-8">
               A National Level Technical Symposium crafted by the Department of CSE, Adhiparasakthi Engineering College,
@@ -48,7 +48,7 @@ export const HomePage: React.FC = () => {
               onClick={() => navigate('/about')}
               className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-background-warm border border-border hover:border-phoenix-orange hover:text-phoenix-orange text-sm font-bold tracking-wider uppercase transition-all duration-200 text-foreground-secondary"
             >
-              DISCOVER PIXELO 3.O
+              DISCOVER PIXEL-3.O
               <ArrowRight className="w-4 h-4" />
             </button>
           </ScrollReveal>

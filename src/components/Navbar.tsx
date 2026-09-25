@@ -36,9 +36,9 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
 
         {/* Brand */}
-        <NavLink to="/" className="flex items-center gap-1.5 shrink-0">
-          <span className="text-xl font-bold tracking-tight text-foreground">PIXELO</span>
-          <span className="text-xl font-bold bg-gradient-to-r from-phoenix-orange via-phoenix-red to-phoenix-magenta bg-clip-text text-transparent">3.O</span>
+        <NavLink to="/" className="flex items-center gap-0.5 shrink-0">
+          <span className="text-xl font-bold tracking-tight text-foreground">PIXEL</span>
+          <span className="text-xl font-bold bg-gradient-to-r from-phoenix-orange via-phoenix-red to-phoenix-magenta bg-clip-text text-transparent">-3.O</span>
         </NavLink>
 
         {/* Desktop nav */}

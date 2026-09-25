@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- PIXELO 3.O — Supabase Database Setup
+-- PIXEL-3.O — Supabase Database Setup
 -- Run this entire script in Supabase → SQL Editor
 -- ═══════════════════════════════════════════════════════════════
 
@@ -35,11 +35,11 @@ CREATE TABLE IF NOT EXISTS team_members (
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 3. TRIGGER: auto-generate registration_code = 'PIXELO3.O-001', '002', etc.
+-- 3. TRIGGER: auto-generate registration_code = 'PIXEL-3.O-001', '002', etc.
 CREATE OR REPLACE FUNCTION set_registration_code()
 RETURNS TRIGGER AS $$
 BEGIN
-  NEW.registration_code := 'PIXELO3.O-' || LPAD(NEW.registration_number::TEXT, 3, '0');
+  NEW.registration_code := 'PIXEL-3.O-' || LPAD(NEW.registration_number::TEXT, 3, '0');
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

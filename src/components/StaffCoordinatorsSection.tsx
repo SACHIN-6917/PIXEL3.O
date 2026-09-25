@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { STAFF_COORDINATORS } from '../data/pixeloData';
 import { ShieldCheck, UserCheck, ExternalLink } from 'lucide-react';
 import { ScrollReveal } from './ScrollReveal';
 
 export const StaffCoordinatorsSection: React.FC = () => {
-  const openDetailPage = () => window.open('/staff-coordinators.html', '_blank');
+  const navigate = useNavigate();
+  const openDetailPage = () => navigate('/staff-coordinators');
 
   return (
     <section id="staff" className="py-24 bg-white border-t border-border relative">

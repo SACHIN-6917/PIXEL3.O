@@ -1099,7 +1099,7 @@ const Step5Payment: React.FC<{
           {qrDataUrl ? (
             <img
               src={qrDataUrl}
-              alt="PIXELO 3.O Dynamic UPI QR"
+              alt="PIXEL-3.O Dynamic UPI QR"
               className="w-48 h-48 sm:w-56 sm:h-56 mx-auto rounded-lg"
             />
           ) : (
@@ -1238,7 +1238,7 @@ const Step6Confirmed: React.FC<{
 
   const handleDownloadConfirmation = () => {
     const text = `=========================================
-PIXELO 3.O — OFFICIAL REGISTRATION PASS
+PIXEL-3.O — OFFICIAL REGISTRATION PASS
 National Level Technical Symposium
 Department of Computer Science and Engineering
 Adhiparasakthi Engineering College
@@ -1283,7 +1283,7 @@ Please display this Pass or Registration ID at the Welcome Desk.
           REGISTRATION SUCCESSFUL
         </h3>
         <p className="text-xs sm:text-sm text-foreground-secondary mt-1">
-          Welcome to PIXELO 3.O, <strong>{result.fullName}</strong>! Your registration is recorded in our system.
+          Welcome to PIXEL-3.O, <strong>{result.fullName}</strong>! Your registration is recorded in our system.
         </p>
       </div>
 
@@ -1348,7 +1348,7 @@ Please display this Pass or Registration ID at the Welcome Desk.
         rel="noreferrer"
         className="w-full py-4 rounded-full bg-[#25D366] hover:bg-[#20B858] text-white font-bold tracking-wider uppercase text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors shadow-sm"
       >
-        <MessageCircle className="w-5 h-5" /> JOIN PIXELO 3.O WHATSAPP GROUP
+        <MessageCircle className="w-5 h-5" /> JOIN PIXEL-3.O WHATSAPP GROUP
       </a>
 
       <button
@@ -1496,7 +1496,7 @@ export const RegistrationPage: React.FC = () => {
 
           <div className="text-center mb-8">
             <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-2">
-              PIXELO 3.O · NATIONAL LEVEL SYMPOSIUM
+              PIXEL-3.O · NATIONAL LEVEL SYMPOSIUM
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground mb-2">
               {successResult ? 'REGISTRATION CONFIRMED' : 'SYMPOSIUM REGISTRATION'}
@@ -1515,7 +1515,7 @@ export const RegistrationPage: React.FC = () => {
               </div>
               <h2 className="text-2xl font-bold text-foreground">REGISTRATION CLOSED</h2>
               <p className="text-sm text-foreground-secondary max-w-md mx-auto">
-                The registration deadline for PIXELO 3.O passed on <strong>13 October 2026 at 10:00 PM IST</strong>.
+                The registration deadline for PIXEL-3.O passed on <strong>13 October 2026 at 10:00 PM IST</strong>.
                 New registrations and payments are no longer accepted.
               </p>
               <div className="pt-2">

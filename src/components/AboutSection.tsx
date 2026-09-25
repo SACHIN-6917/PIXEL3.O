@@ -31,7 +31,7 @@ export const AboutSection: React.FC = () => {
         {/* Heading */}
         <ScrollReveal animation="up" delay={60}>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-6">
-            ABOUT PIXELO 3.O
+            ABOUT PIXEL-3.O
           </h2>
         </ScrollReveal>
 
@@ -39,7 +39,7 @@ export const AboutSection: React.FC = () => {
         <ScrollReveal animation="up" delay={120}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-foreground-secondary text-base sm:text-lg leading-relaxed border-l-2 border-border pl-6 mb-16">
             <p>
-              PIXELO 3.O is a National Level Technical Symposium organized by the{' '}
+              PIXEL-3.O is a National Level Technical Symposium organized by the{' '}
               <strong className="text-foreground font-semibold">Department of Computer Science and Engineering, Adhiparasakthi Engineering College</strong>,
               in association with the{' '}
               <strong className="text-foreground font-semibold">Computer Society of India – Kanchipuram Chapter</strong>.

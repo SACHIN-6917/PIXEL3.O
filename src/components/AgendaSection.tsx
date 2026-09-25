@@ -15,7 +15,7 @@ export const AgendaSection: React.FC = () => {
               03 / AGENDA
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4">
-              THE DAY AT PIXELO 3.O
+              THE DAY AT PIXEL-3.O
             </h2>
             <p className="text-sm sm:text-base text-foreground-secondary">
               14 OCTOBER 2026 · A choreographed schedule engineered for maximum learning, innovation, and intense competition.

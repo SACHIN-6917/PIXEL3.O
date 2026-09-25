@@ -34,9 +34,9 @@ export const Footer: React.FC = () => {
 
           {/* Brand */}
           <div className="md:col-span-5 space-y-5">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-white">PIXELO</span>
-              <span className="text-2xl font-bold bg-gradient-to-r from-phoenix-orange via-phoenix-red to-phoenix-magenta bg-clip-text text-transparent">3.O</span>
+            <div className="flex items-center gap-0.5">
+              <span className="text-2xl font-bold text-white">PIXEL</span>
+              <span className="text-2xl font-bold bg-gradient-to-r from-phoenix-orange via-phoenix-red to-phoenix-magenta bg-clip-text text-transparent">-3.O</span>
             </div>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-sm">
               National Level Technical Symposium · Department of CSE · Adhiparasakthi Engineering College · in association with CSI – Kanchipuram Chapter.
@@ -50,11 +50,11 @@ export const Footer: React.FC = () => {
               </a>
             </div>
 
-            {/* PIXELO social */}
+            {/* PIXEL-3.O social */}
             <div>
-              <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-2">PIXELO 3.O</p>
+              <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mb-2">PIXEL-3.O</p>
               <div className="flex items-center gap-2">
-                <SocialLink href="https://www.instagram.com/pixelora_2k26/" title="PIXELO Instagram" accent="hover:border-phoenix-magenta hover:text-phoenix-magenta">
+                <SocialLink href="https://www.instagram.com/pixelora_2k26/" title="PIXEL-3.O Instagram" accent="hover:border-phoenix-magenta hover:text-phoenix-magenta">
                   <IconInstagram />
                 </SocialLink>
                 <span className="text-xs text-neutral-500">@pixelora_2k26</span>
@@ -101,7 +101,7 @@ export const Footer: React.FC = () => {
 
           {/* CTA */}
           <div className="md:col-span-4 space-y-4">
-            <h4 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">REGISTER FOR PIXELO 3.O</h4>
+            <h4 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">REGISTER FOR PIXEL-3.O</h4>
             <p className="text-xs text-neutral-500 leading-relaxed">Registration closes 13 October 2026 at 10:00 PM. Secure your spot now.</p>
             <button onClick={() => navigate('/registration')} className="w-full phoenix-gradient-btn py-3 rounded-full text-white text-xs font-bold tracking-wider uppercase">
               REGISTER NOW
@@ -115,7 +115,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
-          <p>© 2026 PIXELO 3.O · Adhiparasakthi Engineering College. All rights reserved.</p>
+          <p>© 2026 PIXEL-3.O · Adhiparasakthi Engineering College. All rights reserved.</p>
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-1.5 hover:text-white transition-colors">
             <span>BACK TO TOP</span>
             <ArrowUp className="w-3.5 h-3.5 text-phoenix-orange" />

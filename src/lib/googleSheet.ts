@@ -3,7 +3,7 @@
 export const REGISTRATION_DEADLINE = new Date('2026-10-13T22:00:00+05:30').getTime();
 export const FEE_PER_HEAD = 129;
 export const DEFAULT_UPI_ID = import.meta.env.VITE_UPI_ID || 'sachinvelu6925-2@oksbi';
-export const DEFAULT_UPI_NAME = 'PIXELO 3.O';
+export const DEFAULT_UPI_NAME = 'PIXEL-3.O';
 export const WHATSAPP_COMMUNITY_LINK = 'https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v';
 export const STATIC_QR_PATH = '/Payment-Qr.jpeg';
 
@@ -132,13 +132,13 @@ export function calculateUniqueMembersAndFee(
 
 /**
  * Builds dynamic UPI payment link with exact calculated amount
- * Example: upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXELO%203.O&am=516&cu=INR&tn=PIXELO3.O
+ * Example: upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am=516&cu=INR&tn=PIXEL-3.O
  */
 export function buildUpiPaymentUrl(
   amount: number,
   upiId: string = DEFAULT_UPI_ID,
   name: string = DEFAULT_UPI_NAME,
-  transNote: string = 'PIXELO3.O'
+  transNote: string = 'PIXEL-3.O'
 ): string {
   const params = new URLSearchParams({
     pa: upiId,
@@ -150,12 +150,12 @@ export function buildUpiPaymentUrl(
   return `upi://pay?${params.toString()}`;
 }
 
-const LOCAL_STORAGE_KEY = 'PIXELO_REGISTRATIONS_STORE';
+const LOCAL_STORAGE_KEY = 'PIXEL_REGISTRATIONS_STORE';
 
 // Helper to get local mock registrations
 export function getLocalRegistrations(): RegistrationRecord[] {
   try {
-    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const data = localStorage.getItem(LOCAL_STORAGE_KEY) || localStorage.getItem('PIXELO_REGISTRATIONS_STORE');
     if (data) {
       return JSON.parse(data);
     }
@@ -208,7 +208,7 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
 
     const existingList = getLocalRegistrations();
     const nextNum = existingList.length + 1;
-    const regId = `PIXELO3.O-${String(nextNum).padStart(3, '0')}`;
+    const regId = `PIXEL-3.O-${String(nextNum).padStart(3, '0')}`;
     const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
     const newRecord: RegistrationRecord = {

@@ -36,15 +36,15 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
 
     // 1. Direct secure authentication for configured admin credentials:
-    // Username: PIXEL3.O (accepts PIXEL3.O, pixel3.o, pixel3.0, admin)
+    // Username: PIXEL-3.O (accepts PIXEL-3.O, PIXEL3.O, pixel-3.o, pixel3.o, pixel-3.0, pixel3.0, admin)
     // Password: PIXEL@26 (accepts PIXEL@26, pixel@26)
-    const validUsers = ['pixel3.o', 'pixel3.0', 'pixelo3.o', 'pixelo3.0', 'admin', 'admin@pixelo.org', 'sachin'];
+    const validUsers = ['pixel-3.o', 'pixel3.o', 'pixel-3.0', 'pixel3.0', 'pixelo3.o', 'pixelo3.0', 'admin', 'admin@pixel.org', 'admin@pixelo.org', 'sachin'];
     const isUserValid = validUsers.includes(trimmedUser.toLowerCase());
     const isPassValid = trimmedPass === 'PIXEL@26' || trimmedPass === 'pixel@26' || trimmedPass === 'pixelo2026@admin';
 
     if (isUserValid && isPassValid) {
       const token = 'PIXEL@26';
-      const userObj = { username: 'PIXEL3.O', role: 'Super Admin' };
+      const userObj = { username: 'PIXEL-3.O', role: 'Super Admin' };
       setToken(token);
       setAdminUser(userObj);
       sessionStorage.setItem(TOKEN_KEY, token);

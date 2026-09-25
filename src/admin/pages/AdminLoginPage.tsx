@@ -58,7 +58,7 @@ export const AdminLoginPage: React.FC = () => {
               <Shield className="w-7 h-7" />
             </div>
             <div className="text-xs font-extrabold tracking-[0.25em] text-[#FF6A00] uppercase mb-1">
-              PIXELO 3.O
+              PIXEL-3.O
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
               ADMIN PORTAL
@@ -152,13 +152,13 @@ export const AdminLoginPage: React.FC = () => {
               href="/"
               className="text-xs text-gray-500 hover:text-[#FF6A00] font-medium transition-colors"
             >
-              ← Back to PIXELO 3.O Public Site
+              ← Back to PIXEL-3.O Public Site
             </a>
           </div>
         </div>
 
         <p className="text-center text-[11px] text-gray-400 mt-6 font-medium">
-          PIXELO 3.O Symposium &copy; 2026 Department of CSE, Adhiparasakthi Engineering College
+          PIXEL-3.O Symposium &copy; 2026 Department of CSE, Adhiparasakthi Engineering College
         </p>
       </div>
     </div>

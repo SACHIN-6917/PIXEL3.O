@@ -169,7 +169,7 @@ export const AdminParticipantsPage: React.FC = () => {
       p.paymentStatus,
     ]);
 
-    exportToCsv('PIXELO_3.0_Unique_Participants', headers, rows);
+    exportToCsv('PIXEL_3.O_Unique_Participants', headers, rows);
   };
 
   return (
@@ -181,7 +181,7 @@ export const AdminParticipantsPage: React.FC = () => {
             UNIQUE PARTICIPANTS DIRECTORY
           </h1>
           <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Deduplicated roster of all individual students registered for PIXELO 3.O
+            Deduplicated roster of all individual students registered for PIXEL-3.O
           </p>
         </div>
 

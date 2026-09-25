@@ -12,7 +12,7 @@ export const StaffCoordinatorsPage: React.FC = () => (
           <div className="text-xs font-bold tracking-[0.3em] text-phoenix-orange uppercase mb-2">STAFF COMMITTEE</div>
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-white mb-3">STAFF COMMITTEE</h1>
           <div className="w-12 h-[3px] bg-gradient-to-r from-phoenix-orange to-phoenix-magenta rounded-full mx-auto mb-4" />
-          <p className="text-white/60 text-sm">FACULTY LEADERSHIP · PIXELO 3.O 2026</p>
+          <p className="text-white/60 text-sm">FACULTY LEADERSHIP · PIXEL-3.O 2026</p>
         </div>
       </div>
 
