@@ -185,29 +185,29 @@ function handlePublicRegistration(data) {
   // MINE RELAY: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
   var techM1 = "", techM2 = "", techM3 = "", techM4 = "";
   if (techEvent === "PAPERQUEST") {
-    techM1 = fullName;
+    techM1 = cleanStr(data.technicalMember1) || fullName;
     techM2 = cleanStr(data.technicalMember2);
     techM3 = cleanStr(data.technicalMember3);
     techM4 = cleanStr(data.technicalMember4);
-    if (!techM2 || !techM3 || !techM4) {
-      return createErrorResponse("PaperQuest requires Member 2, Member 3, and Member 4 names (Team of exactly 4).");
+    if (!techM1 || !techM2 || !techM3 || !techM4) {
+      return createErrorResponse("PaperQuest requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
     }
   } else if (techEvent === "AI FILMFORGE") {
-    techM1 = fullName;
+    techM1 = cleanStr(data.technicalMember1) || fullName;
     techM2 = ""; techM3 = ""; techM4 = "";
   }
 
   var nonTechM1 = "", nonTechM2 = "", nonTechM3 = "", nonTechM4 = "";
   if (nonTechEvent === "MINE RELAY") {
-    nonTechM1 = fullName;
+    nonTechM1 = cleanStr(data.nonTechnicalMember1) || fullName;
     nonTechM2 = cleanStr(data.nonTechnicalMember2);
     nonTechM3 = cleanStr(data.nonTechnicalMember3);
     nonTechM4 = cleanStr(data.nonTechnicalMember4);
-    if (!nonTechM2 || !nonTechM3 || !nonTechM4) {
-      return createErrorResponse("Mine Relay requires Member 2, Member 3, and Member 4 names (Team of exactly 4).");
+    if (!nonTechM1 || !nonTechM2 || !nonTechM3 || !nonTechM4) {
+      return createErrorResponse("Mine Relay requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
     }
   } else if (nonTechEvent === "CHECKMATE") {
-    nonTechM1 = fullName;
+    nonTechM1 = cleanStr(data.nonTechnicalMember1) || fullName;
     nonTechM2 = ""; nonTechM3 = ""; nonTechM4 = "";
   }
 
@@ -528,7 +528,26 @@ function getOrCreateRegistrationsSheet() {
   var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
   
   if (!sheet) {
-    sheet = ss.insertSheet(CONFIG.SHEET_NAME);
+    // 1. Case-insensitive search across existing sheets
+    var sheets = ss.getSheets();
+    for (var i = 0; i < sheets.length; i++) {
+      if (sheets[i].getName().trim().toLowerCase() === CONFIG.SHEET_NAME.toLowerCase()) {
+        sheet = sheets[i];
+        break;
+      }
+    }
+  }
+
+  if (!sheet) {
+    // 2. If there is only 1 sheet (like default "Sheet1" or empty sheet), rename it to "Registrations"
+    var allSheets = ss.getSheets();
+    if (allSheets.length === 1 && (allSheets[0].getName().toLowerCase().indexOf("sheet") === 0 || allSheets[0].getLastRow() === 0)) {
+      sheet = allSheets[0];
+      sheet.setName(CONFIG.SHEET_NAME);
+    } else {
+      // 3. Otherwise insert a new sheet tab named "Registrations"
+      sheet = ss.insertSheet(CONFIG.SHEET_NAME);
+    }
   }
 
   // Ensure headers exist
