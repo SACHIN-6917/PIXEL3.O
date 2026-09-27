@@ -12,6 +12,8 @@ import { AgendaPage } from './pages/AgendaPage';
 import { VenuesPage } from './pages/VenuesPage';
 import { StaffCoordinatorsPage } from './pages/StaffCoordinatorsPage';
 import { StudentCoordinatorsPage } from './pages/StudentCoordinatorsPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Admin System
 import { AdminAuthProvider } from './admin/AdminAuthContext';
@@ -89,7 +91,8 @@ function AppRoutes() {
             <Route path="/venues"               element={<VenuesPage />} />
             <Route path="/staff-coordinators"   element={<StaffCoordinatorsPage />} />
             <Route path="/student-coordinators" element={<StudentCoordinatorsPage />} />
-            <Route path="*"                     element={<Navigate to="/" replace />} />
+            <Route path="/404"                  element={<NotFoundPage />} />
+            <Route path="*"                     element={<NotFoundPage />} />
           </Routes>
         </AnimatePresence>
       </main>
@@ -100,10 +103,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AdminAuthProvider>
-        <AppRoutes />
-      </AdminAuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AdminAuthProvider>
+          <AppRoutes />
+        </AdminAuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

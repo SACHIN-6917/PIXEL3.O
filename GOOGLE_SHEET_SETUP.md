@@ -4,17 +4,10 @@ This guide explains how to connect your **PIXEL-3.O** website registration to yo
 
 ---
 
-### Step 1: Create the Google Spreadsheet
-1. Open [Google Sheets](https://sheets.new).
-2. Name the spreadsheet:
-   ```
-   PIXEL-3.O – Event Registrations 2026
-   ```
-3. Rename the first sheet/tab at the bottom to:
-   ```
-   Registrations
-   ```
-   *(Do NOT create any other sheets or tabs)*
+### Direct Google Spreadsheet Link
+- **Target Spreadsheet**: [PIXELO3.O — Google Spreadsheet](https://docs.google.com/spreadsheets/d/1OncFSqAdmW7eCTUvtKtbyYhSAJmgIWaZjsNsewgLcHY/edit?pli=1&gid=0#gid=0)
+- **Tab Name**: `PIXELO 3.O – Event Registrations 2026` (or `Registrations`)
+- **Web App URL**: `https://script.google.com/macros/s/AKfycbxzUn5hFzvTP3GotvliByvdKDeMBLAO61WLjbpMe_yGCMNISsF7l11VeCPRKcwsbZ5Meg/exec`
 
 ---
 
@@ -70,6 +63,22 @@ Once deployed:
 
 ---
 
+### Troubleshooting: "Registrations sheet not found" Fix
+If you see the message `Registrations sheet not found`:
+1. **Option A (Instant 5-second fix)**:
+   - Open your Google Spreadsheet.
+   - Look at the tab at the very bottom (e.g., named `Sheet1` or `Sheet 1`).
+   - Right-click the tab > click **Rename** > type `Registrations` (exact spelling).
+2. **Option B (Update Apps Script code & deployment)**:
+   - Open the spreadsheet > click **Extensions** > **Apps Script**.
+   - Select all code, delete it, and paste the latest [`google-apps-script/Code.gs`](./google-apps-script/Code.gs).
+   - Click **Save** 💾.
+   - Click **Deploy** > **Manage deployments** > click the **Edit** ✏️ pencil icon next to your Active deployment.
+   - Under **Version**, choose **New version**.
+   - Click **Deploy**.
+
+---
+
 ### Step 5: Admin Portal Access
 - **Admin Hotkey / Shortcut**: Press **`Ctrl + F1`** on any page to immediately open the portal!
 - **Admin Login Route**: `/admin/login`
@@ -83,3 +92,4 @@ Once deployed:
 - **Analytics & Charts**: `/admin/analytics`
 - **System Settings**: `/admin/settings`
 - **CSV Export**: Direct filtered CSV exports available on Registrations, Payments, and Participants.
+

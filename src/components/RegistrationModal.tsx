@@ -15,7 +15,8 @@ import {
   User,
   Mail,
   Phone,
-  GraduationCap
+  GraduationCap,
+  FileText
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import confetti from 'canvas-confetti';
@@ -26,6 +27,7 @@ import {
   VENUE_COLLEGE,
   WHATSAPP_GROUP_LINK
 } from '../data/pixeloData';
+import { generateConfirmationPdf } from '../lib/generateConfirmationPdf';
 
 interface RegistrationModalProps {
   isOpen: boolean;
@@ -173,8 +175,33 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     setTimeout(() => setCopiedId(false), 2000);
   };
 
-  const handlePrintConfirmation = () => {
-    window.print();
+  const handlePrintConfirmation = async () => {
+    try {
+      const tech = formData.selectedEvents.find(e => e.toLowerCase().includes('paper') || e.toLowerCase().includes('film')) || '';
+      const nonTech = formData.selectedEvents.find(e => e.toLowerCase().includes('relay') || e.toLowerCase().includes('check')) || '';
+
+      await generateConfirmationPdf({
+        success: true,
+        registrationId: registrationId,
+        fullName: formData.fullName,
+        totalMembers: 1,
+        feePerHead: 129,
+        totalAmount: 129,
+        techEvent: tech,
+        nonTechEvent: nonTech,
+        paymentStatus: 'Submitted',
+        registrationStatus: 'Confirmed',
+        registeredAt: new Date().toLocaleString('en-IN')
+      }, {
+        college: formData.college,
+        department: formData.department,
+        phone: formData.phone,
+        email: formData.email,
+        paymentId: 'Submitted',
+      });
+    } catch (e) {
+      window.print();
+    }
   };
 
   return (
@@ -504,10 +531,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
               <button
                 onClick={handlePrintConfirmation}
-                className="w-full sm:w-auto px-6 py-3 rounded-full bg-darkAccent hover:bg-black text-white text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer"
+                className="w-full sm:w-auto px-6 py-3 rounded-full phoenix-gradient-btn text-white text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 transition-all shadow-phoenix-subtle cursor-pointer hover:scale-[1.01]"
               >
-                <Download className="w-4 h-4" />
-                <span>DOWNLOAD / PRINT CONFIRMATION</span>
+                <FileText className="w-4 h-4" />
+                <span>DOWNLOAD OFFICIAL PDF PASS</span>
               </button>
             </div>
           </div>

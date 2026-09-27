@@ -9,36 +9,62 @@ import {
   RefreshCw,
   Search,
   Eye,
-  Check
+  Check,
+  Trash2
 } from 'lucide-react';
-import { fetchAllRegistrations, updatePaymentStatus, RegistrationRecord } from '../../lib/googleSheet';
+import {
+  fetchAllRegistrations,
+  getLocalRegistrations,
+  subscribeToRegistrationUpdates,
+  updatePaymentStatus,
+  deleteRegistration,
+  RegistrationRecord
+} from '../../lib/googleSheet';
 import { useAdminAuth } from '../AdminAuthContext';
 import { exportToCsv } from '../csvExport';
 
 export const AdminPaymentsPage: React.FC = () => {
   const { token } = useAdminAuth();
-  const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [registrations, setRegistrations] = useState<RegistrationRecord[]>(() => getLocalRegistrations());
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedReg, setSelectedReg] = useState<RegistrationRecord | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const data = await fetchAllRegistrations(token || '');
       setRegistrations(data);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error(err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    loadData(false);
+
+    // Instant local broadcast subscription (0ms latency for cross-tab updates)
+    const unsubscribe = subscribeToRegistrationUpdates(() => {
+      setRegistrations(getLocalRegistrations());
+      setLastUpdated(new Date());
+    });
+
+    // Background auto-refresh polling every 8 seconds
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 8000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, [token]);
 
   // Metrics
@@ -76,7 +102,7 @@ export const AdminPaymentsPage: React.FC = () => {
       'Fee_Per_Head',
       'Total_Amount',
       'Payment_Status',
-      'Payment_ID_UTR',
+      'Payment_ID_UPI',
       'Registered_At',
     ];
 
@@ -111,18 +137,52 @@ export const AdminPaymentsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteRecord = async (reg: RegistrationRecord) => {
+    if (!reg) return;
+    if (
+      !confirm(
+        `⚠️ PERMANENT DELETE CONFIRMATION:\n\nAre you sure you want to permanently delete payment record ${reg.registrationId} for "${reg.fullName}"?\n\nThis will remove it from the database.`
+      )
+    ) {
+      return;
+    }
+    setActionLoading(true);
+    try {
+      await deleteRegistration(token || '', reg.registrationId);
+      setRegistrations(prev => prev.filter(r => r.registrationId !== reg.registrationId));
+      if (selectedReg?.registrationId === reg.registrationId) {
+        setSelectedReg(null);
+      }
+      setActionMessage(`Record ${reg.registrationId} deleted.`);
+      setTimeout(() => setActionMessage(''), 3000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">PAYMENTS MANAGEMENT</h1>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Audit UTR transactions, verify dynamic UPI payments, and reconcile accounts
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">PAYMENTS MANAGEMENT</h1>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 border border-emerald-200 text-emerald-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              LIVE SYNC ACTIVE
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 font-medium">
+            Audit UPI transactions, verify dynamic UPI payments, and reconcile accounts · Auto-refreshing every 8s
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-400 font-mono hidden sm:inline">
+            Updated: {lastUpdated.toLocaleTimeString()}
+          </span>
           <button
             onClick={handleExportCsv}
             className="px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-2xs"
@@ -131,11 +191,12 @@ export const AdminPaymentsPage: React.FC = () => {
             <span>Export CSV</span>
           </button>
           <button
-            onClick={loadData}
+            onClick={() => loadData(false)}
             disabled={loading}
             className="px-3 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-2xs disabled:opacity-50"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
@@ -180,7 +241,7 @@ export const AdminPaymentsPage: React.FC = () => {
         <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
-              Submitted (Pending UTR Check)
+              Submitted (Pending UPI Verification)
             </span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <Clock className="w-4 h-4" />
@@ -215,7 +276,7 @@ export const AdminPaymentsPage: React.FC = () => {
           <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search payments by Reg ID, Name, UTR / Payment ID, Phone..."
+            placeholder="Search payments by Reg ID, Name, UPI / Payment ID, Phone..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-900 placeholder:text-gray-400 bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-[#FF6A00]/20 focus:border-[#FF6A00]"
@@ -250,7 +311,7 @@ export const AdminPaymentsPage: React.FC = () => {
                 <th className="px-4 py-3 text-right">Fee / Head</th>
                 <th className="px-4 py-3 text-right">Total Amount</th>
                 <th className="px-4 py-3">Payment Status</th>
-                <th className="px-4 py-3">Payment ID / UTR</th>
+                <th className="px-4 py-3">Payment ID / UPI</th>
                 <th className="px-4 py-3">Registered At</th>
                 <th className="px-4 py-3 text-center">Action</th>
               </tr>
@@ -305,13 +366,22 @@ export const AdminPaymentsPage: React.FC = () => {
                     <td className="px-4 py-3 text-gray-500 whitespace-nowrap text-[11px]">
                       {r.registeredAt || '—'}
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => setSelectedReg(r)}
-                        className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold inline-flex items-center gap-1 transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> Details
-                      </button>
+                    <td className="px-4 py-3 text-center whitespace-nowrap">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => setSelectedReg(r)}
+                          className="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold inline-flex items-center gap-1 transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> Details
+                        </button>
+                        <button
+                          onClick={() => handleDeleteRecord(r)}
+                          title="Delete Record"
+                          className="p-1.5 rounded-lg hover:bg-red-50 text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -376,7 +446,7 @@ export const AdminPaymentsPage: React.FC = () => {
                 <span className="font-extrabold text-emerald-600 text-base">₹{selectedReg.totalAmount}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Payment ID / UTR</span>
+                <span className="text-gray-500">Payment ID / UPI</span>
                 <span className="font-mono font-extrabold text-gray-900 bg-white px-2 py-0.5 rounded border border-gray-200">
                   {selectedReg.paymentId || '—'}
                 </span>
@@ -387,7 +457,7 @@ export const AdminPaymentsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-2 flex items-center justify-between gap-2">
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
               <button
                 onClick={handleVerifyPayment}
                 disabled={actionLoading || selectedReg.paymentStatus === 'Paid'}
@@ -395,6 +465,14 @@ export const AdminPaymentsPage: React.FC = () => {
               >
                 <CheckCircle2 className="w-4 h-4" />
                 {actionLoading ? 'UPDATING...' : selectedReg.paymentStatus === 'Paid' ? 'ALREADY PAID' : 'VERIFY & MARK PAID'}
+              </button>
+
+              <button
+                onClick={() => handleDeleteRecord(selectedReg)}
+                disabled={actionLoading}
+                className="px-4 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50 shadow-2xs"
+              >
+                <Trash2 className="w-4 h-4" /> DELETE
               </button>
 
               <button

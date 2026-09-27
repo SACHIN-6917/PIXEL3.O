@@ -89,6 +89,8 @@ function doPost(e) {
       return handleUpdatePaymentStatus(payload);
     } else if (action === "update_registration_status") {
       return handleUpdateRegistrationStatus(payload);
+    } else if (action === "delete_registration") {
+      return handleDeleteRegistration(payload);
     }
 
     // ── PUBLIC REGISTRATION ACTION ──
@@ -158,7 +160,7 @@ function handlePublicRegistration(data) {
   if (!department) return createErrorResponse("Department is required.");
   if (!phone || !/^\d{10}$/.test(phone)) return createErrorResponse("A valid 10-digit Phone Number is required.");
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return createErrorResponse("A valid Email ID is required.");
-  if (!paymentId) return createErrorResponse("Payment ID / UTR is required.");
+  if (!paymentId) return createErrorResponse("Payment ID / UPI Reference Number is required.");
 
   // 3. Validate Events Selection
   var techEvent = cleanStr(data.technicalEvent).toUpperCase();
@@ -510,6 +512,43 @@ function handleUpdateRegistrationStatus(data) {
   });
 }
 
+function handleDeleteRegistration(data) {
+  var token = cleanStr(data.token);
+  if (!verifyAdminAuth(token)) {
+    return createJsonResponse({ success: false, message: "Unauthorized." });
+  }
+
+  var regId = cleanStr(data.registrationId);
+  if (!regId) {
+    return createErrorResponse("Registration ID is required.");
+  }
+
+  var sheet = getOrCreateRegistrationsSheet();
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) return createErrorResponse("No records found.");
+
+  var regIds = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  var foundRow = -1;
+  for (var i = 0; i < regIds.length; i++) {
+    if (String(regIds[i][0]).trim() === regId) {
+      foundRow = i + 2;
+      break;
+    }
+  }
+
+  if (foundRow === -1) {
+    return createErrorResponse("Registration ID not found: " + regId);
+  }
+
+  sheet.deleteRow(foundRow);
+
+  return createJsonResponse({
+    success: true,
+    registrationId: regId,
+    message: "Registration deleted successfully."
+  });
+}
+
 // ─── HELPER FUNCTIONS ──────────────────────────────────────────
 
 function cleanStr(val) {
@@ -525,28 +564,48 @@ function padZero(num, size) {
 
 function getOrCreateRegistrationsSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
   
+  // 1. Check known tab names including exact user spreadsheet tab
+  var targetNames = [
+    "PIXELO 3.O – Event Registrations 2026",
+    "PIXEL-3.O – Event Registrations 2026",
+    "PIXELO 3.O - Event Registrations 2026",
+    "PIXEL-3.O - Event Registrations 2026",
+    "PIXELO 3.O",
+    "PIXEL-3.O",
+    "Registrations",
+    "Event Registrations"
+  ];
+  
+  var sheet = null;
+  for (var k = 0; k < targetNames.length; k++) {
+    sheet = ss.getSheetByName(targetNames[k]);
+    if (sheet) break;
+  }
+  
+  // 2. Case-insensitive search across all sheets
   if (!sheet) {
-    // 1. Case-insensitive search across existing sheets
     var sheets = ss.getSheets();
     for (var i = 0; i < sheets.length; i++) {
-      if (sheets[i].getName().trim().toLowerCase() === CONFIG.SHEET_NAME.toLowerCase()) {
+      var sName = sheets[i].getName().trim().toLowerCase();
+      if (
+        sName.indexOf("registration") !== -1 ||
+        sName.indexOf("pixel") !== -1 ||
+        sName.indexOf("event") !== -1
+      ) {
         sheet = sheets[i];
         break;
       }
     }
   }
 
+  // 3. Fallback to first sheet in spreadsheet
   if (!sheet) {
-    // 2. If there is only 1 sheet (like default "Sheet1" or empty sheet), rename it to "Registrations"
     var allSheets = ss.getSheets();
-    if (allSheets.length === 1 && (allSheets[0].getName().toLowerCase().indexOf("sheet") === 0 || allSheets[0].getLastRow() === 0)) {
+    if (allSheets.length > 0) {
       sheet = allSheets[0];
-      sheet.setName(CONFIG.SHEET_NAME);
     } else {
-      // 3. Otherwise insert a new sheet tab named "Registrations"
-      sheet = ss.insertSheet(CONFIG.SHEET_NAME);
+      sheet = ss.insertSheet("Registrations");
     }
   }
 

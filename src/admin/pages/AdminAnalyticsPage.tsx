@@ -258,7 +258,7 @@ export const AdminAnalyticsPage: React.FC = () => {
               <span className="text-lg font-extrabold text-emerald-700 mt-1 block">{paidCount}</span>
             </div>
             <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200/80">
-              <span className="text-[10px] font-bold uppercase text-amber-600 block">Submitted UTR</span>
+              <span className="text-[10px] font-bold uppercase text-amber-600 block">Submitted UPI</span>
               <span className="text-lg font-extrabold text-amber-700 mt-1 block">{submittedCount}</span>
             </div>
             <div className="p-3 rounded-2xl bg-red-50 border border-red-200/80">

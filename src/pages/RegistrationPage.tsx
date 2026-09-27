@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   Sparkles,
   Plus,
+  FileText,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import QRCode from 'qrcode';
@@ -35,6 +36,7 @@ import {
   NonTechEvent,
   RegistrationResult,
 } from '../lib/googleSheet';
+import { generateConfirmationPdf } from '../lib/generateConfirmationPdf';
 
 // ─── Interfaces ───────────────────────────────────────────────────
 interface Step1Data {
@@ -1017,7 +1019,7 @@ const Step5Payment: React.FC<{
 }> = ({ form, onPaymentIdChange, onSubmit, onBack, loading, error }) => {
   const [copied, setCopied] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [utrError, setUtrError] = useState('');
+  const [upiError, setUpiError] = useState('');
 
   const { step1, techEvent, nonTechEvent, masterParticipants, techAssignment, nonTechAssignment } = form;
 
@@ -1056,14 +1058,14 @@ const Step5Payment: React.FC<{
 
   const handleSubmitCheck = () => {
     if (!form.paymentId.trim()) {
-      setUtrError('Payment ID / UTR is required to confirm your registration.');
+      setUpiError('Payment ID / UPI Reference Number is required to confirm your registration.');
       return;
     }
     if (form.paymentId.trim().length < 4) {
-      setUtrError('Please enter a valid Transaction ID / UTR.');
+      setUpiError('Please enter a valid UPI Transaction ID / Reference Number.');
       return;
     }
-    setUtrError('');
+    setUpiError('');
     onSubmit();
   };
 
@@ -1162,17 +1164,17 @@ const Step5Payment: React.FC<{
           <li>Open GPay, PhonePe, Paytm, or any UPI app.</li>
           <li>Scan the QR code above or pay to <strong className="text-foreground">{upiId}</strong>.</li>
           <li>Verify payee is <strong>{DEFAULT_UPI_NAME}</strong> and amount is <strong>₹{totalAmount}</strong>.</li>
-          <li>After payment, copy the <strong>12-digit UTR / Transaction ID</strong> and paste below.</li>
+          <li>After payment, copy the <strong>12-digit UPI Reference / Transaction ID</strong> and paste below.</li>
         </ol>
       </div>
 
-      <Field label="Payment ID / UTR (Transaction Reference Number)" error={utrError} required>
+      <Field label="Payment ID / UPI (Transaction Reference Number)" error={upiError} required>
         <Input
-          placeholder="e.g. 12-digit UTR from GPay / PhonePe / Paytm"
+          placeholder="e.g. 12-digit UPI Reference / Transaction ID from GPay / PhonePe / Paytm"
           value={form.paymentId}
           disabled={loading}
-          onChange={e => { setUtrError(''); onPaymentIdChange(e.target.value); }}
-          hasError={!!utrError}
+          onChange={e => { setUpiError(''); onPaymentIdChange(e.target.value); }}
+          hasError={!!upiError}
         />
         <p className="text-[11px] text-foreground-muted mt-1.5">
           * Your payment status will be recorded as <strong>Submitted</strong> pending administrative verification.
@@ -1215,14 +1217,16 @@ const Step5Payment: React.FC<{
 // ═══════════════════════════════════════════════════════════════════
 const Step6Confirmed: React.FC<{
   result: RegistrationResult;
+  form: FormState;
   onClose: () => void;
-}> = ({ result, onClose }) => {
+}> = ({ result, form, onClose }) => {
   const [badgeQr, setBadgeQr] = useState<string>('');
+  const [generatingPdf, setGeneratingPdf] = useState<boolean>(false);
 
   useEffect(() => {
     confetti({
-      particleCount: 80,
-      spread: 70,
+      particleCount: 90,
+      spread: 80,
       origin: { y: 0.6 },
       colors: ['#FF6A00', '#E51B23', '#D01257', '#9333EA', '#FFB800'],
     });
@@ -1236,7 +1240,29 @@ const Step6Confirmed: React.FC<{
       .catch(console.error);
   }, [result.registrationId]);
 
-  const handleDownloadConfirmation = () => {
+  const handleDownloadPdf = async () => {
+    setGeneratingPdf(true);
+    try {
+      const techNames = form.techEvent ? resolveNames(form.masterParticipants, form.techAssignment) : [];
+      const nonTechNames = form.nonTechEvent ? resolveNames(form.masterParticipants, form.nonTechAssignment) : [];
+
+      await generateConfirmationPdf(result, {
+        college: form.step1.college,
+        department: form.step1.department,
+        phone: form.step1.phone,
+        email: form.step1.email,
+        paymentId: form.paymentId,
+        techMembers: techNames,
+        nonTechMembers: nonTechNames,
+      });
+    } catch (err) {
+      console.error('Failed to generate PDF pass:', err);
+    } finally {
+      setGeneratingPdf(false);
+    }
+  };
+
+  const handleDownloadTextPass = () => {
     const text = `=========================================
 PIXEL-3.O — OFFICIAL REGISTRATION PASS
 National Level Technical Symposium
@@ -1247,9 +1273,12 @@ In Association with CSI Kanchipuram Chapter
 
 REGISTRATION ID   : ${result.registrationId}
 PARTICIPANT NAME  : ${result.fullName}
+COLLEGE           : ${form.step1.college || '—'}
+DEPARTMENT        : ${form.step1.department || '—'}
 TOTAL MEMBERS     : ${result.totalMembers}
 FEE PAID          : ₹${result.totalAmount}
 PAYMENT STATUS    : ${result.paymentStatus}
+UPI TRANSACTION ID: ${form.paymentId || '—'}
 REGISTRATION STATUS: ${result.registrationStatus}
 
 TECHNICAL EVENT   : ${result.techEvent || 'None'}
@@ -1258,6 +1287,8 @@ NON-TECHNICAL EVENT: ${result.nonTechEvent || 'None'}
 DATE OF SYMPOSIUM : 14 October 2026
 REPORTING TIME    : 09:00 AM IST
 VENUE             : Adhiparasakthi Engineering College, Melmaruvathur
+
+"Early Registration Helps Us Ensure Smooth Arrangements"
 
 Please display this Pass or Registration ID at the Welcome Desk.
 =========================================`;
@@ -1285,6 +1316,11 @@ Please display this Pass or Registration ID at the Welcome Desk.
         <p className="text-xs sm:text-sm text-foreground-secondary mt-1">
           Welcome to PIXEL-3.O, <strong>{result.fullName}</strong>! Your registration is recorded in our system.
         </p>
+      </div>
+
+      {/* Required Quote Banner */}
+      <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm font-bold shadow-2xs">
+        ✨ &quot;Early Registration Helps Us Ensure Smooth Arrangements&quot;
       </div>
 
       <div className="p-6 rounded-3xl bg-darkAccent text-white text-center space-y-3 relative overflow-hidden shadow-phoenix-glow">
@@ -1351,12 +1387,23 @@ Please display this Pass or Registration ID at the Welcome Desk.
         <MessageCircle className="w-5 h-5" /> JOIN PIXEL-3.O WHATSAPP GROUP
       </a>
 
+      {/* PDF Download Primary Button */}
       <button
         type="button"
-        onClick={handleDownloadConfirmation}
-        className="w-full py-3.5 rounded-full border border-border hover:border-phoenix-orange text-foreground-secondary hover:text-phoenix-orange font-bold tracking-wider uppercase text-xs flex items-center justify-center gap-2 transition-colors"
+        onClick={handleDownloadPdf}
+        disabled={generatingPdf}
+        className="w-full phoenix-gradient-btn py-4 rounded-full text-white font-bold tracking-wider uppercase text-xs sm:text-sm flex items-center justify-center gap-2 transition-all shadow-phoenix-subtle hover:scale-[1.01] cursor-pointer disabled:opacity-50"
       >
-        <Download className="w-4 h-4" /> DOWNLOAD CONFIRMATION PASS
+        <FileText className="w-4 h-4" />
+        <span>{generatingPdf ? 'GENERATING OFFICIAL PDF...' : 'DOWNLOAD OFFICIAL PDF PASS'}</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={handleDownloadTextPass}
+        className="w-full py-3 rounded-full border border-border hover:border-phoenix-orange text-foreground-secondary hover:text-phoenix-orange font-semibold tracking-wider uppercase text-[11px] flex items-center justify-center gap-2 transition-colors"
+      >
+        <Download className="w-3.5 h-3.5" /> Download Text Pass (.txt)
       </button>
 
       <div>
@@ -1446,7 +1493,7 @@ export const RegistrationPage: React.FC = () => {
     }
 
     if (!form.paymentId.trim()) {
-      setError('Payment ID / UTR is required.');
+      setError('Payment ID / UPI Reference Number is required.');
       return;
     }
 
@@ -1588,6 +1635,7 @@ export const RegistrationPage: React.FC = () => {
               {step === 5 && successResult && (
                 <Step6Confirmed
                   result={successResult}
+                  form={form}
                   onClose={() => navigate('/')}
                 />
               )}

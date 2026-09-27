@@ -16,30 +16,49 @@ import {
   Phone,
   Mail
 } from 'lucide-react';
-import { fetchAllRegistrations, RegistrationRecord } from '../../lib/googleSheet';
+import { fetchAllRegistrations, getLocalRegistrations, subscribeToRegistrationUpdates, RegistrationRecord } from '../../lib/googleSheet';
 import { useAdminAuth } from '../AdminAuthContext';
 
 export const AdminDashboardPage: React.FC = () => {
   const { token } = useAdminAuth();
   const navigate = useNavigate();
-  const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [registrations, setRegistrations] = useState<RegistrationRecord[]>(() => getLocalRegistrations());
+  const [loading, setLoading] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [selectedReg, setSelectedReg] = useState<RegistrationRecord | null>(null);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const data = await fetchAllRegistrations(token || '');
       setRegistrations(data);
+      setLastUpdated(new Date());
     } catch (err) {
       console.error('Error fetching registrations:', err);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
+    // Initial fetch from Google Sheet
+    loadData(false);
+
+    // Instant local broadcast subscription (0ms latency for cross-tab updates)
+    const unsubscribe = subscribeToRegistrationUpdates(() => {
+      setRegistrations(getLocalRegistrations());
+      setLastUpdated(new Date());
+    });
+
+    // Background auto-refresh polling every 8 seconds for real-time remote updates
+    const interval = setInterval(() => {
+      loadData(true);
+    }, 8000);
+
+    return () => {
+      unsubscribe();
+      clearInterval(interval);
+    };
   }, [token]);
 
   // Compute metrics
@@ -73,19 +92,30 @@ export const AdminDashboardPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">ADMIN DASHBOARD</h1>
-          <p className="text-xs text-gray-500 font-medium mt-0.5">
-            Real-time overview of PIXEL-3.O symposium registrations & revenue
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">ADMIN DASHBOARD</h1>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-50 border border-emerald-200 text-emerald-700">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              LIVE SYNC ACTIVE
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 font-medium">
+            Real-time overview of PIXEL-3.O symposium registrations & revenue · Auto-refreshing every 8s
           </p>
         </div>
-        <button
-          onClick={loadData}
-          disabled={loading}
-          className="self-start sm:self-auto px-4 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-2xs disabled:opacity-50"
-        >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          <span>Refresh Data</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-gray-400 font-mono hidden sm:inline">
+            Updated: {lastUpdated.toLocaleTimeString()}
+          </span>
+          <button
+            onClick={() => loadData(false)}
+            disabled={loading}
+            className="px-4 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-2xs disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Now</span>
+          </button>
+        </div>
       </div>
 
       {/* ─── 7 METRIC CARDS ─── */}
@@ -158,7 +188,7 @@ export const AdminDashboardPage: React.FC = () => {
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-2xs">
           <div className="flex items-center justify-between">
             <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-gray-500">
-              Submitted (UTR)
+              Submitted (UPI)
             </span>
             <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
               <Clock className="w-4 h-4" />
@@ -422,7 +452,7 @@ export const AdminDashboardPage: React.FC = () => {
                 <span className="font-extrabold text-emerald-600 text-sm">₹{selectedReg.totalAmount}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Payment ID / UTR</span>
+                <span className="text-gray-500">Payment ID / UPI</span>
                 <span className="font-mono font-bold text-gray-900">{selectedReg.paymentId || '—'}</span>
               </div>
               <div className="flex justify-between items-center pt-1">
