@@ -30,19 +30,16 @@ export async function generateConfirmationPdf(
   const margin = 12;
   const contentWidth = pageWidth - margin * 2;
 
-  // ─── Generate QR Code as Data URL ───
+  // ─── Generate Scannable Verification URL for QR Code ───
   let qrDataUrl = '';
   try {
-    const qrPayload = JSON.stringify({
-      id: result.registrationId,
-      name: result.fullName,
-      members: result.totalMembers,
-      amount: result.totalAmount,
-      tech: result.techEvent || 'None',
-      nonTech: result.nonTechEvent || 'None',
-      status: result.registrationStatus,
-    });
-    qrDataUrl = await QRCode.toDataURL(qrPayload, {
+    const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pixel3-o.vercel.app';
+    const techMembersStr = extraDetails?.techMembers ? extraDetails.techMembers.join(',') : '';
+    const nonTechMembersStr = extraDetails?.nonTechMembers ? extraDetails.nonTechMembers.join(',') : '';
+
+    const verifyUrl = `${origin}/verify?id=${encodeURIComponent(result.registrationId)}&name=${encodeURIComponent(result.fullName)}&college=${encodeURIComponent(extraDetails?.college || '')}&dept=${encodeURIComponent(extraDetails?.department || '')}&tech=${encodeURIComponent(result.techEvent || '')}&nontech=${encodeURIComponent(result.nonTechEvent || '')}&members=${result.totalMembers}&amount=${result.totalAmount}&status=${encodeURIComponent(result.paymentStatus || 'Paid')}&phone=${encodeURIComponent(extraDetails?.phone || '')}&payid=${encodeURIComponent(extraDetails?.paymentId || '')}&techm=${encodeURIComponent(techMembersStr)}&nontechm=${encodeURIComponent(nonTechMembersStr)}`;
+
+    qrDataUrl = await QRCode.toDataURL(verifyUrl, {
       width: 250,
       margin: 1,
       color: { dark: '#171717', light: '#ffffff' },

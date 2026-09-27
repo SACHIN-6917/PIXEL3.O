@@ -12,6 +12,7 @@ import { AgendaPage } from './pages/AgendaPage';
 import { VenuesPage } from './pages/VenuesPage';
 import { StaffCoordinatorsPage } from './pages/StaffCoordinatorsPage';
 import { StudentCoordinatorsPage } from './pages/StudentCoordinatorsPage';
+import { VerificationPassPage } from './pages/VerificationPassPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
@@ -87,6 +88,9 @@ function AppRoutes() {
             <Route path="/"                     element={<HomePage />} />
             <Route path="/about"                element={<AboutPage />} />
             <Route path="/registration"         element={<RegistrationPage />} />
+            <Route path="/register"             element={<RegistrationPage />} />
+            <Route path="/verify"               element={<VerificationPassPage />} />
+            <Route path="/pass"                 element={<VerificationPassPage />} />
             <Route path="/agenda"               element={<AgendaPage />} />
             <Route path="/venues"               element={<VenuesPage />} />
             <Route path="/staff-coordinators"   element={<StaffCoordinatorsPage />} />

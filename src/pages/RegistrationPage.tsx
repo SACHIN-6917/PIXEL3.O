@@ -1231,14 +1231,22 @@ const Step6Confirmed: React.FC<{
       colors: ['#FF6A00', '#E51B23', '#D01257', '#9333EA', '#FFB800'],
     });
 
-    QRCode.toDataURL(result.registrationId, {
+    const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pixel3-o.vercel.app';
+    const techNames = form.techEvent ? resolveNames(form.masterParticipants, form.techAssignment) : [];
+    const nonTechNames = form.nonTechEvent ? resolveNames(form.masterParticipants, form.nonTechAssignment) : [];
+    const techStr = techNames.join(',');
+    const nonTechStr = nonTechNames.join(',');
+
+    const verifyUrl = `${origin}/verify?id=${encodeURIComponent(result.registrationId)}&name=${encodeURIComponent(result.fullName)}&college=${encodeURIComponent(form.step1.college || '')}&dept=${encodeURIComponent(form.step1.department || '')}&tech=${encodeURIComponent(result.techEvent || '')}&nontech=${encodeURIComponent(result.nonTechEvent || '')}&members=${result.totalMembers}&amount=${result.totalAmount}&status=${encodeURIComponent(result.paymentStatus || 'Paid')}&phone=${encodeURIComponent(form.step1.phone || '')}&payid=${encodeURIComponent(form.paymentId || '')}&techm=${encodeURIComponent(techStr)}&nontechm=${encodeURIComponent(nonTechStr)}`;
+
+    QRCode.toDataURL(verifyUrl, {
       width: 180,
       margin: 1,
       color: { dark: '#171717', light: '#ffffff' },
     })
       .then(setBadgeQr)
       .catch(console.error);
-  }, [result.registrationId]);
+  }, [result.registrationId, form]);
 
   const handleDownloadPdf = async () => {
     setGeneratingPdf(true);
