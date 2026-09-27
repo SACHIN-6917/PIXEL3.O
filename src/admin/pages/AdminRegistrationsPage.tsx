@@ -16,12 +16,14 @@ import {
   Phone,
   Mail,
   AlertCircle,
-  Trash2
+  Trash2,
+  FileSpreadsheet
 } from 'lucide-react';
 import {
   fetchAllRegistrations,
   getLocalRegistrations,
   subscribeToRegistrationUpdates,
+  pushAllRegistrationsToGoogleSheet,
   updatePaymentStatus,
   updateRegistrationStatus,
   deleteRegistration,
@@ -34,6 +36,7 @@ export const AdminRegistrationsPage: React.FC = () => {
   const { token } = useAdminAuth();
   const [registrations, setRegistrations] = useState<RegistrationRecord[]>(() => getLocalRegistrations());
   const [loading, setLoading] = useState(false);
+  const [pushingSheet, setPushingSheet] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [search, setSearch] = useState('');
   const [techFilter, setTechFilter] = useState('ALL');
@@ -47,6 +50,21 @@ export const AdminRegistrationsPage: React.FC = () => {
   const [selectedReg, setSelectedReg] = useState<RegistrationRecord | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
+
+  const handlePushToGoogleSheet = async () => {
+    setPushingSheet(true);
+    try {
+      const res = await pushAllRegistrationsToGoogleSheet(token || '');
+      setActionMessage(res.message);
+      setTimeout(() => setActionMessage(''), 4000);
+    } catch (err) {
+      console.error(err);
+      setActionMessage('Failed to push to Google Sheet.');
+      setTimeout(() => setActionMessage(''), 4000);
+    } finally {
+      setPushingSheet(false);
+    }
+  };
 
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
@@ -281,6 +299,15 @@ export const AdminRegistrationsPage: React.FC = () => {
           <span className="text-[10px] text-gray-400 font-mono hidden sm:inline">
             Updated: {lastUpdated.toLocaleTimeString()}
           </span>
+          <button
+            onClick={handlePushToGoogleSheet}
+            disabled={pushingSheet}
+            className="px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold text-emerald-800 transition-colors flex items-center gap-1.5 shadow-2xs disabled:opacity-50"
+            title="Push and synchronize all admin records to Google Sheet rows"
+          >
+            <FileSpreadsheet className={`w-3.5 h-3.5 ${pushingSheet ? 'animate-bounce' : ''}`} />
+            <span>{pushingSheet ? 'Syncing...' : 'Sync to Sheet'}</span>
+          </button>
           <button
             onClick={handleExportCsv}
             className="px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-2xs"

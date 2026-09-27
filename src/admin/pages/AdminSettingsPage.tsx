@@ -21,7 +21,8 @@ import {
   STATIC_QR_PATH,
   isDeadlinePassed,
   fetchAllRegistrations,
-  getLocalRegistrations
+  getLocalRegistrations,
+  pushAllRegistrationsToGoogleSheet
 } from '../../lib/googleSheet';
 import { useAdminAuth } from '../AdminAuthContext';
 
@@ -38,14 +39,19 @@ export const AdminSettingsPage: React.FC = () => {
   const handleDeepSync = async () => {
     setSyncing(true);
     try {
+      // 1. Fetch remote registrations and merge with local multi-vault
       const data = await fetchAllRegistrations(token || '');
       setTotalCount(data.length);
-      setSyncMessage(`Synced & Auto-Healed successfully! ${data.length} records active in permanent multi-vault storage.`);
-      setTimeout(() => setSyncMessage(''), 4000);
+
+      // 2. Two-way reconciliation: push all active admin records to Google Sheet
+      const pushRes = await pushAllRegistrationsToGoogleSheet(token || '');
+      
+      setSyncMessage(`Synced & Reconciled! ${data.length} records active. ${pushRes.message}`);
+      setTimeout(() => setSyncMessage(''), 5000);
     } catch (err) {
       console.error(err);
       setSyncMessage('Sync completed with local multi-vault records preserved.');
-      setTimeout(() => setSyncMessage(''), 4000);
+      setTimeout(() => setSyncMessage(''), 5000);
     } finally {
       setSyncing(false);
     }

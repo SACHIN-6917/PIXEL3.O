@@ -85,6 +85,8 @@ function doPost(e) {
       return handleAdminLogin(payload);
     } else if (action === "get_registrations") {
       return handleGetRegistrations(payload);
+    } else if (action === "sync_bulk_registrations") {
+      return handleSyncBulkRegistrations(payload);
     } else if (action === "update_payment_status") {
       return handleUpdatePaymentStatus(payload);
     } else if (action === "update_registration_status") {
@@ -187,29 +189,29 @@ function handlePublicRegistration(data) {
   // MINE RELAY: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
   var techM1 = "", techM2 = "", techM3 = "", techM4 = "";
   if (techEvent === "PAPERQUEST") {
-    techM1 = cleanStr(data.technicalMember1) || fullName;
-    techM2 = cleanStr(data.technicalMember2);
-    techM3 = cleanStr(data.technicalMember3);
-    techM4 = cleanStr(data.technicalMember4);
+    techM1 = cleanStr(data.technicalMember1 || data.techMember1 || data.member1) || fullName;
+    techM2 = cleanStr(data.technicalMember2 || data.techMember2 || data.member2);
+    techM3 = cleanStr(data.technicalMember3 || data.techMember3 || data.member3);
+    techM4 = cleanStr(data.technicalMember4 || data.techMember4 || data.member4);
     if (!techM1 || !techM2 || !techM3 || !techM4) {
       return createErrorResponse("PaperQuest requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
     }
   } else if (techEvent === "AI FILMFORGE") {
-    techM1 = cleanStr(data.technicalMember1) || fullName;
+    techM1 = cleanStr(data.technicalMember1 || data.techMember1 || data.member1) || fullName;
     techM2 = ""; techM3 = ""; techM4 = "";
   }
 
   var nonTechM1 = "", nonTechM2 = "", nonTechM3 = "", nonTechM4 = "";
   if (nonTechEvent === "MINE RELAY") {
-    nonTechM1 = cleanStr(data.nonTechnicalMember1) || fullName;
-    nonTechM2 = cleanStr(data.nonTechnicalMember2);
-    nonTechM3 = cleanStr(data.nonTechnicalMember3);
-    nonTechM4 = cleanStr(data.nonTechnicalMember4);
+    nonTechM1 = cleanStr(data.nonTechnicalMember1 || data.nonTechMember1 || data.member1) || fullName;
+    nonTechM2 = cleanStr(data.nonTechnicalMember2 || data.nonTechMember2 || data.member2);
+    nonTechM3 = cleanStr(data.nonTechnicalMember3 || data.nonTechMember3 || data.member3);
+    nonTechM4 = cleanStr(data.nonTechnicalMember4 || data.nonTechMember4 || data.member4);
     if (!nonTechM1 || !nonTechM2 || !nonTechM3 || !nonTechM4) {
       return createErrorResponse("Mine Relay requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
     }
   } else if (nonTechEvent === "CHECKMATE") {
-    nonTechM1 = cleanStr(data.nonTechnicalMember1) || fullName;
+    nonTechM1 = cleanStr(data.nonTechnicalMember1 || data.nonTechMember1 || data.member1) || fullName;
     nonTechM2 = ""; nonTechM3 = ""; nonTechM4 = "";
   }
 
@@ -546,6 +548,89 @@ function handleDeleteRegistration(data) {
     success: true,
     registrationId: regId,
     message: "Registration deleted successfully."
+  });
+}
+
+function handleSyncBulkRegistrations(data) {
+  var token = cleanStr(data.token);
+  if (!verifyAdminAuth(token)) {
+    return createJsonResponse({ success: false, message: "Unauthorized admin token." });
+  }
+
+  var list = data.registrations;
+  if (!Array.isArray(list) || list.length === 0) {
+    return createJsonResponse({ success: true, syncedCount: 0, message: "No registrations provided for synchronization." });
+  }
+
+  var sheet = getOrCreateRegistrationsSheet();
+  var lock = LockService.getScriptLock();
+  var hasLock = lock.tryLock(30000);
+  if (!hasLock) {
+    return createErrorResponse("Server is busy syncing. Please retry in a moment.");
+  }
+
+  var syncedCount = 0;
+  try {
+    var lastRow = sheet.getLastRow();
+    var existingMap = {};
+    if (lastRow > 1) {
+      var existingIds = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+      for (var i = 0; i < existingIds.length; i++) {
+        var id = String(existingIds[i][0]).trim();
+        if (id) existingMap[id] = i + 2; // maps registrationId to row index
+      }
+    }
+
+    for (var k = 0; k < list.length; k++) {
+      var r = list[k];
+      if (!r || !r.registrationId) continue;
+
+      var regId = cleanStr(r.registrationId);
+      var row = [
+        regId,
+        cleanStr(r.fullName),
+        cleanStr(r.college),
+        cleanStr(r.department),
+        cleanStr(r.phone),
+        cleanStr(r.email),
+        cleanStr(r.techEvent),
+        cleanStr(r.techMember1 || r.fullName),
+        cleanStr(r.techMember2),
+        cleanStr(r.techMember3),
+        cleanStr(r.techMember4),
+        cleanStr(r.nonTechEvent),
+        cleanStr(r.nonTechMember1 || r.fullName),
+        cleanStr(r.nonTechMember2),
+        cleanStr(r.nonTechMember3),
+        cleanStr(r.nonTechMember4),
+        Number(r.totalMembers) || 1,
+        Number(r.feePerHead) || CONFIG.FEE_PER_HEAD,
+        Number(r.totalAmount) || (Number(r.totalMembers) || 1) * CONFIG.FEE_PER_HEAD,
+        cleanStr(r.paymentStatus) || "Submitted",
+        cleanStr(r.paymentId),
+        cleanStr(r.registrationStatus) || "Confirmed",
+        cleanStr(r.registeredAt) || Utilities.formatDate(new Date(), "GMT+05:30", "yyyy-MM-dd HH:mm:ss 'IST'")
+      ];
+
+      if (existingMap[regId]) {
+        // Update existing row in place
+        var rowIdx = existingMap[regId];
+        sheet.getRange(rowIdx, 1, 1, 23).setValues([row]);
+      } else {
+        // Append new row
+        sheet.appendRow(row);
+        existingMap[regId] = sheet.getLastRow();
+      }
+      syncedCount++;
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  return createJsonResponse({
+    success: true,
+    syncedCount: syncedCount,
+    message: "Successfully synchronized " + syncedCount + " registrations to Google Sheet."
   });
 }
 

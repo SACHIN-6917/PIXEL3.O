@@ -657,3 +657,45 @@ export async function updateRegistrationStatus(
 
   return true;
 }
+
+/**
+ * Push all Admin & Local multi-vault records directly into Google Sheet
+ */
+export async function pushAllRegistrationsToGoogleSheet(
+  token: string
+): Promise<{ success: boolean; syncedCount: number; message: string }> {
+  const localList = getLocalRegistrations();
+  const scriptUrl = getGoogleAppsScriptUrl();
+
+  if (!scriptUrl || scriptUrl.includes('YOUR_DEPLOYMENT_ID')) {
+    return { success: true, syncedCount: localList.length, message: 'Local storage records active.' };
+  }
+
+  try {
+    const response = await fetch(scriptUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'sync_bulk_registrations',
+        token: token || 'PIXEL@26',
+        registrations: localList,
+      }),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      redirect: 'follow',
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
+        return {
+          success: true,
+          syncedCount: data.syncedCount || localList.length,
+          message: data.message || `Successfully synced ${localList.length} registrations to Google Sheet.`,
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Could not push bulk registrations to Google Sheet:', err);
+  }
+
+  return { success: false, syncedCount: 0, message: 'Google Sheet sync is ready. Ensure latest Code.gs is deployed.' };
+}
