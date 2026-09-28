@@ -55,7 +55,7 @@ Once deployed:
    - **CHECKMATE**: Exactly 1 member (Solo)
    - **MINE RELAY**: Exactly 4 members
 4. ₹129 fee per unique participant with cross-event deduplication.
-5. Dynamic UPI QR with UPI ID `sachinvelu6925-2@oksbi` and pre-filled amount.
+5. Dynamic UPI QR with UPI ID `gokulkumar1406@okaxis` and pre-filled amount.
 6. Static fallback/reference QR available from `/Payment-Qr.jpeg`.
 7. Concurrency-safe sequential IDs: `PIXEL-3.O-001`, `PIXEL-3.O-002`, etc.
 8. Deadline enforcement stops registrations after **13 October 2026, 10:00 PM IST**.

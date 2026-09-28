@@ -1135,23 +1135,20 @@ const Step5Payment: React.FC<{
             <ExternalLink className="w-3.5 h-3.5" /> PAY VIA ANY UPI APP
           </button>
 
-          <div className="pt-2 text-center">
-            <details className="cursor-pointer group">
-              <summary className="text-[11px] font-semibold text-foreground-muted hover:text-phoenix-orange transition-colors list-none flex items-center justify-center gap-1">
-                <span>View Static Organizer QR (Reference)</span>
-                <span className="text-[9px] bg-background-warm border border-border px-1.5 py-0.5 rounded">Fallback</span>
-              </summary>
-              <div className="mt-3 p-3 bg-white rounded-2xl border border-border inline-block shadow-sm">
-                <img
-                  src="/Payment-Qr.jpeg"
-                  alt="Organizer Reference UPI QR"
-                  className="w-44 h-44 object-contain mx-auto rounded-lg"
-                />
-                <p className="text-[10px] text-foreground-muted mt-2 max-w-[200px] mx-auto leading-tight">
-                  Reference organizer QR for UPI ID <strong>{upiId}</strong>. Use dynamic QR above for pre-filled amount.
-                </p>
-              </div>
-            </details>
+          <div className="pt-4 text-center">
+            <div className="text-[11px] font-semibold text-foreground-muted mb-2 uppercase tracking-wider">
+              Scan Official QR Code (Fallback)
+            </div>
+            <div className="p-3 bg-white rounded-2xl border border-border inline-block shadow-sm">
+              <img
+                src="/Payment-Qr.jpeg"
+                alt="Organizer Reference UPI QR"
+                className="w-44 h-44 object-contain mx-auto rounded-lg"
+              />
+              <p className="text-[10px] text-foreground-muted mt-2 max-w-[200px] mx-auto leading-tight">
+                Scan this QR if the dynamic QR above fails. Ensure the UPI ID is <strong>{upiId}</strong> and enter the exact amount.
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -1162,9 +1159,9 @@ const Step5Payment: React.FC<{
         </p>
         <ol className="list-decimal list-inside space-y-1 pl-1 text-[11px] sm:text-xs">
           <li>Open GPay, PhonePe, Paytm, or any UPI app.</li>
-          <li>Scan the QR code above or pay to <strong className="text-foreground">{upiId}</strong>.</li>
-          <li>Verify payee is <strong>{DEFAULT_UPI_NAME}</strong> and amount is <strong>₹{totalAmount}</strong>.</li>
-          <li>After payment, copy the <strong>12-digit UPI Reference / Transaction ID</strong> and paste below.</li>
+          <li>Scan the QR code above or pay to <strong className="text-foreground">gokulkumar1406@okaxis</strong>.</li>
+          <li>Verify the payee and confirm the exact registration amount.</li>
+          <li>After payment, copy the UPI Reference / Transaction ID and enter it below.</li>
         </ol>
       </div>
 
@@ -1535,6 +1532,29 @@ export const RegistrationPage: React.FC = () => {
 
       const result = await submitToGoogleSheet(payload);
       setSuccessResult(result);
+      
+      // Play success sound
+      try {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        const audioCtx = new AudioContext();
+        const playTone = (freq: number, startTime: number, duration: number) => {
+          const osc = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+          gainNode.gain.setValueAtTime(0, audioCtx.currentTime + startTime);
+          gainNode.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + startTime + 0.03);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + startTime + duration);
+          osc.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + startTime);
+          osc.stop(audioCtx.currentTime + startTime + duration);
+        };
+        // Premium soft digital confirmation (C5 -> C6)
+        playTone(523.25, 0, 0.15);
+        playTone(1046.50, 0.12, 0.4);
+      } catch(e) {}
+
       setStep(5); // 06 CONFIRMED
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Registration failed to save. Please try again.';

@@ -114,7 +114,7 @@ The registration flow is a 6-step interactive wizard accessible at `/registratio
    - Displays clear pricing breakdown: Total Unique Members, ₹129 fee per head, and Total Amount.
 5. **Step 5 — Payment & Dynamic UPI QR:**
    - Real-time dynamic UPI QR code rendered with exact calculated amount.
-   - Payee: `PIXEL-3.O`, UPI ID: `sachinvelu6925-2@oksbi`.
+   - Payee: `PIXEL-3.O`, UPI ID: `gokulkumar1406@okaxis`.
    - "PAY VIA ANY UPI APP" deep link button for mobile devices.
    - "View Static Organizer QR (Reference)" toggle to inspect the fallback organizer image.
    - Participant enters the 12-digit UTR / Transaction Reference ID.
@@ -132,14 +132,14 @@ The registration flow is a 6-step interactive wizard accessible at `/registratio
 ### 1. Dynamic UPI QR:
 The website encodes the exact total calculated fee dynamically for every user:
 ```
-upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am={TOTAL_AMOUNT}&cu=INR&tn={REGISTRATION_NOTE}
+upi://pay?pa=gokulkumar1406@okaxis&pn=PIXEL-3.O&am={TOTAL_AMOUNT}&cu=INR&tn={REGISTRATION_NOTE}
 ```
-* **₹129:** `upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am=129&cu=INR&tn=PIXEL-3.O`
-* **₹516:** `upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am=516&cu=INR&tn=PIXEL-3.O`
+* **₹129:** `upi://pay?pa=gokulkumar1406@okaxis&pn=PIXEL-3.O&am=129&cu=INR&tn=PIXEL-3.O`
+* **₹516:** `upi://pay?pa=gokulkumar1406@okaxis&pn=PIXEL-3.O&am=516&cu=INR&tn=PIXEL-3.O`
 
 ### 2. Static Reference QR:
 - Located at `/Payment-Qr.jpeg` in the public folder.
-- Contains the official static Google Pay UPI QR for `sachinvelu6925-2@oksbi`.
+- Contains the official static Google Pay UPI QR for `gokulkumar1406@okaxis`.
 - Available inside a clean collapsible accordion on the payment step as a reference fallback for manual entry.
 
 ---
@@ -236,7 +236,7 @@ VITE_GOOGLE_APPS_SCRIPT_URL=https://script.google.com/macros/s/AKfycbxzUn5hFzvTP
 VITE_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/AKfycbxzUn5hFzvTP3GotvliByvdKDeMBLAO61WLjbpMe_yGCMNISsF7l11VeCPRKcwsbZ5Meg/exec
 
 # Official UPI ID for Dynamic QR Payments
-VITE_UPI_ID=sachinvelu6925-2@oksbi
+VITE_UPI_ID=gokulkumar1406@okaxis
 
 # Official WhatsApp Group Link
 VITE_WHATSAPP_LINK=https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v
@@ -276,7 +276,7 @@ npm run preview
 - [x] **Event Quotas:** Exactly four events: PaperQuest (4), AI FilmForge (1), Checkmate (1), Mine Relay (4).
 - [x] **Team Validation:** Only 1 or 4 members allowed. 2, 3, 5+ disallowed.
 - [x] **Deduplication:** ₹129 per unique participant calculated correctly.
-- [x] **Dynamic QR:** Pre-fills calculated amount (`sachinvelu6925-2@oksbi`).
+- [x] **Dynamic QR:** Pre-fills calculated amount (`gokulkumar1406@okaxis`).
 - [x] **Static Reference QR:** Available at `/Payment-Qr.jpeg`.
 - [x] **WhatsApp Link:** Verified `https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v`.
 - [x] **Google Sheet Integration:** Connected to live Web App URL; writes to single `Registrations` sheet with 23 columns.

@@ -154,19 +154,21 @@ export const AGENDA_ITEMS: AgendaItem[] = [
 ];
 
 export const STAFF_COMMITTEE: CommitteeItem[] = [
-  { role: 'Convener', members: ['Mrs. P. Gajalakshmi'] },
-  { role: 'Staff Coordinator', members: ['Mr. K. Chairmadhurai'] },
+  { role: 'Head of the Department - CSE', members: ['Dr. C. Dhaya'] },
   { role: 'Treasurer', members: ['Mr. G. Sekar'] },
+  { role: 'Food Committee', members: ['Mr. G. Srinivasan', 'Mr. A. Arunachalam'] },
+  { role: 'Staff Coordinator', members: ['Mr. K. Chairmadhurai'] },
+  { role: 'Convener', members: ['Mrs. P. Gajalakshmi'] },
   { role: 'Event & Technical Coordinator', members: ['Mrs. M. Padmapriya'] },
   { role: 'Technical Events', members: ['Mrs. M. Padmapriya'] },
   { role: 'Non-Technical Events', members: ['Ms. Kavitha'] },
-  { role: 'Registration & Payment', members: ['Ms. S. Swetha', 'Mrs. S. Swathy'] },
-  { role: 'Design, Décor & Reception', members: ['Ms. Jayanthi', 'Ms. Sangavi', 'Ms. Rubini'] },
   { role: 'Guest Lunch & Hospitality', members: ['Mrs. V. Thamaraiselvi', 'Ms. D. Teena'] },
-  { role: 'Food Committee', members: ['Mr. G. Srinivasan', 'Mr. A. Arunachalam'] },
+  { role: 'Registration & Payment', members: ['Ms. S. Swetha', 'Mrs. S. Swathy'] },
+  { role: 'Certificate, Prize & Memento Committee', members: ['Ms. Sumitra'] },
   { role: 'Social Media & Promotion', members: ['Mr. M. Sudhashan'] },
   { role: 'Photography', members: ['Mr. R. Prasanna'] },
-  { role: 'Certificate, Prize & Memento Committee', members: ['Ms. Sumitra'] }
+  { role: 'Co-Staff Coordinators', members: ['K. Savitha', 'A. Jayanthi', 'S. Sangavi', 'Rubini'] },
+  { role: 'Design, Décor & Reception', members: ['Ms. Jayanthi', 'Ms. Sangavi', 'Ms. Rubini'] }
 ];
 
 export const STUDENT_LEADERSHIP: CommitteeItem[] = [

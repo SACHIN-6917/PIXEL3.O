@@ -2,7 +2,7 @@
 
 export const REGISTRATION_DEADLINE = new Date('2026-10-13T22:00:00+05:30').getTime();
 export const FEE_PER_HEAD = 129;
-export const DEFAULT_UPI_ID = import.meta.env.VITE_UPI_ID || 'sachinvelu6925-2@oksbi';
+export const DEFAULT_UPI_ID = import.meta.env.VITE_UPI_ID || 'gokulkumar1406@okaxis';
 export const DEFAULT_UPI_NAME = 'PIXEL-3.O';
 export const WHATSAPP_COMMUNITY_LINK = 'https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v';
 export const STATIC_QR_PATH = '/Payment-Qr.jpeg';
@@ -132,7 +132,7 @@ export function calculateUniqueMembersAndFee(
 
 /**
  * Builds dynamic UPI payment link with exact calculated amount
- * Example: upi://pay?pa=sachinvelu6925-2@oksbi&pn=PIXEL-3.O&am=516&cu=INR&tn=PIXEL-3.O
+ * Example: upi://pay?pa=gokulkumar1406@okaxis&pn=PIXEL-3.O&am=516&cu=INR&tn=PIXEL-3.O
  */
 export function buildUpiPaymentUrl(
   amount: number,

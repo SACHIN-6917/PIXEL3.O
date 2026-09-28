@@ -159,6 +159,27 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       setIsSubmitting(false);
       setRegistrationSuccess(true);
 
+      // Play success sound
+      try {
+        const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+        const audioCtx = new AudioContext();
+        const playTone = (freq: number, startTime: number, duration: number) => {
+          const osc = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTime);
+          gainNode.gain.setValueAtTime(0, audioCtx.currentTime + startTime);
+          gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + startTime + 0.05);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + startTime + duration);
+          osc.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          osc.start(audioCtx.currentTime + startTime);
+          osc.stop(audioCtx.currentTime + startTime + duration);
+        };
+        playTone(880, 0, 0.15); // A5
+        playTone(1760, 0.1, 0.4); // A6
+      } catch(e) {}
+
       // Trigger Confetti!
       confetti({
         particleCount: 100,
