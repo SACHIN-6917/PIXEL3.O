@@ -167,8 +167,7 @@ export const STAFF_COMMITTEE: CommitteeItem[] = [
   { role: 'Certificate, Prize & Memento Committee', members: ['Ms. Sumitra'] },
   { role: 'Social Media & Promotion', members: ['Mr. M. Sudhashan'] },
   { role: 'Photography', members: ['Mr. R. Prasanna'] },
-  { role: 'Co-Staff Coordinators', members: ['K. Savitha', 'A. Jayanthi', 'S. Sangavi', 'Rubini'] },
-  { role: 'Design, Décor & Reception', members: ['Ms. Jayanthi', 'Ms. Sangavi', 'Ms. Rubini'] }
+  { role: 'Design, Décor & Reception', members: ['Ms.A. Jayanthi', 'Ms.S.Sangavi', 'Ms.A.Rubini'] }
 ];
 
 export const STUDENT_LEADERSHIP: CommitteeItem[] = [
