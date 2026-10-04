@@ -94,10 +94,10 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     category: 'Non-Technical Event',
     venue: 'AUDITORIUM',
     timing: '01:40 PM – 03:30 PM',
-    description: 'Navigate the minefield as a team and win together.',
+    description: 'Three Monkeys: Eyes, Ears, Mouth. This is the game!',
     rules: [
-      'REGISTER is not a mine',
-      'MIME RELAY'
+      'Based on the Three Monkeys concept (Eyes, Ears, Mouth)',
+      'Team coordination and communication are key'
     ],
     teamSize: 'Team of 4',
     coordinators: 'Event Experience Crew'
