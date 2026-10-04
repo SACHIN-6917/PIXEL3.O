@@ -62,10 +62,10 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     timing: '10:30 AM – 12:10 PM',
     description: 'Unleash next-generation generative AI, cinematic storytelling, and multimedia prompt engineering to architect creative short films and visual narratives.',
     rules: [
-      'Participants will use approved Generative AI tools and creative workflows',
-      'Theme will be unveiled at the commencement of the session',
-      'Evaluation criteria: Narrative coherence, prompt mastery, visual fidelity, and audio-visual design',
-      'Solo / Individual participation only'
+      'Generate a short AI film (1-2 mins)',
+      'Must use AI tools for visuals and scripts',
+      'Theme will be given on the spot',
+      'Judged on creativity and concept'
     ],
     teamSize: 'Solo (1 Member)',
     coordinators: 'Multimedia & AI Lab Team'
@@ -94,12 +94,10 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     category: 'Non-Technical Event',
     venue: 'AUDITORIUM',
     timing: '01:40 PM – 03:30 PM',
-    description: 'An electrifying team relay combining rapid logical deciphering, blindfolded trust navigations, and puzzle-solving coordination under ticking clock pressure.',
+    description: 'Navigate the minefield as a team and win together.',
     rules: [
-      'Fast-paced multi-stage relay format with timed obstacles and puzzle checkpoints',
-      'Teams must communicate strictly following relay protocol',
-      'Penalty seconds added for missed obstacles or step violations',
-      'Dynamic fun, coordination, and team synergy'
+      'REGISTER is not a mine',
+      'MIME RELAY'
     ],
     teamSize: 'Team of 4',
     coordinators: 'Event Experience Crew'
