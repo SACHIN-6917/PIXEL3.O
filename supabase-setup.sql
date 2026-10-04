@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS registrations (
   phone               TEXT NOT NULL,
   email               TEXT NOT NULL,
   technical_event     TEXT CHECK (technical_event IN ('PaperQuest', 'AI FilmForge', NULL)),
-  non_technical_event TEXT CHECK (non_technical_event IN ('Checkmate', 'Mine Relay', NULL)),
+  non_technical_event TEXT CHECK (non_technical_event IN ('Checkmate', 'Mime Relay', NULL)),
   registration_status TEXT DEFAULT 'confirmed',
   created_at          TIMESTAMPTZ DEFAULT NOW(),
 

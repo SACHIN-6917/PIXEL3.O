@@ -10,7 +10,7 @@ const VENUES = [
   ]},
   { session: 'AFTERNOON SESSION', time: '01:40 PM – 03:30 PM', events: [
     { name: 'CHECKMATE',  venue: 'Main CSE Lab',  cat: 'Non-Technical', color: 'from-phoenix-magenta to-phoenix-purple', desc: 'Spacious lab set up with chess boards for tournament play.' },
-    { name: 'MINE RELAY', venue: 'Auditorium',    cat: 'Non-Technical', color: 'from-phoenix-purple to-phoenix-orange', desc: 'Open floor in the auditorium for the team relay challenge.' },
+    { name: 'MIME RELAY', venue: 'Auditorium',    cat: 'Non-Technical', color: 'from-phoenix-purple to-phoenix-orange', desc: 'Open floor in the auditorium for the team relay challenge.' },
   ]},
   { session: 'LUNCH BREAK', time: '12:20 PM – 01:40 PM', events: [
     { name: 'LUNCH & REFRESHMENTS', venue: 'College Canteen', cat: 'Meal', color: 'from-phoenix-gold to-phoenix-orange', desc: 'Complimentary vegetarian lunch and refreshments for all participants.' },

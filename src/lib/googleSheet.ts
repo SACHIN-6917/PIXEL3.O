@@ -12,7 +12,7 @@ export function isDeadlinePassed(): boolean {
 }
 
 export type TechEvent = 'PaperQuest' | 'AI FilmForge' | null;
-export type NonTechEvent = 'Checkmate' | 'Mine Relay' | null;
+export type NonTechEvent = 'Checkmate' | 'Mime Relay' | null;
 
 export interface RegistrationPayload {
   fullName: string;
@@ -25,7 +25,7 @@ export interface RegistrationPayload {
   technicalMember2: string;
   technicalMember3: string;
   technicalMember4: string;
-  nonTechnicalEvent: string; // 'CHECKMATE' | 'MINE RELAY' | ''
+  nonTechnicalEvent: string; // 'CHECKMATE' | 'MIME RELAY' | ''
   nonTechnicalMember1: string;
   nonTechnicalMember2: string;
   nonTechnicalMember3: string;
@@ -86,7 +86,7 @@ export function calculateUniqueMembersAndFee(
   techEvent: TechEvent,
   techMembers: string[], // [member2, member3, member4] for PaperQuest
   nonTechEvent: NonTechEvent,
-  nonTechMembers: string[] // [member2, member3, member4] for Mine Relay
+  nonTechMembers: string[] // [member2, member3, member4] for Mime Relay
 ) {
   const pName = mainParticipant.trim();
   const allNames: string[] = [];
@@ -102,7 +102,7 @@ export function calculateUniqueMembersAndFee(
 
   if (nonTechEvent) {
     if (pName) allNames.push(pName);
-    if (nonTechEvent === 'Mine Relay') {
+    if (nonTechEvent === 'Mime Relay') {
       nonTechMembers.forEach(m => {
         if (m && m.trim()) allNames.push(m.trim());
       });
@@ -358,7 +358,7 @@ export function createAndSaveLocalRecord(payload: RegistrationPayload): Registra
     payload.fullName,
     payload.technicalEvent === 'PAPERQUEST' ? 'PaperQuest' : payload.technicalEvent === 'AI FILMFORGE' ? 'AI FilmForge' : null,
     [payload.technicalMember2, payload.technicalMember3, payload.technicalMember4],
-    payload.nonTechnicalEvent === 'MINE RELAY' ? 'Mine Relay' : payload.nonTechnicalEvent === 'CHECKMATE' ? 'Checkmate' : null,
+    payload.nonTechnicalEvent === 'MIME RELAY' ? 'Mime Relay' : payload.nonTechnicalEvent === 'CHECKMATE' ? 'Checkmate' : null,
     [payload.nonTechnicalMember2, payload.nonTechnicalMember3, payload.nonTechnicalMember4]
   );
 

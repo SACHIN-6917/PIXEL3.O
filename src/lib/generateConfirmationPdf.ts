@@ -277,7 +277,7 @@ export async function generateConfirmationPdf(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(100, 100, 100);
-  if (result.nonTechEvent === 'Mine Relay' || result.nonTechEvent === 'MINE RELAY') {
+  if (result.nonTechEvent === 'Mime Relay' || result.nonTechEvent === 'MIME RELAY') {
     doc.text('Team (4 Members):', nonTechX + 3, y + 18);
     const mList = extraDetails?.nonTechMembers && extraDetails.nonTechMembers.length > 0
       ? extraDetails.nonTechMembers

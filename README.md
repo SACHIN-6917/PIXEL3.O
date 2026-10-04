@@ -52,15 +52,15 @@ The symposium features **EXACTLY FOUR** authorized arenas. Old events (`CODESPRI
 | **01** | **PAPERQUEST** | Technical | **EXACTLY 4 MEMBERS** | Main Auditorium | 10:30 AM – 12:10 PM | Research paper presentation symposium arena before expert faculty evaluators. |
 | **02** | **AI FILMFORGE** | Technical | **EXACTLY 1 MEMBER (Solo)** | Main CSE Lab | 10:30 AM – 12:10 PM | Generative AI short film creation and prompt engineering challenge. |
 | **03** | **CHECKMATE** | Non-Technical | **EXACTLY 1 MEMBER (Solo)** | Main CSE Lab | 01:40 PM – 03:30 PM | FIDE rapid / blitz knockout chess arena. |
-| **04** | **MINE RELAY** | Non-Technical | **EXACTLY 4 MEMBERS** | Auditorium | 01:40 PM – 03:30 PM | Timed puzzle deciphering and obstacle navigation relay race. |
+| **04** | **MIME RELAY** | Non-Technical | **EXACTLY 4 MEMBERS** | Auditorium | 01:40 PM – 03:30 PM | Timed puzzle deciphering and obstacle navigation relay race. |
 
 ### Strict Team Size Rule:
 - ONLY **1 participant (Solo)** OR **4 participants (Team)** are allowed.
 - Teams of 2, 3, 5, 6, 7+ members are strictly disallowed and blocked by both frontend form validation and Google Apps Script server validation.
 - Allowed Event Combinations:
   - Technical only (PaperQuest or AI FilmForge)
-  - Non-Technical only (Checkmate or Mine Relay)
-  - One Technical + One Non-Technical (e.g. PaperQuest + Checkmate, PaperQuest + Mine Relay, AI FilmForge + Checkmate, AI FilmForge + Mine Relay)
+  - Non-Technical only (Checkmate or Mime Relay)
+  - One Technical + One Non-Technical (e.g. PaperQuest + Checkmate, PaperQuest + Mime Relay, AI FilmForge + Checkmate, AI FilmForge + Mime Relay)
 - At least ONE event is required. Selecting two technical or two non-technical events is blocked.
 
 ---
@@ -81,9 +81,9 @@ If a participant competes in both a Technical event and a Non-Technical event, t
   - Checkmate Solo (1 member): *Arun*
   - Unique Participants: *Arun, Rahul, Vijay, Karthik* $\rightarrow$ **4 Unique Members**
   - Total Fee: $4 \times 129 = \mathbf{₹516}$ *(NOT ₹645)*.
-- **Example B (AI FilmForge + Mine Relay):**
+- **Example B (AI FilmForge + Mime Relay):**
   - AI FilmForge Solo (1 member): *Arun*
-  - Mine Relay Team (4 members): *Arun, Anu, Kavi, Divya*
+  - Mime Relay Team (4 members): *Arun, Anu, Kavi, Divya*
   - Unique Participants: *Arun, Anu, Kavi, Divya* $\rightarrow$ **4 Unique Members**
   - Total Fee: $4 \times 129 = \mathbf{₹516}$.
 - **Example C (Solo Only):**
@@ -102,11 +102,11 @@ The registration flow is a 6-step interactive wizard accessible at `/registratio
    - This person automatically becomes **Member 1 (Main Participant)** for all selected events.
 2. **Step 2 — Event Selection:**
    - Technical (Max 1): *PaperQuest* (Team of 4), *AI FilmForge* (Solo), or *No Technical Event*.
-   - Non-Technical (Max 1): *Checkmate* (Solo), *Mine Relay* (Team of 4), or *No Non-Technical Event*.
+   - Non-Technical (Max 1): *Checkmate* (Solo), *Mime Relay* (Team of 4), or *No Non-Technical Event*.
    - Validation ensures at least one event is chosen.
 3. **Step 3 — Team Member Details:**
    - If *PaperQuest* selected: Form asks for Member 2, Member 3, Member 4 (all mandatory).
-   - If *Mine Relay* selected: Form asks for Member 2, Member 3, Member 4 (all mandatory).
+   - If *Mime Relay* selected: Form asks for Member 2, Member 3, Member 4 (all mandatory).
    - If *AI FilmForge* or *Checkmate* selected: Solo event, no extra members needed.
 4. **Step 4 — Review & Dynamic Breakdown:**
    - Full summary of participant data and event rosters.
@@ -273,7 +273,7 @@ npm run preview
 ## ✅ Verification Checklist
 
 - [x] **Public Design:** Existing Phoenix video hero, colors, fonts, about, agenda, venues, coordinators, and footer completely preserved.
-- [x] **Event Quotas:** Exactly four events: PaperQuest (4), AI FilmForge (1), Checkmate (1), Mine Relay (4).
+- [x] **Event Quotas:** Exactly four events: PaperQuest (4), AI FilmForge (1), Checkmate (1), Mime Relay (4).
 - [x] **Team Validation:** Only 1 or 4 members allowed. 2, 3, 5+ disallowed.
 - [x] **Deduplication:** ₹129 per unique participant calculated correctly.
 - [x] **Dynamic QR:** Pre-fills calculated amount (`gokulkumar1406@okaxis`).

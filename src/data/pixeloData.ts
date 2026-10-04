@@ -88,9 +88,9 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     coordinators: 'Chess & Strategy Arena Leads'
   },
   {
-    id: 'mine-relay',
+    id: 'mime-relay',
     number: '04',
-    name: 'MINE RELAY',
+    name: 'MIME RELAY',
     category: 'Non-Technical Event',
     venue: 'AUDITORIUM',
     timing: '01:40 PM – 03:30 PM',
@@ -137,8 +137,8 @@ export const AGENDA_ITEMS: AgendaItem[] = [
   {
     time: '01:40 PM – 03:30 PM',
     title: 'NON-TECHNICAL EVENTS',
-    subtitle: 'Checkmate · Mine Relay',
-    description: 'High-energy afternoon arena: Checkmate chess battles in Main CSE Lab and thrilling Mine Relay in Auditorium.',
+    subtitle: 'Checkmate · Mime Relay',
+    description: 'High-energy afternoon arena: Checkmate chess battles in Main CSE Lab and thrilling Mime Relay in Auditorium.',
     badge: 'Afternoon Session'
   },
   {
@@ -219,7 +219,7 @@ export const EVENT_COORDINATORS: EventCoordinatorGroup[] = [
     coordinators: ['Mr. Gokul Raju', 'Mr. Anandh', 'Mr. Surendar'],
   },
   {
-    event: 'MINE RELAY',
+    event: 'MIME RELAY',
     category: 'Non-Technical',
     coordinators: ['Ms. Yuvashree', 'Ms. Vijayalakshmi'],
   },
@@ -275,7 +275,7 @@ export const VENUES_DATA = [
         icon: 'Swords'
       },
       {
-        eventName: 'MINE RELAY',
+        eventName: 'MIME RELAY',
         category: 'Non-Technical Event',
         venueName: 'Auditorium',
         floor: 'Ground Floor, Main Campus Arena',

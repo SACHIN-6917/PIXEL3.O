@@ -58,7 +58,7 @@ interface Step1Data {
  * PaperQuest   → exactly 4 indices
  * AI FilmForge → exactly 1 index
  * Checkmate    → exactly 1 index
- * Mine Relay   → exactly 4 indices
+ * Mime Relay   → exactly 4 indices
  */
 interface FormState {
   step1: Step1Data;
@@ -93,7 +93,7 @@ function defaultAssignments(
   }
 
   let nonTechAssignment: number[] = [];
-  if (nonTechEvent === 'Mine Relay') {
+  if (nonTechEvent === 'Mime Relay') {
     nonTechAssignment = validIndices.slice(0, 4);
   } else if (nonTechEvent === 'Checkmate') {
     nonTechAssignment = [0];
@@ -438,12 +438,12 @@ const Step2Events: React.FC<{
         />
 
         <EventSelectCard
-          name="MINE RELAY"
+          name="MIME RELAY"
           sub="Team of 4 Members"
           venue="Auditorium"
           icon={<Zap className="w-5 h-5" />}
-          selected={nonTechEvent === 'Mine Relay'}
-          onClick={() => { setError(''); onNonTechChange('Mine Relay'); }}
+          selected={nonTechEvent === 'Mime Relay'}
+          onClick={() => { setError(''); onNonTechChange('Mime Relay'); }}
         />
 
         <SkipOptionBtn
@@ -506,7 +506,7 @@ const Step3Team: React.FC<{
 
   // How many ADDITIONAL member inputs to show (beyond main participant)
   const techNeedsTeam = techEvent === 'PaperQuest';
-  const nonTechNeedsTeam = nonTechEvent === 'Mine Relay';
+  const nonTechNeedsTeam = nonTechEvent === 'Mime Relay';
   const needsTeam = techNeedsTeam || nonTechNeedsTeam;
 
   // Minimum additional slots needed
@@ -556,7 +556,7 @@ const Step3Team: React.FC<{
       return false;
     }
     if (nonTechNeedsTeam && nonTechAssignment.length !== 4) {
-      setAssignError('Please select exactly 4 participants for MINE RELAY.');
+      setAssignError('Please select exactly 4 participants for MIME RELAY.');
       return false;
     }
 
@@ -665,14 +665,14 @@ const Step3Team: React.FC<{
               onClick={() => onMasterChange([...masterParticipants, ''])}
               className="w-full py-2.5 px-4 rounded-xl border border-dashed border-border hover:border-phoenix-orange text-xs font-bold text-foreground-muted hover:text-phoenix-orange tracking-wider uppercase flex items-center justify-center gap-2 transition-colors"
             >
-              <Plus className="w-3.5 h-3.5" /> ADD MORE PARTICIPANTS (for different Mine Relay team)
+              <Plus className="w-3.5 h-3.5" /> ADD MORE PARTICIPANTS (for different Mime Relay team)
             </button>
           )}
         </div>
       )}
 
       {/* ── Notification for PQ + MR unique fee ── */}
-      {techEvent === 'PaperQuest' && nonTechEvent === 'Mine Relay' && (
+      {techEvent === 'PaperQuest' && nonTechEvent === 'Mime Relay' && (
         <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
           <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div>
@@ -712,12 +712,12 @@ const Step3Team: React.FC<{
         </div>
       )}
 
-      {/* ── MINE RELAY ASSIGNMENT ── */}
+      {/* ── MIME RELAY ASSIGNMENT ── */}
       {nonTechNeedsTeam && validMaster.length > 4 && (
         <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold tracking-wider uppercase text-phoenix-magenta">
-              MINE RELAY — Select Your 4 Members
+              MIME RELAY — Select Your 4 Members
             </span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${nonTechAssignment.length === 4 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
               {nonTechAssignment.length}/4 selected
@@ -1475,9 +1475,9 @@ export const RegistrationPage: React.FC = () => {
     setForm(f => {
       // If non-tech needs a team and there's no team event, ensure master has 4 slots
       let newMaster = [...f.masterParticipants];
-      if (e === 'Mine Relay' && f.techEvent !== 'PaperQuest' && newMaster.length < 4) {
+      if (e === 'Mime Relay' && f.techEvent !== 'PaperQuest' && newMaster.length < 4) {
         while (newMaster.length < 4) newMaster.push('');
-      } else if (e !== 'Mine Relay' && f.techEvent !== 'PaperQuest' && newMaster.length > 1) {
+      } else if (e !== 'Mime Relay' && f.techEvent !== 'PaperQuest' && newMaster.length > 1) {
         newMaster = [newMaster[0]];
       }
       const { techAssignment, nonTechAssignment } = defaultAssignments(f.techEvent, e, newMaster);
@@ -1522,7 +1522,7 @@ export const RegistrationPage: React.FC = () => {
         technicalMember2: techNames[1] || '',
         technicalMember3: techNames[2] || '',
         technicalMember4: techNames[3] || '',
-        nonTechnicalEvent: nonTechEvent === 'Mine Relay' ? 'MINE RELAY' : nonTechEvent === 'Checkmate' ? 'CHECKMATE' : '',
+        nonTechnicalEvent: nonTechEvent === 'Mime Relay' ? 'MIME RELAY' : nonTechEvent === 'Checkmate' ? 'CHECKMATE' : '',
         nonTechnicalMember1: nonTechNames[0] || '',
         nonTechnicalMember2: nonTechNames[1] || '',
         nonTechnicalMember3: nonTechNames[2] || '',

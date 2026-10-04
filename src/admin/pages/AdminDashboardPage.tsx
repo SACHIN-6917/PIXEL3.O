@@ -420,7 +420,7 @@ export const AdminDashboardPage: React.FC = () => {
                   Non-Technical Event
                 </span>
                 <div className="font-bold text-gray-900 text-sm">{selectedReg.nonTechEvent || 'None'}</div>
-                {selectedReg.nonTechEvent === 'MINE RELAY' && (
+                {selectedReg.nonTechEvent === 'MIME RELAY' && (
                   <div className="mt-2 space-y-1 text-gray-600 text-[11px]">
                     <div>1. {selectedReg.nonTechMember1 || selectedReg.fullName}</div>
                     <div>2. {selectedReg.nonTechMember2 || '—'}</div>

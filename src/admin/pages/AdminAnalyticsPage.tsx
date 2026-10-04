@@ -67,7 +67,7 @@ export const AdminAnalyticsPage: React.FC = () => {
       if (r.techEvent === 'PAPERQUEST') counts.PaperQuest++;
       if (r.techEvent === 'AI FILMFORGE') counts.AIFilmForge++;
       if (r.nonTechEvent === 'CHECKMATE') counts.Checkmate++;
-      if (r.nonTechEvent === 'MINE RELAY') counts.MineRelay++;
+      if (r.nonTechEvent === 'MIME RELAY') counts.MineRelay++;
     });
     return counts;
   }, [registrations]);
@@ -216,10 +216,10 @@ export const AdminAnalyticsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Mine Relay */}
+            {/* Mime Relay */}
             <div>
               <div className="flex justify-between text-xs font-bold mb-1">
-                <span className="text-gray-700">Mine Relay (Non-Technical, Team of 4)</span>
+                <span className="text-gray-700">Mime Relay (Non-Technical, Team of 4)</span>
                 <span className="text-purple-600">{eventCounts.MineRelay} Teams</span>
               </div>
               <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden">

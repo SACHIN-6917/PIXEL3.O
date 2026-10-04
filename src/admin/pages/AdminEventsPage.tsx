@@ -37,7 +37,7 @@ export const AdminEventsPage: React.FC = () => {
   const paperQuestCount = registrations.filter(r => r.techEvent === 'PAPERQUEST').length;
   const filmForgeCount = registrations.filter(r => r.techEvent === 'AI FILMFORGE').length;
   const checkmateCount = registrations.filter(r => r.nonTechEvent === 'CHECKMATE').length;
-  const mineRelayCount = registrations.filter(r => r.nonTechEvent === 'MINE RELAY').length;
+  const mineRelayCount = registrations.filter(r => r.nonTechEvent === 'MIME RELAY').length;
 
   const EVENTS = [
     {
@@ -98,8 +98,8 @@ export const AdminEventsPage: React.FC = () => {
       ],
     },
     {
-      id: 'mine-relay',
-      name: 'MINE RELAY',
+      id: 'mime-relay',
+      name: 'MIME RELAY',
       category: 'Non-Technical',
       participation: 'EXACTLY 4 MEMBERS',
       venue: 'Auditorium',

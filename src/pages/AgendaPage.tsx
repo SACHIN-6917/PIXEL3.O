@@ -9,7 +9,7 @@ const TIMELINE = [
   { time: '10:30 AM', title: 'TECHNICAL EVENTS BEGIN', desc: 'PaperQuest in Main Auditorium · AI FilmForge in Main CSE Lab', badge: 'TECHNICAL', highlight: true },
   { time: '12:10 PM', title: 'TECHNICAL EVENTS CONCLUDE', desc: 'Wrapping up technical event rounds.', badge: '', highlight: false },
   { time: '12:20 PM', title: 'LUNCH BREAK', desc: 'Complimentary vegetarian lunch and refreshments at College Canteen.', badge: 'LUNCH', highlight: false },
-  { time: '01:40 PM', title: 'NON-TECHNICAL EVENTS BEGIN', desc: 'Checkmate in Main CSE Lab · Mine Relay in Auditorium', badge: 'NON-TECHNICAL', highlight: true },
+  { time: '01:40 PM', title: 'NON-TECHNICAL EVENTS BEGIN', desc: 'Checkmate in Main CSE Lab · Mime Relay in Auditorium', badge: 'NON-TECHNICAL', highlight: true },
   { time: '03:30 PM', title: 'EVENTS CONCLUDE', desc: 'All events conclude. Results compilation begins.', badge: '', highlight: false },
   { time: '03:30 PM', title: 'VALEDICTORY & PRIZE DISTRIBUTION', desc: 'Prize distribution, certificates, and closing remarks.', badge: 'CLOSING', highlight: true },
 ];
