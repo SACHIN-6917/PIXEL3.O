@@ -61,20 +61,20 @@ export const AdminAnalyticsPage: React.FC = () => {
       PaperQuest: 0,
       AIFilmForge: 0,
       Checkmate: 0,
-      MineRelay: 0,
+      MimeRelay: 0,
     };
     registrations.forEach(r => {
       if (r.techEvent === 'PAPERQUEST') counts.PaperQuest++;
       if (r.techEvent === 'AI FILMFORGE') counts.AIFilmForge++;
       if (r.nonTechEvent === 'CHECKMATE') counts.Checkmate++;
-      if (r.nonTechEvent === 'MIME RELAY') counts.MineRelay++;
+      if (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY') counts.MimeRelay++;
     });
     return counts;
   }, [registrations]);
 
   // Technical vs Non-Technical
   const techTotal = eventCounts.PaperQuest + eventCounts.AIFilmForge;
-  const nonTechTotal = eventCounts.Checkmate + eventCounts.MineRelay;
+  const nonTechTotal = eventCounts.Checkmate + eventCounts.MimeRelay;
   const combinedTotal = techTotal + nonTechTotal || 1;
   const techPercent = Math.round((techTotal / combinedTotal) * 100);
   const nonTechPercent = 100 - techPercent;
@@ -220,12 +220,12 @@ export const AdminAnalyticsPage: React.FC = () => {
             <div>
               <div className="flex justify-between text-xs font-bold mb-1">
                 <span className="text-gray-700">Mime Relay (Non-Technical, Team of 4)</span>
-                <span className="text-purple-600">{eventCounts.MineRelay} Teams</span>
+                <span className="text-purple-600">{eventCounts.MimeRelay} Teams</span>
               </div>
               <div className="w-full h-2.5 rounded-full bg-gray-100 overflow-hidden">
                 <div
                   className="h-full rounded-full bg-purple-500 transition-all duration-500"
-                  style={{ width: `${Math.min(100, (eventCounts.MineRelay / (totalRegistrations || 1)) * 100)}%` }}
+                  style={{ width: `${Math.min(100, (eventCounts.MimeRelay / (totalRegistrations || 1)) * 100)}%` }}
                 />
               </div>
             </div>

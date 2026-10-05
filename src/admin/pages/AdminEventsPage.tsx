@@ -37,7 +37,7 @@ export const AdminEventsPage: React.FC = () => {
   const paperQuestCount = registrations.filter(r => r.techEvent === 'PAPERQUEST').length;
   const filmForgeCount = registrations.filter(r => r.techEvent === 'AI FILMFORGE').length;
   const checkmateCount = registrations.filter(r => r.nonTechEvent === 'CHECKMATE').length;
-  const mineRelayCount = registrations.filter(r => r.nonTechEvent === 'MIME RELAY').length;
+  const mimeRelayCount = registrations.filter(r => r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY').length;
 
   const EVENTS = [
     {
@@ -107,8 +107,8 @@ export const AdminEventsPage: React.FC = () => {
       icon: Zap,
       color: 'border-purple-500/30 text-purple-600 bg-purple-50/20',
       tagColor: 'bg-purple-50 text-purple-600 border-purple-200',
-      registeredTeams: mineRelayCount,
-      estimatedParticipants: mineRelayCount * 4,
+      registeredTeams: mimeRelayCount,
+      estimatedParticipants: mimeRelayCount * 4,
       rules: [
         'Team composition: Exactly 4 members per team (Strict Rule)',
         'Fast-paced multi-stage relay format with timed obstacles and puzzle checkpoints',

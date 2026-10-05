@@ -632,14 +632,19 @@ export const AdminRegistrationsPage: React.FC = () => {
                 <div className="font-bold text-gray-900 text-sm">{selectedReg.techEvent || 'None'}</div>
                 {selectedReg.techEvent === 'PAPERQUEST' && (
                   <div className="mt-2 space-y-1 text-gray-600 text-[11px]">
-                    <div>1. {selectedReg.techMember1 || selectedReg.fullName}</div>
+                    <div>1. {selectedReg.techMember1 || selectedReg.fullName} <span className="text-[10px] text-[#FF6A00] font-semibold">(Main Participant)</span></div>
                     <div>2. {selectedReg.techMember2 || '—'}</div>
                     <div>3. {selectedReg.techMember3 || '—'}</div>
                     <div>4. {selectedReg.techMember4 || '—'}</div>
+                    {selectedReg.checkmateInterested && (
+                      <div className="pt-1.5 mt-1 border-t border-orange-200/60 text-[10px] text-purple-700 font-semibold">
+                        Checkmate Interested: Member(s) {selectedReg.checkmateInterested}
+                      </div>
+                    )}
                   </div>
                 )}
                 {selectedReg.techEvent === 'AI FILMFORGE' && (
-                  <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName}</div>
+                  <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
                 )}
               </div>
 
@@ -648,16 +653,21 @@ export const AdminRegistrationsPage: React.FC = () => {
                   Non-Technical Event
                 </span>
                 <div className="font-bold text-gray-900 text-sm">{selectedReg.nonTechEvent || 'None'}</div>
-                {selectedReg.nonTechEvent === 'MIME RELAY' && (
+                {(selectedReg.nonTechEvent === 'MINE RELAY' || selectedReg.nonTechEvent === 'MIME RELAY') && (
                   <div className="mt-2 space-y-1 text-gray-600 text-[11px]">
-                    <div>1. {selectedReg.nonTechMember1 || selectedReg.fullName}</div>
+                    <div>1. {selectedReg.nonTechMember1 || selectedReg.fullName} <span className="text-[10px] text-purple-600 font-semibold">(Main Participant)</span></div>
                     <div>2. {selectedReg.nonTechMember2 || '—'}</div>
                     <div>3. {selectedReg.nonTechMember3 || '—'}</div>
                     <div>4. {selectedReg.nonTechMember4 || '—'}</div>
+                    {selectedReg.filmforgeInterested && (
+                      <div className="pt-1.5 mt-1 border-t border-purple-200/60 text-[10px] text-[#FF6A00] font-semibold">
+                        AI FilmForge Interested: Member(s) {selectedReg.filmforgeInterested}
+                      </div>
+                    )}
                   </div>
                 )}
                 {selectedReg.nonTechEvent === 'CHECKMATE' && (
-                  <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName}</div>
+                  <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
                 )}
               </div>
             </div>

@@ -16,10 +16,7 @@ import {
   Check,
   AlertCircle,
   ExternalLink,
-  QrCode,
   ShieldCheck,
-  Sparkles,
-  Plus,
   FileText,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
@@ -39,6 +36,7 @@ import {
 import { generateConfirmationPdf } from '../lib/generateConfirmationPdf';
 
 // ─── Interfaces ───────────────────────────────────────────────────
+
 interface Step1Data {
   fullName: string;
   college: string;
@@ -47,59 +45,28 @@ interface Step1Data {
   email: string;
 }
 
-/**
- * NEW: Unified master participant list.
- * masterParticipants[0] = main participant (auto, locked = step1.fullName)
- * masterParticipants[1..n] = additional unique members entered by the user
- *
- * techAssignment   = indices into masterParticipants for the tech event
- * nonTechAssignment = indices into masterParticipants for the non-tech event
- *
- * PaperQuest   → exactly 4 indices
- * AI FilmForge → exactly 1 index
- * Checkmate    → exactly 1 index
- * Mime Relay   → exactly 4 indices
- */
+// Per-member interest for cross-event
+type Interest = 'interested' | 'not_interested' | '';
+
+interface PaperQuestMember {
+  name: string;           // filled from master name fields
+  checkmateInterest: Interest;
+}
+
+interface MimeRelayMember {
+  name: string;
+  filmforgeInterest: Interest;
+}
+
 interface FormState {
   step1: Step1Data;
   techEvent: TechEvent;
   nonTechEvent: NonTechEvent;
-  masterParticipants: string[];   // ['Main Name', 'M2', 'M3', …]
-  techAssignment: number[];       // indices for tech event participants
-  nonTechAssignment: number[];    // indices for non-tech event participants
+  // PaperQuest: exactly 4 members (member[0] = main participant auto-locked)
+  paperQuestMembers: PaperQuestMember[];
+  // Mime Relay: exactly 4 members (member[0] = main participant auto-locked)
+  mimeRelayMembers: MimeRelayMember[];
   paymentId: string;
-}
-
-// ─── helpers ──────────────────────────────────────────────────────
-
-/** returns names (strings) for each event from the master list */
-function resolveNames(master: string[], indices: number[]): string[] {
-  return indices.map(i => (master[i] ?? '').trim()).filter(Boolean);
-}
-
-/** Build a fresh set of default assignments given the current events & master list */
-function defaultAssignments(
-  techEvent: TechEvent,
-  nonTechEvent: NonTechEvent,
-  master: string[]
-): { techAssignment: number[]; nonTechAssignment: number[] } {
-  const validIndices = master.map((_, i) => i).filter(i => master[i]?.trim());
-
-  let techAssignment: number[] = [];
-  if (techEvent === 'PaperQuest') {
-    techAssignment = validIndices.slice(0, 4);
-  } else if (techEvent === 'AI FilmForge') {
-    techAssignment = [0];
-  }
-
-  let nonTechAssignment: number[] = [];
-  if (nonTechEvent === 'Mime Relay') {
-    nonTechAssignment = validIndices.slice(0, 4);
-  } else if (nonTechEvent === 'Checkmate') {
-    nonTechAssignment = [0];
-  }
-
-  return { techAssignment, nonTechAssignment };
 }
 
 // ─── Progress Indicator ───────────────────────────────────────────
@@ -248,6 +215,52 @@ const SkipOptionBtn: React.FC<{
     {selected && <span className="text-[10px] bg-foreground/10 px-2 py-0.5 rounded font-bold">Selected</span>}
   </button>
 );
+
+// ─── Interest Toggle ──────────────────────────────────────────────
+const InterestToggle: React.FC<{
+  eventName: string;
+  value: Interest;
+  onChange: (v: Interest) => void;
+  color?: 'orange' | 'magenta';
+}> = ({ eventName, value, onChange, color = 'orange' }) => {
+  const accentClass = color === 'magenta' ? 'text-phoenix-magenta' : 'text-phoenix-orange';
+  const borderActive = color === 'magenta' ? 'border-phoenix-magenta bg-phoenix-magenta/8' : 'border-phoenix-orange bg-phoenix-orange/8';
+  const ringClass = color === 'magenta' ? 'ring-phoenix-magenta/30' : 'ring-phoenix-orange/30';
+
+  return (
+    <div className="mt-2.5">
+      <div className={`text-[10px] font-bold tracking-wider uppercase mb-1.5 ${accentClass}`}>
+        {eventName}:
+      </div>
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => onChange('interested')}
+          className={`flex-1 py-2 px-3 rounded-lg border-2 text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            value === 'interested'
+              ? `${borderActive} ring-2 ${ringClass} ${accentClass}`
+              : 'border-border text-foreground-muted hover:border-foreground-muted/60'
+          }`}
+        >
+          {value === 'interested' && <CheckCircle2 className="w-3 h-3" />}
+          Interested
+        </button>
+        <button
+          type="button"
+          onClick={() => onChange('not_interested')}
+          className={`flex-1 py-2 px-3 rounded-lg border-2 text-xs font-bold transition-all duration-150 flex items-center justify-center gap-1.5 ${
+            value === 'not_interested'
+              ? 'border-foreground-muted bg-foreground/5 text-foreground ring-2 ring-foreground/10'
+              : 'border-border text-foreground-muted hover:border-foreground-muted/60'
+          }`}
+        >
+          {value === 'not_interested' && <span className="w-3 h-3 inline-flex items-center justify-center text-foreground-muted">✗</span>}
+          Not Interested
+        </button>
+      </div>
+    </div>
+  );
+};
 
 // ═══════════════════════════════════════════════════════════════════
 // STEP 1 — PARTICIPANT DETAILS
@@ -474,129 +487,365 @@ const Step2Events: React.FC<{
 };
 
 // ═══════════════════════════════════════════════════════════════════
-// STEP 3 — MASTER PARTICIPANT LIST + EVENT ASSIGNMENTS
+// STEP 3 — TEAM MEMBERS (NEW DESIGN with per-member interest toggles)
 // ═══════════════════════════════════════════════════════════════════
+
+// ── PaperQuest: 4 fixed members + per-member Checkmate interest ──
+const PaperQuestTeamForm: React.FC<{
+  mainParticipantName: string;
+  members: PaperQuestMember[];
+  onMembersChange: (m: PaperQuestMember[]) => void;
+  errors: string[];
+  interestErrors: string[];
+}> = ({ mainParticipantName, members, onMembersChange, errors, interestErrors }) => {
+  const updateName = (idx: number, name: string) => {
+    const updated = [...members];
+    updated[idx] = { ...updated[idx], name };
+    onMembersChange(updated);
+  };
+  const updateInterest = (idx: number, interest: Interest) => {
+    const updated = [...members];
+    updated[idx] = { ...updated[idx], checkmateInterest: interest };
+    onMembersChange(updated);
+  };
+
+  const memberLabels = ['Member 1', 'Member 2', 'Member 3', 'Member 4'];
+
+  return (
+    <div className="space-y-4">
+      {/* Banner + helper text */}
+      <div className="space-y-2">
+        <div className="p-3.5 rounded-xl bg-phoenix-orange/5 border border-phoenix-orange/20 text-xs text-phoenix-orange font-semibold flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Cpu className="w-4 h-4 shrink-0" />
+            <span>PAPERQUEST — Team of 4 Members · Venue: Seminar Hall 1</span>
+          </div>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-phoenix-orange/10">
+            Team of 4
+          </span>
+        </div>
+        <p className="text-xs text-foreground-secondary px-1">
+          Main Participant is already <strong>Member 1</strong>. Please enter the remaining 3 team members.
+        </p>
+      </div>
+
+      {members.map((member, idx) => (
+        <div key={idx} className="p-4 rounded-2xl bg-background-warm border border-border space-y-3">
+          {/* Member header */}
+          {idx === 0 ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-phoenix-orange text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                  1
+                </div>
+                <span className="text-sm font-bold text-foreground tracking-tight">
+                  MEMBER 1 — MAIN PARTICIPANT
+                </span>
+              </div>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-phoenix-orange/10 text-phoenix-orange border border-phoenix-orange/20">
+                You
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-foreground text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                  {idx + 1}
+                </div>
+                <span className="text-sm font-bold text-foreground tracking-tight">
+                  MEMBER {idx + 1}
+                </span>
+              </div>
+              <span className="text-[10px] font-medium text-foreground-muted">
+                Additional Member
+              </span>
+            </div>
+          )}
+
+          {/* Name field / display */}
+          {idx === 0 ? (
+            <div className="space-y-1">
+              <label className="block text-[11px] font-bold text-foreground-secondary uppercase tracking-wider">
+                Name
+              </label>
+              <div className="w-full px-4 py-3 rounded-xl bg-white border border-border text-sm font-bold text-foreground flex items-center justify-between shadow-2xs">
+                <span>{mainParticipantName || 'Main Participant'}</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                  ✓ Main Participant
+                </span>
+              </div>
+            </div>
+          ) : (
+            <Field
+              label="Name"
+              error={errors[idx]}
+              required
+            >
+              <Input
+                placeholder={`Enter Member ${idx + 1} Full Name`}
+                value={member.name}
+                onChange={e => updateName(idx, e.target.value)}
+                hasError={!!errors[idx]}
+              />
+            </Field>
+          )}
+
+          {/* Checkmate interest toggle */}
+          <div>
+            <InterestToggle
+              eventName="Checkmate (Chess)"
+              value={member.checkmateInterest}
+              onChange={v => updateInterest(idx, v)}
+              color="magenta"
+            />
+            {interestErrors[idx] && (
+              <p className="mt-1 text-xs text-red-500 font-medium flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" /> {interestErrors[idx]}
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {/* Summary pill */}
+      <div className="p-3 rounded-xl bg-white border border-border flex items-center justify-between text-xs">
+        <span className="font-semibold text-foreground-secondary">
+          TOTAL TEAM MEMBERS = <strong className="text-foreground">4</strong>
+        </span>
+        <span className="text-[11px] text-emerald-600 font-bold">
+          ✓ Main Participant + 3 Additional Members
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// ── Mime Relay: 4 fixed members + per-member AI FilmForge interest ──
+const MimeRelayTeamForm: React.FC<{
+  mainParticipantName: string;
+  members: MimeRelayMember[];
+  onMembersChange: (m: MimeRelayMember[]) => void;
+  errors: string[];
+  interestErrors: string[];
+}> = ({ mainParticipantName, members, onMembersChange, errors, interestErrors }) => {
+  const updateName = (idx: number, name: string) => {
+    const updated = [...members];
+    updated[idx] = { ...updated[idx], name };
+    onMembersChange(updated);
+  };
+  const updateInterest = (idx: number, interest: Interest) => {
+    const updated = [...members];
+    updated[idx] = { ...updated[idx], filmforgeInterest: interest };
+    onMembersChange(updated);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Banner + helper text */}
+      <div className="space-y-2">
+        <div className="p-3.5 rounded-xl bg-phoenix-magenta/5 border border-phoenix-magenta/20 text-xs text-phoenix-magenta font-semibold flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 shrink-0" />
+            <span>MIME RELAY — Team of 4 Members · Venue: Auditorium</span>
+          </div>
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-phoenix-magenta/10">
+            Team of 4
+          </span>
+        </div>
+        <p className="text-xs text-foreground-secondary px-1">
+          Main Participant is already <strong>Member 1</strong>. Please enter the remaining 3 team members.
+        </p>
+      </div>
+
+      {members.map((member, idx) => (
+        <div key={idx} className="p-4 rounded-2xl bg-background-warm border border-border space-y-3">
+          {/* Member header */}
+          {idx === 0 ? (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-phoenix-magenta text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                  1
+                </div>
+                <span className="text-sm font-bold text-foreground tracking-tight">
+                  MEMBER 1 — MAIN PARTICIPANT
+                </span>
+              </div>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-phoenix-magenta/10 text-phoenix-magenta border border-phoenix-magenta/20">
+                You
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-full bg-foreground text-white text-xs font-extrabold flex items-center justify-center shrink-0">
+                  {idx + 1}
+                </div>
+                <span className="text-sm font-bold text-foreground tracking-tight">
+                  MEMBER {idx + 1}
+                </span>
+              </div>
+              <span className="text-[10px] font-medium text-foreground-muted">
+                Additional Member
+              </span>
+            </div>
+          )}
+
+          {/* Name field / display */}
+          {idx === 0 ? (
+            <div className="space-y-1">
+              <label className="block text-[11px] font-bold text-foreground-secondary uppercase tracking-wider">
+                Name
+              </label>
+              <div className="w-full px-4 py-3 rounded-xl bg-white border border-border text-sm font-bold text-foreground flex items-center justify-between shadow-2xs">
+                <span>{mainParticipantName || 'Main Participant'}</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200">
+                  ✓ Main Participant
+                </span>
+              </div>
+            </div>
+          ) : (
+            <Field
+              label="Name"
+              error={errors[idx]}
+              required
+            >
+              <Input
+                placeholder={`Enter Member ${idx + 1} Full Name`}
+                value={member.name}
+                onChange={e => updateName(idx, e.target.value)}
+                hasError={!!errors[idx]}
+              />
+            </Field>
+          )}
+
+          {/* AI FilmForge interest toggle */}
+          <div>
+            <InterestToggle
+              eventName="AI FilmForge"
+              value={member.filmforgeInterest}
+              onChange={v => updateInterest(idx, v)}
+              color="orange"
+            />
+            {interestErrors[idx] && (
+              <p className="mt-1 text-xs text-red-500 font-medium flex items-center gap-1">
+                <AlertCircle className="w-3.5 h-3.5" /> {interestErrors[idx]}
+              </p>
+            )}
+          </div>
+        </div>
+      ))}
+
+      {/* Summary pill */}
+      <div className="p-3 rounded-xl bg-white border border-border flex items-center justify-between text-xs">
+        <span className="font-semibold text-foreground-secondary">
+          TOTAL TEAM MEMBERS = <strong className="text-foreground">4</strong>
+        </span>
+        <span className="text-[11px] text-emerald-600 font-bold">
+          ✓ Main Participant + 3 Additional Members
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// ── Solo participant display ──
+const SoloParticipantCard: React.FC<{ eventName: string; mainName: string; color?: 'orange' | 'magenta'; icon: React.ReactNode }> = ({
+  eventName, mainName, color = 'orange', icon
+}) => (
+  <div className={`p-4 rounded-2xl border ${color === 'magenta' ? 'bg-phoenix-magenta/5 border-phoenix-magenta/20' : 'bg-phoenix-orange/5 border-phoenix-orange/20'} flex items-center gap-3`}>
+    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${color === 'magenta' ? 'bg-phoenix-magenta/10 text-phoenix-magenta' : 'bg-phoenix-orange/10 text-phoenix-orange'}`}>
+      {icon}
+    </div>
+    <div>
+      <div className={`text-xs font-bold tracking-wider uppercase ${color === 'magenta' ? 'text-phoenix-magenta' : 'text-phoenix-orange'}`}>{eventName}</div>
+      <div className="text-sm font-bold text-foreground mt-0.5">Solo: {mainName}</div>
+      <div className="text-[11px] text-foreground-muted">You compete alone — no teammates required.</div>
+    </div>
+  </div>
+);
+
+// ── Main Step 3 Component ──
 const Step3Team: React.FC<{
   techEvent: TechEvent;
   nonTechEvent: NonTechEvent;
-  masterParticipants: string[];
-  onMasterChange: (m: string[]) => void;
-  techAssignment: number[];
-  onTechAssignment: (a: number[]) => void;
-  nonTechAssignment: number[];
-  onNonTechAssignment: (a: number[]) => void;
+  step1: Step1Data;
+  paperQuestMembers: PaperQuestMember[];
+  onPaperQuestChange: (m: PaperQuestMember[]) => void;
+  mimeRelayMembers: MimeRelayMember[];
+  onMimeRelayChange: (m: MimeRelayMember[]) => void;
   onNext: () => void;
   onBack: () => void;
 }> = ({
   techEvent,
   nonTechEvent,
-  masterParticipants,
-  onMasterChange,
-  techAssignment,
-  onTechAssignment,
-  nonTechAssignment,
-  onNonTechAssignment,
+  step1,
+  paperQuestMembers,
+  onPaperQuestChange,
+  mimeRelayMembers,
+  onMimeRelayChange,
   onNext,
   onBack,
 }) => {
-  const [errors, setErrors] = useState<string[]>([]);
-  const [assignError, setAssignError] = useState('');
+  const [pqNameErrors, setPqNameErrors] = useState<string[]>(['', '', '', '']);
+  const [pqInterestErrors, setPqInterestErrors] = useState<string[]>(['', '', '', '']);
+  const [mrNameErrors, setMrNameErrors] = useState<string[]>(['', '', '', '']);
+  const [mrInterestErrors, setMrInterestErrors] = useState<string[]>(['', '', '', '']);
+  const [globalError, setGlobalError] = useState('');
 
-  const mainName = masterParticipants[0] || 'Main Participant';
+  const mainName = step1.fullName.trim();
 
-  // How many ADDITIONAL member inputs to show (beyond main participant)
-  const techNeedsTeam = techEvent === 'PaperQuest';
-  const nonTechNeedsTeam = nonTechEvent === 'Mime Relay';
-  const needsTeam = techNeedsTeam || nonTechNeedsTeam;
-
-  // Minimum additional slots needed
-  const minAdditional = needsTeam ? 3 : 0;
-  // Current additional slots (at least minAdditional, or however many the user has)
-  const currentAdditional = masterParticipants.length - 1;
-  const slotsToShow = Math.max(minAdditional, currentAdditional);
-
-  // Filled (valid) participants in master list
-  const validMaster = masterParticipants.filter(m => m.trim());
-  const validIndices = masterParticipants
-    .map((m, i) => ({ m, i }))
-    .filter(({ m }) => m.trim())
-    .map(({ i }) => i);
-
-  // Both team events selected — need checkboxes for assignment
-  const bothTeamEvents = techNeedsTeam && nonTechNeedsTeam;
-
-  // Solo event has multiple pool members → show radio selection
-  const soloTechNeedsRadio = techEvent === 'AI FilmForge' && validMaster.length > 1;
-  const soloNonTechNeedsRadio = nonTechEvent === 'Checkmate' && validMaster.length > 1;
+  // Both events are solo
   const isBothSolo =
     (techEvent === 'AI FilmForge' || !techEvent) &&
     (nonTechEvent === 'Checkmate' || !nonTechEvent);
 
   const validate = (): boolean => {
-    setAssignError('');
-    const newErrors: string[] = [];
+    setGlobalError('');
+    let valid = true;
 
-    // Team event member validation
-    if (needsTeam) {
-      for (let i = 0; i < minAdditional; i++) {
-        const val = masterParticipants[i + 1] ?? '';
-        if (!val.trim()) {
-          newErrors[i] = `Member ${i + 2} name is required`;
-        } else {
-          newErrors[i] = '';
+    // Validate PaperQuest members
+    if (techEvent === 'PaperQuest') {
+      const nameErrs = ['', '', '', ''];
+      const intErrs = ['', '', '', ''];
+      paperQuestMembers.forEach((m, idx) => {
+        const name = idx === 0 ? mainName : m.name.trim();
+        if (!name) {
+          nameErrs[idx] = `Member ${idx + 1} name is required`;
+          valid = false;
         }
-      }
-      setErrors(newErrors);
-      if (newErrors.some(Boolean)) return false;
+        if (!m.checkmateInterest) {
+          intErrs[idx] = `Please select Interested or Not Interested for Member ${idx + 1}`;
+          valid = false;
+        }
+      });
+      setPqNameErrors(nameErrs);
+      setPqInterestErrors(intErrs);
     }
 
-    // Validate team assignments
-    if (techNeedsTeam && techAssignment.length !== 4) {
-      setAssignError('Please select exactly 4 participants for PAPERQUEST.');
-      return false;
-    }
-    if (nonTechNeedsTeam && nonTechAssignment.length !== 4) {
-      setAssignError('Please select exactly 4 participants for MIME RELAY.');
-      return false;
+    // Validate Mime Relay members
+    if (nonTechEvent === 'Mime Relay') {
+      const nameErrs = ['', '', '', ''];
+      const intErrs = ['', '', '', ''];
+      mimeRelayMembers.forEach((m, idx) => {
+        const name = idx === 0 ? mainName : m.name.trim();
+        if (!name) {
+          nameErrs[idx] = `Member ${idx + 1} name is required`;
+          valid = false;
+        }
+        if (!m.filmforgeInterest) {
+          intErrs[idx] = `Please select Interested or Not Interested for Member ${idx + 1}`;
+          valid = false;
+        }
+      });
+      setMrNameErrors(nameErrs);
+      setMrInterestErrors(intErrs);
     }
 
-    return true;
-  };
-
-  // Update an additional participant slot
-  const updateMember = (slotIndex: number, value: string) => {
-    const arr = [...masterParticipants];
-    arr[slotIndex + 1] = value;
-    onMasterChange(arr);
-
-    // Auto-update assignments after filling members
-    const updatedValid = arr.map((m, i) => ({ m, i })).filter(({ m }) => m.trim()).map(({ i }) => i);
-
-    if (techNeedsTeam && !bothTeamEvents) {
-      onTechAssignment(updatedValid.slice(0, 4));
+    if (!valid) {
+      setGlobalError('Please complete all required fields and interest selections above.');
     }
-    if (nonTechNeedsTeam && !bothTeamEvents) {
-      onNonTechAssignment(updatedValid.slice(0, 4));
-    }
-    if (bothTeamEvents) {
-      // Both events auto-assign all available (user can change via checkboxes)
-      onTechAssignment(updatedValid.slice(0, Math.min(4, updatedValid.length)));
-      onNonTechAssignment(updatedValid.slice(0, Math.min(4, updatedValid.length)));
-    }
-  };
 
-  // Toggle checkbox for team events
-  const toggleTeamAssignment = (
-    idx: number,
-    current: number[],
-    onChange: (a: number[]) => void
-  ) => {
-    setAssignError('');
-    if (current.includes(idx)) {
-      onChange(current.filter(x => x !== idx));
-    } else if (current.length < 4) {
-      onChange([...current, idx]);
-    }
+    return valid;
   };
 
   return (
@@ -604,197 +853,83 @@ const Step3Team: React.FC<{
       <div className="mb-4">
         <h3 className="text-xl font-bold tracking-tight text-foreground mb-1">TEAM MEMBERS</h3>
         <p className="text-xs sm:text-sm text-foreground-secondary">
-          Add all participants <strong>once</strong>. The same names will be reused across both selected events — no duplicate entry.
+          Main Participant is already <strong>Member 1</strong>. Please enter the remaining 3 team members.
         </p>
       </div>
 
-      {/* ── Both solo events ── */}
-      {isBothSolo && (
-        <div className="p-6 rounded-2xl bg-phoenix-orange/5 border border-phoenix-orange/20 text-center space-y-2">
-          <div className="w-12 h-12 rounded-full bg-phoenix-orange/10 text-phoenix-orange flex items-center justify-center mx-auto">
-            <Users className="w-6 h-6" />
-          </div>
-          <h4 className="text-base font-bold text-foreground">Solo Participation</h4>
-          <p className="text-xs text-foreground-secondary max-w-md mx-auto">
-            You have selected solo competitions ({[techEvent, nonTechEvent].filter(Boolean).join(' + ')}).
-            No extra team members are required — you compete alone.
-          </p>
-          <div className="pt-1 p-3 rounded-xl bg-white border border-border text-xs sm:text-sm flex items-center justify-between max-w-sm mx-auto">
-            <span className="font-semibold text-foreground">Member 1: {mainName}</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-phoenix-orange/10 text-phoenix-orange">
-              You
-            </span>
-          </div>
+      {globalError && (
+        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 font-semibold flex items-center gap-2">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {globalError}
         </div>
       )}
 
-      {/* ── MASTER PARTICIPANT POOL (when team events are selected) ── */}
-      {needsTeam && (
-        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
-              PARTICIPANT POOL — ADD MEMBERS ONCE
-            </span>
-            <span className="text-[10px] font-bold text-foreground-muted">
-              {validMaster.length} / {needsTeam ? '4+' : '1'} filled
-            </span>
-          </div>
-
-          <div className="p-3 rounded-xl bg-white border border-border flex items-center justify-between text-xs sm:text-sm">
-            <span className="font-semibold text-foreground">Member 1: {mainName}</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-phoenix-orange/10 text-phoenix-orange">
-              Main Participant
-            </span>
-          </div>
-
-          {Array.from({ length: slotsToShow }).map((_, i) => (
-            <Field key={i} label={`Member ${i + 2} Name`} error={errors[i]} required={i < minAdditional}>
-              <Input
-                placeholder={`Enter Member ${i + 2} Full Name`}
-                value={masterParticipants[i + 1] || ''}
-                hasError={!!errors[i]}
-                onChange={e => updateMember(i, e.target.value)}
-              />
-            </Field>
-          ))}
-
-          {/* Add more participants button (only for PQ + MR where teams might differ) */}
-          {bothTeamEvents && slotsToShow >= 3 && (
-            <button
-              type="button"
-              onClick={() => onMasterChange([...masterParticipants, ''])}
-              className="w-full py-2.5 px-4 rounded-xl border border-dashed border-border hover:border-phoenix-orange text-xs font-bold text-foreground-muted hover:text-phoenix-orange tracking-wider uppercase flex items-center justify-center gap-2 transition-colors"
-            >
-              <Plus className="w-3.5 h-3.5" /> ADD MORE PARTICIPANTS (for different Mime Relay team)
-            </button>
+      {/* Both solo */}
+      {isBothSolo && (
+        <div className="space-y-3">
+          {techEvent === 'AI FilmForge' && (
+            <SoloParticipantCard
+              eventName="AI FilmForge"
+              mainName={mainName || 'You'}
+              color="orange"
+              icon={<Film className="w-5 h-5" />}
+            />
+          )}
+          {nonTechEvent === 'Checkmate' && (
+            <SoloParticipantCard
+              eventName="Checkmate (Chess)"
+              mainName={mainName || 'You'}
+              color="magenta"
+              icon={<Swords className="w-5 h-5" />}
+            />
+          )}
+          {!techEvent && !nonTechEvent && (
+            <div className="p-6 rounded-2xl bg-background-warm border border-border text-center text-foreground-secondary text-sm">
+              No team members required.
+            </div>
           )}
         </div>
       )}
 
-      {/* ── Notification for PQ + MR unique fee ── */}
-      {techEvent === 'PaperQuest' && nonTechEvent === 'Mime Relay' && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <strong className="font-bold">Unique Participant Fee Notice:</strong> Fee is{' '}
-            <strong>₹129 per unique participant</strong>. If both events share the same 4 members,
-            total = ₹516. Each participant is counted only once.
-          </div>
-        </div>
+      {/* PaperQuest team form */}
+      {techEvent === 'PaperQuest' && (
+        <PaperQuestTeamForm
+          mainParticipantName={mainName}
+          members={paperQuestMembers}
+          onMembersChange={m => { setPqNameErrors(['','','','']); setPqInterestErrors(['','','','']); onPaperQuestChange(m); }}
+          errors={pqNameErrors}
+          interestErrors={pqInterestErrors}
+        />
       )}
 
-      {/* ── PAPERQUEST ASSIGNMENT (when >4 in pool) ── */}
-      {techNeedsTeam && validMaster.length > 4 && (
-        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
-              PAPERQUEST — Select Your 4 Members
-            </span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${techAssignment.length === 4 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
-              {techAssignment.length}/4 selected
-            </span>
-          </div>
-          <div className="space-y-2">
-            {validIndices.map(idx => (
-              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-orange cursor-pointer transition-colors group">
-                <input
-                  type="checkbox"
-                  checked={techAssignment.includes(idx)}
-                  onChange={() => toggleTeamAssignment(idx, techAssignment, onTechAssignment)}
-                  className="w-4 h-4 accent-phoenix-orange"
-                />
-                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
-                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+      {/* AI FilmForge solo (when only AI FilmForge selected without Mime Relay) */}
+      {techEvent === 'AI FilmForge' && !isBothSolo && (
+        <SoloParticipantCard
+          eventName="AI FilmForge"
+          mainName={mainName || 'You'}
+          color="orange"
+          icon={<Film className="w-5 h-5" />}
+        />
       )}
 
-      {/* ── MIME RELAY ASSIGNMENT ── */}
-      {nonTechNeedsTeam && validMaster.length > 4 && (
-        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold tracking-wider uppercase text-phoenix-magenta">
-              MIME RELAY — Select Your 4 Members
-            </span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${nonTechAssignment.length === 4 ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
-              {nonTechAssignment.length}/4 selected
-            </span>
-          </div>
-          <div className="space-y-2">
-            {validIndices.map(idx => (
-              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-magenta cursor-pointer transition-colors group">
-                <input
-                  type="checkbox"
-                  checked={nonTechAssignment.includes(idx)}
-                  onChange={() => toggleTeamAssignment(idx, nonTechAssignment, onNonTechAssignment)}
-                  className="w-4 h-4 accent-phoenix-orange"
-                />
-                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
-                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
+      {/* Mime Relay team form */}
+      {nonTechEvent === 'Mime Relay' && (
+        <MimeRelayTeamForm
+          mainParticipantName={mainName}
+          members={mimeRelayMembers}
+          onMembersChange={m => { setMrNameErrors(['','','','']); setMrInterestErrors(['','','','']); onMimeRelayChange(m); }}
+          errors={mrNameErrors}
+          interestErrors={mrInterestErrors}
+        />
       )}
 
-      {/* ── AI FILMFORGE — solo, select 1 from pool ── */}
-      {soloTechNeedsRadio && (
-        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
-          <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
-            AI FILMFORGE — Solo Participant (Select 1)
-          </span>
-          <div className="space-y-2">
-            {validIndices.map(idx => (
-              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-orange cursor-pointer transition-colors group">
-                <input
-                  type="radio"
-                  name="filmforge-participant"
-                  checked={techAssignment[0] === idx}
-                  onChange={() => onTechAssignment([idx])}
-                  className="w-4 h-4 accent-phoenix-orange"
-                />
-                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
-                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* ── CHECKMATE — solo, select 1 from pool ── */}
-      {soloNonTechNeedsRadio && (
-        <div className="p-5 rounded-2xl bg-background-warm border border-border space-y-3">
-          <span className="text-xs font-bold tracking-wider uppercase text-phoenix-magenta">
-            CHECKMATE — Solo Participant (Select 1)
-          </span>
-          <div className="space-y-2">
-            {validIndices.map(idx => (
-              <label key={idx} className="flex items-center gap-3 p-3 rounded-xl bg-white border border-border hover:border-phoenix-magenta cursor-pointer transition-colors group">
-                <input
-                  type="radio"
-                  name="checkmate-participant"
-                  checked={nonTechAssignment[0] === idx}
-                  onChange={() => onNonTechAssignment([idx])}
-                  className="w-4 h-4 accent-phoenix-orange"
-                />
-                <span className="text-sm font-semibold text-foreground group-hover:text-darkAccent">
-                  {idx === 0 ? `${masterParticipants[idx]} (You)` : masterParticipants[idx]}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {assignError && (
-        <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-600 font-semibold flex items-center gap-2">
-          <AlertCircle className="w-3.5 h-3.5" /> {assignError}
-        </div>
+      {/* Checkmate solo (when only Checkmate selected without PaperQuest) */}
+      {nonTechEvent === 'Checkmate' && !isBothSolo && (
+        <SoloParticipantCard
+          eventName="Checkmate (Chess)"
+          mainName={mainName || 'You'}
+          color="magenta"
+          icon={<Swords className="w-5 h-5" />}
+        />
       )}
 
       <div className="flex gap-3 pt-3">
@@ -817,6 +952,24 @@ const Step3Team: React.FC<{
   );
 };
 
+// ─── Helper: Derive all names from form for fee calc ──────────────
+function deriveNamesForFee(form: FormState) {
+  const mainName = form.step1.fullName.trim();
+
+  let techMembersForCalc: string[] = [];
+  let nonTechMembersForCalc: string[] = [];
+
+  if (form.techEvent === 'PaperQuest') {
+    // Members 2,3,4 (index 1,2,3)
+    techMembersForCalc = form.paperQuestMembers.slice(1).map(m => m.name.trim());
+  }
+  if (form.nonTechEvent === 'Mime Relay') {
+    nonTechMembersForCalc = form.mimeRelayMembers.slice(1).map(m => m.name.trim());
+  }
+
+  return { mainName, techMembersForCalc, nonTechMembersForCalc };
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // STEP 4 — REVIEW & UNIQUE FEE BREAKDOWN
 // ═══════════════════════════════════════════════════════════════════
@@ -825,24 +978,44 @@ const Step4Review: React.FC<{
   onNext: () => void;
   onBack: () => void;
 }> = ({ form, onNext, onBack }) => {
-  const { step1, techEvent, nonTechEvent, masterParticipants, techAssignment, nonTechAssignment } = form;
+  const { step1, techEvent, nonTechEvent, paperQuestMembers, mimeRelayMembers } = form;
+  const mainName = step1.fullName.trim();
 
-  // Resolve participant names from master list + assignments
-  const techNames = techEvent ? resolveNames(masterParticipants, techAssignment) : [];
-  const nonTechNames = nonTechEvent ? resolveNames(masterParticipants, nonTechAssignment) : [];
-
-  // Derive member arrays for fee calculation (same interface as before)
-  // techMembers = all names for tech event except the first (main participant)
-  const techMembersForCalc = techNames.slice(1);
-  const nonTechMembersForCalc = nonTechNames.slice(1);
+  const { mainName: mn, techMembersForCalc, nonTechMembersForCalc } = deriveNamesForFee(form);
 
   const calculation = calculateUniqueMembersAndFee(
-    step1.fullName,
+    mn,
     techEvent,
     techMembersForCalc,
     nonTechEvent,
     nonTechMembersForCalc
   );
+
+  // Build PaperQuest member list for display
+  const pqNames: string[] = techEvent === 'PaperQuest'
+    ? paperQuestMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
+    : techEvent === 'AI FilmForge' ? [mainName] : [];
+
+  // Build Mime Relay member list for display
+  const mrNames: string[] = nonTechEvent === 'Mime Relay'
+    ? mimeRelayMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
+    : nonTechEvent === 'Checkmate' ? [mainName] : [];
+
+  // Checkmate interested members (from PaperQuest team)
+  const checkmateInterestedNames: string[] = techEvent === 'PaperQuest'
+    ? paperQuestMembers
+        .map((m, i) => ({ name: i === 0 ? mainName : m.name.trim(), interest: m.checkmateInterest }))
+        .filter(x => x.interest === 'interested' && x.name)
+        .map(x => x.name)
+    : [];
+
+  // AI FilmForge interested members (from Mime Relay team)
+  const filmforgeInterestedNames: string[] = nonTechEvent === 'Mime Relay'
+    ? mimeRelayMembers
+        .map((m, i) => ({ name: i === 0 ? mainName : m.name.trim(), interest: m.filmforgeInterest }))
+        .filter(x => x.interest === 'interested' && x.name)
+        .map(x => x.name)
+    : [];
 
   return (
     <div className="space-y-6">
@@ -882,49 +1055,159 @@ const Step4Review: React.FC<{
         </div>
       </div>
 
-      {/* Events Summary — event-wise participant list */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Tech */}
-        <div className="p-4 rounded-2xl bg-white border border-border">
-          <span className="text-[10px] font-bold tracking-wider uppercase text-phoenix-orange block mb-1">
-            TECHNICAL EVENT
-          </span>
-          <div className="text-sm font-bold text-foreground">
-            {techEvent ? (
-              <div>
-                <div>{techEvent}</div>
-                <div className="text-[11px] text-foreground-muted font-normal mt-1 space-y-0.5">
-                  {techNames.map((n, i) => (
-                    <div key={i}>{i + 1}. {n}</div>
-                  ))}
-                </div>
+      {/* Events Breakdown according to user's exact specification */}
+      <div className="space-y-4">
+        {/* Technical Event Card */}
+        {techEvent === 'PaperQuest' && (
+          <div className="p-5 rounded-2xl bg-white border border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-phoenix-orange" />
+                <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
+                  PAPERQUEST — TEAM
+                </span>
               </div>
-            ) : (
-              <span className="text-foreground-muted font-normal italic">None Selected</span>
-            )}
-          </div>
-        </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-phoenix-orange/10 text-phoenix-orange">
+                Team of 4
+              </span>
+            </div>
 
-        {/* Non-Tech */}
-        <div className="p-4 rounded-2xl bg-white border border-border">
-          <span className="text-[10px] font-bold tracking-wider uppercase text-phoenix-magenta block mb-1">
-            NON-TECHNICAL EVENT
-          </span>
-          <div className="text-sm font-bold text-foreground">
-            {nonTechEvent ? (
-              <div>
-                <div>{nonTechEvent}</div>
-                <div className="text-[11px] text-foreground-muted font-normal mt-1 space-y-0.5">
-                  {nonTechNames.map((n, i) => (
-                    <div key={i}>{i + 1}. {n}</div>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <span className="text-foreground-muted font-normal italic">None Selected</span>
-            )}
+            <div className="space-y-2">
+              {paperQuestMembers.map((m, idx) => {
+                const name = idx === 0 ? mainName : m.name.trim();
+                const isInterested = m.checkmateInterest === 'interested';
+                return (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-xl bg-background-warm border border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-phoenix-orange text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span className="font-bold text-foreground">
+                        {name}
+                        {idx === 0 && (
+                          <span className="ml-1.5 text-[10px] font-semibold text-phoenix-orange">
+                            — Main Participant
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 pl-7 sm:pl-0 text-[11px]">
+                      <span className="text-foreground-muted">Checkmate:</span>
+                      {isInterested ? (
+                        <span className="px-2 py-0.5 rounded-full bg-phoenix-magenta/10 text-phoenix-magenta font-bold text-[10px]">
+                          Interested
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-[10px]">
+                          Not Interested
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 text-[11px] text-foreground-muted flex items-center justify-between border-t border-border/60">
+              <span>Team Size: <strong className="text-foreground">4 Members</strong></span>
+              <span>Checkmate: <strong className="text-phoenix-magenta">{checkmateInterestedNames.length} Individual Participant{checkmateInterestedNames.length === 1 ? '' : 's'}</strong></span>
+            </div>
           </div>
-        </div>
+        )}
+
+        {techEvent === 'AI FilmForge' && (
+          <div className="p-4 rounded-2xl bg-white border border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <Film className="w-4 h-4 text-phoenix-orange" />
+              <span className="text-xs font-bold tracking-wider uppercase text-phoenix-orange">
+                AI FILMFORGE — SOLO EVENT
+              </span>
+            </div>
+            <div className="text-xs text-foreground space-y-1">
+              <div className="font-bold">1. {mainName} <span className="text-[10px] font-semibold text-phoenix-orange">— Main Participant</span></div>
+              <div className="text-foreground-muted text-[11px]">Solo event (1 participant only)</div>
+            </div>
+          </div>
+        )}
+
+        {/* Non-Technical Event Card */}
+        {nonTechEvent === 'Mime Relay' && (
+          <div className="p-5 rounded-2xl bg-white border border-border space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-purple-600" />
+                <span className="text-xs font-bold tracking-wider uppercase text-purple-600">
+                  MIME RELAY — TEAM
+                </span>
+              </div>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-purple-50 text-purple-600">
+                Team of 4
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {mimeRelayMembers.map((m, idx) => {
+                const name = idx === 0 ? mainName : m.name.trim();
+                const isInterested = m.filmforgeInterest === 'interested';
+                return (
+                  <div
+                    key={idx}
+                    className="p-3 rounded-xl bg-background-warm border border-border/80 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-purple-600 text-white text-[10px] font-extrabold flex items-center justify-center shrink-0">
+                        {idx + 1}
+                      </span>
+                      <span className="font-bold text-foreground">
+                        {name}
+                        {idx === 0 && (
+                          <span className="ml-1.5 text-[10px] font-semibold text-purple-600">
+                            — Main Participant
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 pl-7 sm:pl-0 text-[11px]">
+                      <span className="text-foreground-muted">AI FilmForge:</span>
+                      {isInterested ? (
+                        <span className="px-2 py-0.5 rounded-full bg-phoenix-orange/10 text-phoenix-orange font-bold text-[10px]">
+                          Interested
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-500 font-medium text-[10px]">
+                          Not Interested
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pt-2 text-[11px] text-foreground-muted flex items-center justify-between border-t border-border/60">
+              <span>Team Size: <strong className="text-foreground">4 Members</strong></span>
+              <span>AI FilmForge: <strong className="text-phoenix-orange">{filmforgeInterestedNames.length} Individual Participant{filmforgeInterestedNames.length === 1 ? '' : 's'}</strong></span>
+            </div>
+          </div>
+        )}
+
+        {nonTechEvent === 'Checkmate' && (
+          <div className="p-4 rounded-2xl bg-white border border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <Swords className="w-4 h-4 text-phoenix-magenta" />
+              <span className="text-xs font-bold tracking-wider uppercase text-phoenix-magenta">
+                CHECKMATE — SOLO EVENT (CHESS)
+              </span>
+            </div>
+            <div className="text-xs text-foreground space-y-1">
+              <div className="font-bold">1. {mainName} <span className="text-[10px] font-semibold text-phoenix-magenta">— Main Participant</span></div>
+              <div className="text-foreground-muted text-[11px]">Solo event (1 participant only)</div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* UNIQUE MEMBERS PILL LIST */}
@@ -1021,17 +1304,14 @@ const Step5Payment: React.FC<{
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [upiError, setUpiError] = useState('');
 
-  const { step1, techEvent, nonTechEvent, masterParticipants, techAssignment, nonTechAssignment } = form;
-
-  const techNames = techEvent ? resolveNames(masterParticipants, techAssignment) : [];
-  const nonTechNames = nonTechEvent ? resolveNames(masterParticipants, nonTechAssignment) : [];
+  const { mainName, techMembersForCalc, nonTechMembersForCalc } = deriveNamesForFee(form);
 
   const calculation = calculateUniqueMembersAndFee(
-    step1.fullName,
-    techEvent,
-    techNames.slice(1),
-    nonTechEvent,
-    nonTechNames.slice(1)
+    mainName,
+    form.techEvent,
+    techMembersForCalc,
+    form.nonTechEvent,
+    nonTechMembersForCalc
   );
 
   const upiId = DEFAULT_UPI_ID;
@@ -1220,6 +1500,17 @@ const Step6Confirmed: React.FC<{
   const [badgeQr, setBadgeQr] = useState<string>('');
   const [generatingPdf, setGeneratingPdf] = useState<boolean>(false);
 
+  const mainName = form.step1.fullName.trim();
+
+  // Build tech members array for PDF/QR
+  const techMembersForDisplay: string[] = form.techEvent === 'PaperQuest'
+    ? form.paperQuestMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
+    : form.techEvent === 'AI FilmForge' ? [mainName] : [];
+
+  const nonTechMembersForDisplay: string[] = form.nonTechEvent === 'Mime Relay'
+    ? form.mimeRelayMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
+    : form.nonTechEvent === 'Checkmate' ? [mainName] : [];
+
   useEffect(() => {
     confetti({
       particleCount: 90,
@@ -1229,10 +1520,8 @@ const Step6Confirmed: React.FC<{
     });
 
     const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pixel3-o.vercel.app';
-    const techNames = form.techEvent ? resolveNames(form.masterParticipants, form.techAssignment) : [];
-    const nonTechNames = form.nonTechEvent ? resolveNames(form.masterParticipants, form.nonTechAssignment) : [];
-    const techStr = techNames.join(',');
-    const nonTechStr = nonTechNames.join(',');
+    const techStr = techMembersForDisplay.join(',');
+    const nonTechStr = nonTechMembersForDisplay.join(',');
 
     const verifyUrl = `${origin}/verify?id=${encodeURIComponent(result.registrationId)}&name=${encodeURIComponent(result.fullName)}&college=${encodeURIComponent(form.step1.college || '')}&dept=${encodeURIComponent(form.step1.department || '')}&tech=${encodeURIComponent(result.techEvent || '')}&nontech=${encodeURIComponent(result.nonTechEvent || '')}&members=${result.totalMembers}&amount=${result.totalAmount}&status=${encodeURIComponent(result.paymentStatus || 'Paid')}&phone=${encodeURIComponent(form.step1.phone || '')}&payid=${encodeURIComponent(form.paymentId || '')}&techm=${encodeURIComponent(techStr)}&nontechm=${encodeURIComponent(nonTechStr)}`;
 
@@ -1248,17 +1537,14 @@ const Step6Confirmed: React.FC<{
   const handleDownloadPdf = async () => {
     setGeneratingPdf(true);
     try {
-      const techNames = form.techEvent ? resolveNames(form.masterParticipants, form.techAssignment) : [];
-      const nonTechNames = form.nonTechEvent ? resolveNames(form.masterParticipants, form.nonTechAssignment) : [];
-
       await generateConfirmationPdf(result, {
         college: form.step1.college,
         department: form.step1.department,
         phone: form.step1.phone,
         email: form.step1.email,
         paymentId: form.paymentId,
-        techMembers: techNames,
-        nonTechMembers: nonTechNames,
+        techMembers: techMembersForDisplay,
+        nonTechMembers: nonTechMembersForDisplay,
       });
     } catch (err) {
       console.error('Failed to generate PDF pass:', err);
@@ -1424,6 +1710,25 @@ Please display this Pass or Registration ID at the Welcome Desk.
   );
 };
 
+// ─── Helper: build default PaperQuest members ────────────────────
+function defaultPaperQuestMembers(mainName: string): PaperQuestMember[] {
+  return [
+    { name: mainName, checkmateInterest: '' },
+    { name: '', checkmateInterest: '' },
+    { name: '', checkmateInterest: '' },
+    { name: '', checkmateInterest: '' },
+  ];
+}
+
+function defaultMimeRelayMembers(mainName: string): MimeRelayMember[] {
+  return [
+    { name: mainName, filmforgeInterest: '' },
+    { name: '', filmforgeInterest: '' },
+    { name: '', filmforgeInterest: '' },
+    { name: '', filmforgeInterest: '' },
+  ];
+}
+
 // ═══════════════════════════════════════════════════════════════════
 // MAIN REGISTRATION PAGE COMPONENT
 // ═══════════════════════════════════════════════════════════════════
@@ -1438,21 +1743,25 @@ export const RegistrationPage: React.FC = () => {
     step1: { fullName: '', college: '', department: '', phone: '', email: '' },
     techEvent: null,
     nonTechEvent: null,
-    masterParticipants: [''], // index 0 = main participant (synced from step1.fullName)
-    techAssignment: [0],
-    nonTechAssignment: [0],
+    paperQuestMembers: defaultPaperQuestMembers(''),
+    mimeRelayMembers: defaultMimeRelayMembers(''),
     paymentId: '',
   });
 
   const deadlinePassed = isDeadlinePassed();
 
-  // Keep masterParticipants[0] in sync with step1.fullName
+  // Keep member[0].name in sync with step1.fullName for both team events
   useEffect(() => {
-    setForm(f => {
-      const arr = [...f.masterParticipants];
-      arr[0] = f.step1.fullName;
-      return { ...f, masterParticipants: arr };
-    });
+    const mainName = form.step1.fullName;
+    setForm(f => ({
+      ...f,
+      paperQuestMembers: f.paperQuestMembers.map((m, i) =>
+        i === 0 ? { ...m, name: mainName } : m
+      ),
+      mimeRelayMembers: f.mimeRelayMembers.map((m, i) =>
+        i === 0 ? { ...m, name: mainName } : m
+      ),
+    }));
   }, [form.step1.fullName]);
 
   // Scroll to top on step change
@@ -1460,32 +1769,28 @@ export const RegistrationPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  // When events change, recalculate default assignments
+  // When tech event changes
   const handleTechEventChange = (e: TechEvent) => {
     setForm(f => {
-      const newMaster = e === 'PaperQuest'
-        ? [f.masterParticipants[0], '', '', '']
-        : [f.masterParticipants[0]];
-      const { techAssignment, nonTechAssignment } = defaultAssignments(e, f.nonTechEvent, newMaster);
-      return { ...f, techEvent: e, masterParticipants: newMaster, techAssignment, nonTechAssignment };
+      // Reset PaperQuest members when switching away from PaperQuest
+      const pqMembers = e === 'PaperQuest'
+        ? defaultPaperQuestMembers(f.step1.fullName)
+        : f.paperQuestMembers;
+      return { ...f, techEvent: e, paperQuestMembers: pqMembers };
     });
   };
 
+  // When non-tech event changes
   const handleNonTechEventChange = (e: NonTechEvent) => {
     setForm(f => {
-      // If non-tech needs a team and there's no team event, ensure master has 4 slots
-      let newMaster = [...f.masterParticipants];
-      if (e === 'Mime Relay' && f.techEvent !== 'PaperQuest' && newMaster.length < 4) {
-        while (newMaster.length < 4) newMaster.push('');
-      } else if (e !== 'Mime Relay' && f.techEvent !== 'PaperQuest' && newMaster.length > 1) {
-        newMaster = [newMaster[0]];
-      }
-      const { techAssignment, nonTechAssignment } = defaultAssignments(f.techEvent, e, newMaster);
-      return { ...f, nonTechEvent: e, masterParticipants: newMaster, techAssignment, nonTechAssignment };
+      const mrMembers = e === 'Mime Relay'
+        ? defaultMimeRelayMembers(f.step1.fullName)
+        : f.mimeRelayMembers;
+      return { ...f, nonTechEvent: e, mimeRelayMembers: mrMembers };
     });
   };
 
-  // Final submission to Google Apps Script Backend
+  // Final submission
   const handleFinalSubmit = async () => {
     if (deadlinePassed) {
       setError('Registration is closed (Deadline: 13 October 2026, 10:00 PM IST).');
@@ -1506,33 +1811,72 @@ export const RegistrationPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const { techEvent, nonTechEvent, masterParticipants, techAssignment, nonTechAssignment } = form;
+      const mainName = form.step1.fullName.trim();
 
-      const techNames = techEvent ? resolveNames(masterParticipants, techAssignment) : [];
-      const nonTechNames = nonTechEvent ? resolveNames(masterParticipants, nonTechAssignment) : [];
+      // Build PaperQuest member names
+      let techM1 = '', techM2 = '', techM3 = '', techM4 = '';
+      if (form.techEvent === 'PaperQuest') {
+        techM1 = mainName;
+        techM2 = form.paperQuestMembers[1]?.name.trim() || '';
+        techM3 = form.paperQuestMembers[2]?.name.trim() || '';
+        techM4 = form.paperQuestMembers[3]?.name.trim() || '';
+      } else if (form.techEvent === 'AI FilmForge') {
+        techM1 = mainName;
+      }
+
+      // Build Mime Relay member names
+      let nonTechM1 = '', nonTechM2 = '', nonTechM3 = '', nonTechM4 = '';
+      if (form.nonTechEvent === 'Mime Relay') {
+        nonTechM1 = mainName;
+        nonTechM2 = form.mimeRelayMembers[1]?.name.trim() || '';
+        nonTechM3 = form.mimeRelayMembers[2]?.name.trim() || '';
+        nonTechM4 = form.mimeRelayMembers[3]?.name.trim() || '';
+      } else if (form.nonTechEvent === 'Checkmate') {
+        nonTechM1 = mainName;
+      }
+
+      // Build Checkmate interested member numbers (1-indexed, comma-separated)
+      const checkmateInterested = form.techEvent === 'PaperQuest'
+        ? form.paperQuestMembers
+            .map((m, i) => ({ idx: i + 1, interest: m.checkmateInterest }))
+            .filter(x => x.interest === 'interested')
+            .map(x => String(x.idx))
+            .join(',')
+        : '';
+
+      // Build AI FilmForge interested member numbers (1-indexed, comma-separated)
+      const filmforgeInterested = form.nonTechEvent === 'Mime Relay'
+        ? form.mimeRelayMembers
+            .map((m, i) => ({ idx: i + 1, interest: m.filmforgeInterest }))
+            .filter(x => x.interest === 'interested')
+            .map(x => String(x.idx))
+            .join(',')
+        : '';
 
       const payload = {
-        fullName: form.step1.fullName.trim(),
+        fullName: mainName,
         college: form.step1.college.trim(),
         department: form.step1.department.trim(),
         phone: form.step1.phone.trim(),
         email: form.step1.email.trim(),
-        technicalEvent: techEvent === 'PaperQuest' ? 'PAPERQUEST' : techEvent === 'AI FilmForge' ? 'AI FILMFORGE' : '',
-        technicalMember1: techNames[0] || '',
-        technicalMember2: techNames[1] || '',
-        technicalMember3: techNames[2] || '',
-        technicalMember4: techNames[3] || '',
-        nonTechnicalEvent: nonTechEvent === 'Mime Relay' ? 'MIME RELAY' : nonTechEvent === 'Checkmate' ? 'CHECKMATE' : '',
-        nonTechnicalMember1: nonTechNames[0] || '',
-        nonTechnicalMember2: nonTechNames[1] || '',
-        nonTechnicalMember3: nonTechNames[2] || '',
-        nonTechnicalMember4: nonTechNames[3] || '',
+        technicalEvent: form.techEvent === 'PaperQuest' ? 'PAPERQUEST' : form.techEvent === 'AI FilmForge' ? 'AI FILMFORGE' : '',
+        technicalMember1: techM1,
+        technicalMember2: techM2,
+        technicalMember3: techM3,
+        technicalMember4: techM4,
+        nonTechnicalEvent: form.nonTechEvent === 'Mime Relay' ? 'MIME RELAY' : form.nonTechEvent === 'Checkmate' ? 'CHECKMATE' : '',
+        nonTechnicalMember1: nonTechM1,
+        nonTechnicalMember2: nonTechM2,
+        nonTechnicalMember3: nonTechM3,
+        nonTechnicalMember4: nonTechM4,
         paymentId: form.paymentId.trim(),
+        checkmateInterested,
+        filmforgeInterested,
       };
 
       const result = await submitToGoogleSheet(payload);
       setSuccessResult(result);
-      
+
       // Play success sound
       try {
         const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -1550,7 +1894,6 @@ export const RegistrationPage: React.FC = () => {
           osc.start(audioCtx.currentTime + startTime);
           osc.stop(audioCtx.currentTime + startTime + duration);
         };
-        // Premium soft digital confirmation (C5 -> C6)
         playTone(523.25, 0, 0.15);
         playTone(1046.50, 0.12, 0.4);
       } catch(e) {}
@@ -1630,12 +1973,11 @@ export const RegistrationPage: React.FC = () => {
                 <Step3Team
                   techEvent={form.techEvent}
                   nonTechEvent={form.nonTechEvent}
-                  masterParticipants={form.masterParticipants}
-                  onMasterChange={m => setForm(f => ({ ...f, masterParticipants: m }))}
-                  techAssignment={form.techAssignment}
-                  onTechAssignment={a => setForm(f => ({ ...f, techAssignment: a }))}
-                  nonTechAssignment={form.nonTechAssignment}
-                  onNonTechAssignment={a => setForm(f => ({ ...f, nonTechAssignment: a }))}
+                  step1={form.step1}
+                  paperQuestMembers={form.paperQuestMembers}
+                  onPaperQuestChange={m => setForm(f => ({ ...f, paperQuestMembers: m }))}
+                  mimeRelayMembers={form.mimeRelayMembers}
+                  onMimeRelayChange={m => setForm(f => ({ ...f, mimeRelayMembers: m }))}
                   onNext={() => setStep(3)}
                   onBack={() => setStep(1)}
                 />

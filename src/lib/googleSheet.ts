@@ -31,6 +31,11 @@ export interface RegistrationPayload {
   nonTechnicalMember3: string;
   nonTechnicalMember4: string;
   paymentId: string;
+  // Per-member cross-event interest (stored as comma-separated 1-indexed member numbers)
+  // For PaperQuest members who are Interested in Checkmate (e.g. "1,2,4")
+  checkmateInterested?: string;
+  // For Mime Relay members who are Interested in AI FilmForge (e.g. "1,3,4")
+  filmforgeInterested?: string;
 }
 
 export interface RegistrationRecord {
@@ -57,6 +62,8 @@ export interface RegistrationRecord {
   paymentId: string;
   registrationStatus: 'Confirmed' | 'Pending' | 'Cancelled';
   registeredAt: string;
+  checkmateInterested?: string;
+  filmforgeInterested?: string;
 }
 
 export interface RegistrationResult {
@@ -358,7 +365,7 @@ export function createAndSaveLocalRecord(payload: RegistrationPayload): Registra
     payload.fullName,
     payload.technicalEvent === 'PAPERQUEST' ? 'PaperQuest' : payload.technicalEvent === 'AI FILMFORGE' ? 'AI FilmForge' : null,
     [payload.technicalMember2, payload.technicalMember3, payload.technicalMember4],
-    payload.nonTechnicalEvent === 'MIME RELAY' ? 'Mime Relay' : payload.nonTechnicalEvent === 'CHECKMATE' ? 'Checkmate' : null,
+    payload.nonTechnicalEvent === 'MIME RELAY' || payload.nonTechnicalEvent === 'MINE RELAY' ? 'Mime Relay' : payload.nonTechnicalEvent === 'CHECKMATE' ? 'Checkmate' : null,
     [payload.nonTechnicalMember2, payload.nonTechnicalMember3, payload.nonTechnicalMember4]
   );
 
@@ -412,6 +419,8 @@ export function createAndSaveLocalRecord(payload: RegistrationPayload): Registra
     paymentId: payload.paymentId,
     registrationStatus: 'Confirmed',
     registeredAt: timestamp,
+    checkmateInterested: payload.checkmateInterested || '',
+    filmforgeInterested: payload.filmforgeInterested || '',
   };
 
   saveLocalRegistration(newRecord);

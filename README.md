@@ -104,9 +104,9 @@ The registration flow is a 6-step interactive wizard accessible at `/registratio
    - Technical (Max 1): *PaperQuest* (Team of 4), *AI FilmForge* (Solo), or *No Technical Event*.
    - Non-Technical (Max 1): *Checkmate* (Solo), *Mime Relay* (Team of 4), or *No Non-Technical Event*.
    - Validation ensures at least one event is chosen.
-3. **Step 3 — Team Member Details:**
-   - If *PaperQuest* selected: Form asks for Member 2, Member 3, Member 4 (all mandatory).
-   - If *Mime Relay* selected: Form asks for Member 2, Member 3, Member 4 (all mandatory).
+3. **Step 3 — Team Member Details (with Per-Member Cross-Event Interest):**
+   - If *PaperQuest* selected: Form auto-locks Main Participant as Member 1, then asks for Member 2, 3, 4 (all mandatory). It also asks for Checkmate interest for each member.
+   - If *Mime Relay* selected: Form auto-locks Main Participant as Member 1, then asks for Member 2, 3, 4 (all mandatory). It also asks for AI FilmForge interest for each member.
    - If *AI FilmForge* or *Checkmate* selected: Solo event, no extra members needed.
 4. **Step 4 — Review & Dynamic Breakdown:**
    - Full summary of participant data and event rosters.

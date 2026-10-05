@@ -115,11 +115,11 @@ export const AdminParticipantsPage: React.FC = () => {
         addTeammate(r.techMember4, 'PAPERQUEST', true);
       }
 
-      // Non-technical teammates
-      if (r.nonTechEvent === 'MIME RELAY') {
-        addTeammate(r.nonTechMember2, 'MIME RELAY', false);
-        addTeammate(r.nonTechMember3, 'MIME RELAY', false);
-        addTeammate(r.nonTechMember4, 'MIME RELAY', false);
+      // Non-technical teammates (handle both legacy MIME RELAY and new MINE RELAY)
+      if (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY') {
+        addTeammate(r.nonTechMember2, r.nonTechEvent, false);
+        addTeammate(r.nonTechMember3, r.nonTechEvent, false);
+        addTeammate(r.nonTechMember4, r.nonTechEvent, false);
       }
     });
 

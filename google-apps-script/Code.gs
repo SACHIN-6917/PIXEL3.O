@@ -58,7 +58,9 @@ var CONFIG = {
     "Payment_Status",
     "Payment_ID",
     "Registration_Status",
-    "Registered_AT"
+    "Registered_AT",
+    "Checkmate_Interested_Members",
+    "FilmForge_Interested_Members"
   ]
 };
 
@@ -174,7 +176,7 @@ function handlePublicRegistration(data) {
   else techEvent = "";
 
   if (nonTechEvent === "CHECKMATE") nonTechEvent = "CHECKMATE";
-  else if (nonTechEvent === "MINE RELAY" || nonTechEvent === "MINE_RELAY") nonTechEvent = "MINE RELAY";
+  else if (nonTechEvent === "MIME RELAY" || nonTechEvent === "MIME_RELAY" || nonTechEvent === "MINE RELAY" || nonTechEvent === "MINE_RELAY") nonTechEvent = "MIME RELAY";
   else nonTechEvent = "";
 
   if (!techEvent && !nonTechEvent) {
@@ -186,7 +188,7 @@ function handlePublicRegistration(data) {
   // PAPERQUEST: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
   // AI FILMFORGE: EXACTLY 1 MEMBER (Member 1 [main participant] only)
   // CHECKMATE: EXACTLY 1 MEMBER (Member 1 [main participant] only)
-  // MINE RELAY: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
+  // MIME RELAY: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
   var techM1 = "", techM2 = "", techM3 = "", techM4 = "";
   if (techEvent === "PAPERQUEST") {
     techM1 = cleanStr(data.technicalMember1 || data.techMember1 || data.member1) || fullName;
@@ -202,13 +204,13 @@ function handlePublicRegistration(data) {
   }
 
   var nonTechM1 = "", nonTechM2 = "", nonTechM3 = "", nonTechM4 = "";
-  if (nonTechEvent === "MINE RELAY") {
+  if (nonTechEvent === "MIME RELAY") {
     nonTechM1 = cleanStr(data.nonTechnicalMember1 || data.nonTechMember1 || data.member1) || fullName;
     nonTechM2 = cleanStr(data.nonTechnicalMember2 || data.nonTechMember2 || data.member2);
     nonTechM3 = cleanStr(data.nonTechnicalMember3 || data.nonTechMember3 || data.member3);
     nonTechM4 = cleanStr(data.nonTechnicalMember4 || data.nonTechMember4 || data.member4);
     if (!nonTechM1 || !nonTechM2 || !nonTechM3 || !nonTechM4) {
-      return createErrorResponse("Mine Relay requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
+      return createErrorResponse("Mime Relay requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
     }
   } else if (nonTechEvent === "CHECKMATE") {
     nonTechM1 = cleanStr(data.nonTechnicalMember1 || data.nonTechMember1 || data.member1) || fullName;
@@ -288,9 +290,13 @@ function handlePublicRegistration(data) {
     props.setProperty("PIXEL_REG_COUNTER", counter.toString());
     registrationId = "PIXEL-3.O-" + padZero(counter, 3);
 
+    // Read per-member cross-event interest data
+    var checkmateInterested = cleanStr(data.checkmateInterested || "");
+    var filmforgeInterested = cleanStr(data.filmforgeInterested || "");
+
     var timestamp = Utilities.formatDate(new Date(), "GMT+05:30", "yyyy-MM-dd HH:mm:ss 'IST'");
 
-    // Exactly 23 Columns
+    // 23 core columns + 2 interest columns = 25 total
     var row = [
       registrationId,         // 1. Registration_ID
       fullName,               // 2. Full_Name
@@ -314,7 +320,9 @@ function handlePublicRegistration(data) {
       "Submitted",            // 20. Payment_Status
       paymentId,              // 21. Payment_ID
       "Confirmed",            // 22. Registration_Status
-      timestamp               // 23. Registered_AT
+      timestamp,              // 23. Registered_AT
+      checkmateInterested,    // 24. Checkmate_Interested_Members (e.g. "1,2,4")
+      filmforgeInterested     // 25. FilmForge_Interested_Members (e.g. "1,3,4")
     ];
 
     sheet.appendRow(row);
@@ -394,7 +402,7 @@ function handleGetRegistrations(data) {
     });
   }
 
-  var values = sheet.getRange(2, 1, lastRow - 1, 23).getValues();
+  var values = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
   var list = [];
   for (var i = 0; i < values.length; i++) {
     var r = values[i];
@@ -421,7 +429,10 @@ function handleGetRegistrations(data) {
       paymentStatus: r[19],
       paymentId: r[20],
       registrationStatus: r[21],
-      registeredAt: r[22]
+      registeredAt: r[22],
+      // New interest fields (may be empty for older registrations)
+      checkmateInterested: r[23] || "",
+      filmforgeInterested: r[24] || ""
     });
   }
 
