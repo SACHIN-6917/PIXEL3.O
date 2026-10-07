@@ -58,6 +58,17 @@ export const AdminParticipantsPage: React.FC = () => {
       const pName = r.fullName.trim();
       if (pName) {
         const key = pName.toLowerCase();
+        let mainTech = r.techEvent || '—';
+        let mainNonTech = r.nonTechEvent || '—';
+
+        // Check cross-event interest for Main Participant (Member 1)
+        if (r.techEvent === 'PAPERQUEST' && (r.checkmateInterested || '').split(',').map(s => s.trim()).includes('1')) {
+          mainNonTech = 'CHECKMATE';
+        }
+        if ((r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY') && (r.filmforgeInterested || '').split(',').map(s => s.trim()).includes('1')) {
+          mainTech = 'AI FILMFORGE';
+        }
+
         if (!map.has(key)) {
           map.set(key, {
             name: pName,
@@ -65,8 +76,8 @@ export const AdminParticipantsPage: React.FC = () => {
             department: r.department,
             phone: r.phone,
             email: r.email,
-            techEvent: r.techEvent || '—',
-            nonTechEvent: r.nonTechEvent || '—',
+            techEvent: mainTech,
+            nonTechEvent: mainNonTech,
             registrationId: r.registrationId,
             paymentStatus: r.paymentStatus,
             role: 'Leader (Main Participant)',
@@ -74,16 +85,19 @@ export const AdminParticipantsPage: React.FC = () => {
         } else {
           // If already encountered, merge event details
           const existing = map.get(key)!;
-          if (r.techEvent && existing.techEvent === '—') existing.techEvent = r.techEvent;
-          if (r.nonTechEvent && existing.nonTechEvent === '—') existing.nonTechEvent = r.nonTechEvent;
+          if (mainTech !== '—' && (existing.techEvent === '—' || !existing.techEvent)) existing.techEvent = mainTech;
+          if (mainNonTech !== '—' && (existing.nonTechEvent === '—' || !existing.nonTechEvent)) existing.nonTechEvent = mainNonTech;
         }
       }
 
       // Helper for teammates
-      const addTeammate = (mName: string, eventName: string, isTech: boolean) => {
+      const addTeammate = (mName: string, primaryEvent: string, isPrimaryTech: boolean, crossEvent?: string) => {
         const cleanName = (mName || '').trim();
         if (!cleanName) return;
         const key = cleanName.toLowerCase();
+        const techVal = isPrimaryTech ? primaryEvent : (crossEvent || '—');
+        const nonTechVal = !isPrimaryTech ? primaryEvent : (crossEvent || '—');
+
         if (!map.has(key)) {
           map.set(key, {
             name: cleanName,
@@ -91,35 +105,47 @@ export const AdminParticipantsPage: React.FC = () => {
             department: r.department,
             phone: r.phone ? `${r.phone} (c/o ${r.fullName})` : '—',
             email: '—',
-            techEvent: isTech ? eventName : '—',
-            nonTechEvent: !isTech ? eventName : '—',
+            techEvent: techVal,
+            nonTechEvent: nonTechVal,
             registrationId: r.registrationId,
             paymentStatus: r.paymentStatus,
             role: 'Team Member',
           });
         } else {
           const existing = map.get(key)!;
-          if (isTech && (existing.techEvent === '—' || !existing.techEvent)) {
-            existing.techEvent = eventName;
+          if (techVal !== '—' && (existing.techEvent === '—' || !existing.techEvent)) {
+            existing.techEvent = techVal;
           }
-          if (!isTech && (existing.nonTechEvent === '—' || !existing.nonTechEvent)) {
-            existing.nonTechEvent = eventName;
+          if (nonTechVal !== '—' && (existing.nonTechEvent === '—' || !existing.nonTechEvent)) {
+            existing.nonTechEvent = nonTechVal;
           }
         }
       };
 
-      // Technical teammates
+      // Technical teammates (PaperQuest) - Member 2, 3, 4 with optional Checkmate solo interest
       if (r.techEvent === 'PAPERQUEST') {
-        addTeammate(r.techMember2, 'PAPERQUEST', true);
-        addTeammate(r.techMember3, 'PAPERQUEST', true);
-        addTeammate(r.techMember4, 'PAPERQUEST', true);
+        const checkmateSet = new Set(
+          (r.checkmateInterested || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+        );
+        addTeammate(r.techMember2, 'PAPERQUEST', true, checkmateSet.has('2') ? 'CHECKMATE' : undefined);
+        addTeammate(r.techMember3, 'PAPERQUEST', true, checkmateSet.has('3') ? 'CHECKMATE' : undefined);
+        addTeammate(r.techMember4, 'PAPERQUEST', true, checkmateSet.has('4') ? 'CHECKMATE' : undefined);
       }
 
-      // Non-technical teammates (handle both legacy MIME RELAY and new MINE RELAY)
+      // Non-technical teammates (Mine Relay) - Member 2, 3, 4 with optional AI FilmForge solo interest
       if (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY') {
-        addTeammate(r.nonTechMember2, r.nonTechEvent, false);
-        addTeammate(r.nonTechMember3, r.nonTechEvent, false);
-        addTeammate(r.nonTechMember4, r.nonTechEvent, false);
+        const filmforgeSet = new Set(
+          (r.filmforgeInterested || '')
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+        );
+        addTeammate(r.nonTechMember2, 'MINE RELAY', false, filmforgeSet.has('2') ? 'AI FILMFORGE' : undefined);
+        addTeammate(r.nonTechMember3, 'MINE RELAY', false, filmforgeSet.has('3') ? 'AI FILMFORGE' : undefined);
+        addTeammate(r.nonTechMember4, 'MINE RELAY', false, filmforgeSet.has('4') ? 'AI FILMFORGE' : undefined);
       }
     });
 

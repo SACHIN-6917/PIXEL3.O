@@ -620,13 +620,15 @@ function handleSyncBulkRegistrations(data) {
         cleanStr(r.paymentStatus) || "Submitted",
         cleanStr(r.paymentId),
         cleanStr(r.registrationStatus) || "Confirmed",
-        cleanStr(r.registeredAt) || Utilities.formatDate(new Date(), "GMT+05:30", "yyyy-MM-dd HH:mm:ss 'IST'")
+        cleanStr(r.registeredAt) || Utilities.formatDate(new Date(), "GMT+05:30", "yyyy-MM-dd HH:mm:ss 'IST'"),
+        cleanStr(r.checkmateInterested || ""),
+        cleanStr(r.filmforgeInterested || "")
       ];
 
       if (existingMap[regId]) {
-        // Update existing row in place
+        // Update existing row in place (all 25 columns)
         var rowIdx = existingMap[regId];
-        sheet.getRange(rowIdx, 1, 1, 23).setValues([row]);
+        sheet.getRange(rowIdx, 1, 1, row.length).setValues([row]);
       } else {
         // Append new row
         sheet.appendRow(row);

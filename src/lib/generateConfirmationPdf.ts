@@ -167,6 +167,8 @@ export async function generateConfirmationPdf(
   doc.setFontSize(8);
   const col1 = margin + 11;
   const col2 = margin + 95;
+  const col1MaxW = 60; // max width for col1 value text
+  const col2MaxW = 58; // max width for col2 value text
 
   // Row 1
   doc.setFont('helvetica', 'bold');
@@ -174,7 +176,8 @@ export async function generateConfirmationPdf(
   doc.text('Full Name:', col1, y + 12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(23, 23, 23);
-  doc.text(result.fullName || '—', col1 + 22, y + 12);
+  const nameLines = doc.splitTextToSize(result.fullName || '—', col1MaxW);
+  doc.text(nameLines.slice(0, 2), col1 + 22, y + 12);
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(100, 100, 100);
@@ -189,15 +192,16 @@ export async function generateConfirmationPdf(
   doc.text('College:', col1, y + 18);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(23, 23, 23);
-  const collegeText = doc.splitTextToSize(extraDetails?.college || '—', 60);
-  doc.text(collegeText, col1 + 22, y + 18);
+  const collegeText = doc.splitTextToSize(extraDetails?.college || '—', col1MaxW);
+  doc.text(collegeText.slice(0, 2), col1 + 22, y + 18);
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(100, 100, 100);
   doc.text('Email:', col2, y + 18);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(23, 23, 23);
-  doc.text(extraDetails?.email || '—', col2 + 15, y + 18);
+  const emailLines = doc.splitTextToSize(extraDetails?.email || '—', col2MaxW);
+  doc.text(emailLines.slice(0, 2), col2 + 15, y + 18);
 
   // Row 3
   doc.setFont('helvetica', 'bold');
@@ -205,14 +209,16 @@ export async function generateConfirmationPdf(
   doc.text('Department:', col1, y + 26);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(23, 23, 23);
-  doc.text(extraDetails?.department || '—', col1 + 22, y + 26);
+  const deptLines = doc.splitTextToSize(extraDetails?.department || '—', col1MaxW);
+  doc.text(deptLines.slice(0, 2), col1 + 22, y + 26);
 
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(100, 100, 100);
   doc.text('UPI Ref ID:', col2, y + 26);
   doc.setFont('courier', 'bold');
   doc.setTextColor(23, 23, 23);
-  doc.text(extraDetails?.paymentId || 'Submitted', col2 + 18, y + 26);
+  const upiLines = doc.splitTextToSize(extraDetails?.paymentId || 'Submitted', col2MaxW);
+  doc.text(upiLines.slice(0, 2), col2 + 18, y + 26);
 
   y += 40;
 

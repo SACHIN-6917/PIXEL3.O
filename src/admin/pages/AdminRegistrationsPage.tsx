@@ -27,8 +27,10 @@ import {
   updatePaymentStatus,
   updateRegistrationStatus,
   deleteRegistration,
+  parseRegistrationTimestamp,
   RegistrationRecord
 } from '../../lib/googleSheet';
+import { generateConfirmationPdf } from '../../lib/generateConfirmationPdf';
 import { useAdminAuth } from '../AdminAuthContext';
 import { exportToCsv } from '../csvExport';
 
@@ -39,10 +41,12 @@ export const AdminRegistrationsPage: React.FC = () => {
   const [pushingSheet, setPushingSheet] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [search, setSearch] = useState('');
-  const [techFilter, setTechFilter] = useState('ALL');
-  const [nonTechFilter, setNonTechFilter] = useState('ALL');
+  const [eventFilter, setEventFilter] = useState('ALL');
   const [paymentFilter, setPaymentFilter] = useState('ALL');
   const [regStatusFilter, setRegStatusFilter] = useState('ALL');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 15;
@@ -68,12 +72,14 @@ export const AdminRegistrationsPage: React.FC = () => {
 
   const loadData = async (silent = false) => {
     if (!silent) setLoading(true);
+    setLoadError(null);
     try {
       const data = await fetchAllRegistrations(token || '');
       setRegistrations(data);
       setLastUpdated(new Date());
     } catch (err) {
       console.error(err);
+      setLoadError('Unable to load registration data. Please try again.');
     } finally {
       if (!silent) setLoading(false);
     }
@@ -99,11 +105,14 @@ export const AdminRegistrationsPage: React.FC = () => {
     };
   }, [token]);
 
-  // Filtering
+  // Filtering with Actual Participation & Date/Time Filter
   const filteredData = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const fromTimestamp = fromDate ? new Date(fromDate).getTime() : null;
+    const toTimestamp = toDate ? new Date(toDate).getTime() : null;
+
     return registrations.filter(r => {
-      // Search matches
+      // 1. Search matches
       const matchesSearch =
         !q ||
         r.registrationId.toLowerCase().includes(q) ||
@@ -118,26 +127,43 @@ export const AdminRegistrationsPage: React.FC = () => {
         (r.nonTechMember3 && r.nonTechMember3.toLowerCase().includes(q)) ||
         (r.nonTechMember4 && r.nonTechMember4.toLowerCase().includes(q));
 
-      // Filter matches
-      const matchesTech =
-        techFilter === 'ALL' ||
-        (techFilter === 'NONE' && !r.techEvent) ||
-        (r.techEvent && r.techEvent.toUpperCase() === techFilter.toUpperCase());
+      // 2. Event filter (USES ACTUAL PARTICIPATION)
+      let matchesEvent = true;
+      if (eventFilter === 'PAPERQUEST') {
+        matchesEvent = r.techEvent === 'PAPERQUEST';
+      } else if (eventFilter === 'MINE RELAY') {
+        matchesEvent = r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY';
+      } else if (eventFilter === 'CHECKMATE') {
+        const direct = r.nonTechEvent === 'CHECKMATE';
+        const fromPaperQuest = r.techEvent === 'PAPERQUEST' && Boolean(r.checkmateInterested && r.checkmateInterested.trim().length > 0);
+        matchesEvent = direct || fromPaperQuest;
+      } else if (eventFilter === 'AI FILMFORGE') {
+        const direct = r.techEvent === 'AI FILMFORGE';
+        const fromMineRelay = (r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY') && Boolean(r.filmforgeInterested && r.filmforgeInterested.trim().length > 0);
+        matchesEvent = direct || fromMineRelay;
+      }
 
-      const matchesNonTech =
-        nonTechFilter === 'ALL' ||
-        (nonTechFilter === 'NONE' && !r.nonTechEvent) ||
-        (r.nonTechEvent && r.nonTechEvent.toUpperCase() === nonTechFilter.toUpperCase());
-
+      // 3. Payment Status filter
       const matchesPayment =
         paymentFilter === 'ALL' || r.paymentStatus === paymentFilter;
 
+      // 4. Registration Status filter
       const matchesRegStatus =
         regStatusFilter === 'ALL' || r.registrationStatus === regStatusFilter;
 
-      return matchesSearch && matchesTech && matchesNonTech && matchesPayment && matchesRegStatus;
+      // 5. Date & Time filter (based on Registered_AT timestamp)
+      let matchesDateTime = true;
+      const regTime = parseRegistrationTimestamp(r.registeredAt);
+      if (fromTimestamp !== null && regTime !== null) {
+        if (regTime < fromTimestamp) matchesDateTime = false;
+      }
+      if (toTimestamp !== null && regTime !== null) {
+        if (regTime > toTimestamp) matchesDateTime = false;
+      }
+
+      return matchesSearch && matchesEvent && matchesPayment && matchesRegStatus && matchesDateTime;
     });
-  }, [registrations, search, techFilter, nonTechFilter, paymentFilter, regStatusFilter]);
+  }, [registrations, search, eventFilter, paymentFilter, regStatusFilter, fromDate, toDate]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / itemsPerPage) || 1;
@@ -146,8 +172,232 @@ export const AdminRegistrationsPage: React.FC = () => {
     return filteredData.slice(start, start + itemsPerPage);
   }, [filteredData, currentPage]);
 
-  // Export CSV
+  // Event-Wise CSV Export (Respects all active filters)
   const handleExportCsv = () => {
+    if (filteredData.length === 0) {
+      alert('No registrations match the selected filters to export.');
+      return;
+    }
+
+    if (eventFilter === 'PAPERQUEST') {
+      const headers = [
+        'Registration_ID',
+        'College',
+        'Department',
+        'Member_1_Leader',
+        'Member_2',
+        'Member_3',
+        'Member_4',
+        'Team_Role',
+        'Checkmate_Interested_Members',
+        'Payment_Status',
+        'Payment_ID',
+        'Registration_Status',
+        'Registered_At'
+      ];
+      const rows = filteredData
+        .filter(r => r.techEvent === 'PAPERQUEST')
+        .map(r => [
+          r.registrationId,
+          r.college,
+          r.department,
+          r.techMember1 || r.fullName,
+          r.techMember2 || '',
+          r.techMember3 || '',
+          r.techMember4 || '',
+          'Team of 4',
+          r.checkmateInterested ? `Member(s) ${r.checkmateInterested}` : 'None',
+          r.paymentStatus,
+          r.paymentId,
+          r.registrationStatus,
+          r.registeredAt
+        ]);
+      exportToCsv('PIXEL_3.O_PaperQuest_Teams', headers, rows);
+      return;
+    }
+
+    if (eventFilter === 'MINE RELAY') {
+      const headers = [
+        'Registration_ID',
+        'College',
+        'Department',
+        'Member_1_Leader',
+        'Member_2',
+        'Member_3',
+        'Member_4',
+        'Team_Role',
+        'FilmForge_Interested_Members',
+        'Payment_Status',
+        'Payment_ID',
+        'Registration_Status',
+        'Registered_At'
+      ];
+      const rows = filteredData
+        .filter(r => r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY')
+        .map(r => [
+          r.registrationId,
+          r.college,
+          r.department,
+          r.nonTechMember1 || r.fullName,
+          r.nonTechMember2 || '',
+          r.nonTechMember3 || '',
+          r.nonTechMember4 || '',
+          'Team of 4',
+          r.filmforgeInterested ? `Member(s) ${r.filmforgeInterested}` : 'None',
+          r.paymentStatus,
+          r.paymentId,
+          r.registrationStatus,
+          r.registeredAt
+        ]);
+      exportToCsv('PIXEL_3.O_MineRelay_Teams', headers, rows);
+      return;
+    }
+
+    if (eventFilter === 'CHECKMATE') {
+      const headers = [
+        'Registration_ID',
+        'Participant_Name',
+        'Role',
+        'College',
+        'Department',
+        'Phone',
+        'Email',
+        'Source_Event',
+        'Payment_Status',
+        'Payment_ID',
+        'Registration_Status',
+        'Registered_At'
+      ];
+      const rows: (string | number)[][] = [];
+
+      filteredData.forEach(r => {
+        // Direct solo Checkmate
+        if (r.nonTechEvent === 'CHECKMATE' && r.techEvent !== 'PAPERQUEST') {
+          rows.push([
+            r.registrationId,
+            r.fullName,
+            'Solo Participant',
+            r.college,
+            r.department,
+            r.phone,
+            r.email,
+            'Direct Solo Registration',
+            r.paymentStatus,
+            r.paymentId,
+            r.registrationStatus,
+            r.registeredAt
+          ]);
+        }
+        // Members from PaperQuest who expressed interest
+        if (r.techEvent === 'PAPERQUEST' && r.checkmateInterested) {
+          const interestedNums = r.checkmateInterested.split(',').map(s => s.trim());
+          const membersList = [
+            r.techMember1 || r.fullName,
+            r.techMember2,
+            r.techMember3,
+            r.techMember4
+          ];
+          interestedNums.forEach(numStr => {
+            const idx = parseInt(numStr, 10);
+            if (idx >= 1 && idx <= 4) {
+              const name = membersList[idx - 1];
+              if (name && name.trim()) {
+                rows.push([
+                  r.registrationId,
+                  name.trim(),
+                  idx === 1 ? 'Leader / Solo' : `Member ${idx} / Solo`,
+                  r.college,
+                  r.department,
+                  idx === 1 ? r.phone : `${r.phone} (c/o ${r.fullName})`,
+                  idx === 1 ? r.email : '—',
+                  `PaperQuest Team (Member ${idx})`,
+                  r.paymentStatus,
+                  r.paymentId,
+                  r.registrationStatus,
+                  r.registeredAt
+                ]);
+              }
+            }
+          });
+        }
+      });
+      exportToCsv('PIXEL_3.O_Checkmate_Solo_Participants', headers, rows);
+      return;
+    }
+
+    if (eventFilter === 'AI FILMFORGE') {
+      const headers = [
+        'Registration_ID',
+        'Participant_Name',
+        'Role',
+        'College',
+        'Department',
+        'Phone',
+        'Email',
+        'Source_Event',
+        'Payment_Status',
+        'Payment_ID',
+        'Registration_Status',
+        'Registered_At'
+      ];
+      const rows: (string | number)[][] = [];
+
+      filteredData.forEach(r => {
+        // Direct solo AI FilmForge
+        if (r.techEvent === 'AI FILMFORGE' && r.nonTechEvent !== 'MINE RELAY' && r.nonTechEvent !== 'MIME RELAY') {
+          rows.push([
+            r.registrationId,
+            r.fullName,
+            'Solo Participant',
+            r.college,
+            r.department,
+            r.phone,
+            r.email,
+            'Direct Solo Registration',
+            r.paymentStatus,
+            r.paymentId,
+            r.registrationStatus,
+            r.registeredAt
+          ]);
+        }
+        // Members from Mine Relay who expressed interest
+        if ((r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY') && r.filmforgeInterested) {
+          const interestedNums = r.filmforgeInterested.split(',').map(s => s.trim());
+          const membersList = [
+            r.nonTechMember1 || r.fullName,
+            r.nonTechMember2,
+            r.nonTechMember3,
+            r.nonTechMember4
+          ];
+          interestedNums.forEach(numStr => {
+            const idx = parseInt(numStr, 10);
+            if (idx >= 1 && idx <= 4) {
+              const name = membersList[idx - 1];
+              if (name && name.trim()) {
+                rows.push([
+                  r.registrationId,
+                  name.trim(),
+                  idx === 1 ? 'Leader / Solo' : `Member ${idx} / Solo`,
+                  r.college,
+                  r.department,
+                  idx === 1 ? r.phone : `${r.phone} (c/o ${r.fullName})`,
+                  idx === 1 ? r.email : '—',
+                  `Mine Relay Team (Member ${idx})`,
+                  r.paymentStatus,
+                  r.paymentId,
+                  r.registrationStatus,
+                  r.registeredAt
+                ]);
+              }
+            }
+          });
+        }
+      });
+      exportToCsv('PIXEL_3.O_AIFilmForge_Solo_Participants', headers, rows);
+      return;
+    }
+
+    // Default: ALL Events Master CSV
     const headers = [
       'Registration_ID',
       'Full_Name',
@@ -172,6 +422,8 @@ export const AdminRegistrationsPage: React.FC = () => {
       'Payment_ID',
       'Registration_Status',
       'Registered_AT',
+      'Checkmate_Interested_Members',
+      'FilmForge_Interested_Members'
     ];
 
     const rows = filteredData.map(r => [
@@ -198,9 +450,11 @@ export const AdminRegistrationsPage: React.FC = () => {
       r.paymentId,
       r.registrationStatus,
       r.registeredAt,
+      r.checkmateInterested || '',
+      r.filmforgeInterested || '',
     ]);
 
-    exportToCsv('PIXEL_3.O_Registrations', headers, rows);
+    exportToCsv('PIXEL_3.O_Master_Registrations', headers, rows);
   };
 
   // Status Actions
@@ -342,42 +596,25 @@ export const AdminRegistrationsPage: React.FC = () => {
           />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+        {/* Single Event filter, Payment Status, and Registration Status */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
           <div>
             <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-              Tech Event
+              Event (Actual Participation)
             </label>
             <select
-              value={techFilter}
+              value={eventFilter}
               onChange={e => {
-                setTechFilter(e.target.value);
+                setEventFilter(e.target.value);
                 setCurrentPage(1);
               }}
               className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 focus:outline-none focus:border-[#FF6A00]"
             >
-              <option value="ALL">All Technical</option>
+              <option value="ALL">All Events</option>
               <option value="PAPERQUEST">PaperQuest</option>
               <option value="AI FILMFORGE">AI FilmForge</option>
-              <option value="NONE">None</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
-              Non-Tech Event
-            </label>
-            <select
-              value={nonTechFilter}
-              onChange={e => {
-                setNonTechFilter(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 focus:outline-none focus:border-[#FF6A00]"
-            >
-              <option value="ALL">All Non-Technical</option>
               <option value="CHECKMATE">Checkmate</option>
-              <option value="MIME RELAY">Mime Relay</option>
-              <option value="NONE">None</option>
+              <option value="MINE RELAY">Mine Relay</option>
             </select>
           </div>
 
@@ -420,6 +657,60 @@ export const AdminRegistrationsPage: React.FC = () => {
             </select>
           </div>
         </div>
+
+        {/* Date & Time Filters (Registered_AT) */}
+        <div className="pt-2 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-7 gap-2.5 items-end text-xs">
+          <div className="sm:col-span-3">
+            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              From Date & Time (Registered At)
+            </label>
+            <input
+              type="datetime-local"
+              value={fromDate}
+              onChange={e => {
+                setFromDate(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 focus:outline-none focus:border-[#FF6A00]"
+            />
+          </div>
+
+          <div className="sm:col-span-3">
+            <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">
+              To Date & Time (Registered At)
+            </label>
+            <input
+              type="datetime-local"
+              value={toDate}
+              onChange={e => {
+                setToDate(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full px-2.5 py-1.5 rounded-lg border border-gray-200 bg-white font-medium text-gray-700 focus:outline-none focus:border-[#FF6A00]"
+            />
+          </div>
+
+          <div className="sm:col-span-1">
+            {(fromDate || toDate || eventFilter !== 'ALL' || paymentFilter !== 'ALL' || regStatusFilter !== 'ALL' || search) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEventFilter('ALL');
+                  setPaymentFilter('ALL');
+                  setRegStatusFilter('ALL');
+                  setFromDate('');
+                  setToDate('');
+                  setSearch('');
+                  setCurrentPage(1);
+                }}
+                className="w-full py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-[11px] transition-colors"
+                title="Reset all search and filter fields"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Table */}
@@ -448,10 +739,26 @@ export const AdminRegistrationsPage: React.FC = () => {
                     Loading registrations...
                   </td>
                 </tr>
+              ) : loadError ? (
+                <tr>
+                  <td colSpan={11} className="px-4 py-8 text-center text-red-500 font-semibold">
+                    <div className="flex flex-col items-center justify-center gap-2">
+                      <p>Unable to load registration data. Please try again.</p>
+                      <button
+                        onClick={() => loadData(false)}
+                        className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors"
+                      >
+                        Retry Loading
+                      </button>
+                    </div>
+                  </td>
+                </tr>
               ) : paginatedData.length === 0 ? (
                 <tr>
                   <td colSpan={11} className="px-4 py-8 text-center text-gray-400">
-                    No registrations found matching the current search/filters.
+                    {registrations.length === 0
+                      ? 'No registrations yet. Genuine registrations submitted on the site will appear here.'
+                      : 'No registrations found matching the current search/filters.'}
                   </td>
                 </tr>
               ) : (
@@ -652,7 +959,9 @@ export const AdminRegistrationsPage: React.FC = () => {
                 <span className="text-[10px] font-bold text-purple-700 uppercase tracking-wider block mb-1">
                   Non-Technical Event
                 </span>
-                <div className="font-bold text-gray-900 text-sm">{selectedReg.nonTechEvent || 'None'}</div>
+                <div className="font-bold text-gray-900 text-sm">
+                  {selectedReg.nonTechEvent || (selectedReg.checkmateInterested ? 'CHECKMATE (via PaperQuest)' : 'None')}
+                </div>
                 {(selectedReg.nonTechEvent === 'MINE RELAY' || selectedReg.nonTechEvent === 'MIME RELAY') && (
                   <div className="mt-2 space-y-1 text-gray-600 text-[11px]">
                     <div>1. {selectedReg.nonTechMember1 || selectedReg.fullName} <span className="text-[10px] text-purple-600 font-semibold">(Main Participant)</span></div>
@@ -666,8 +975,27 @@ export const AdminRegistrationsPage: React.FC = () => {
                     )}
                   </div>
                 )}
-                {selectedReg.nonTechEvent === 'CHECKMATE' && (
-                  <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
+                {(selectedReg.nonTechEvent === 'CHECKMATE' || (!selectedReg.nonTechEvent && selectedReg.checkmateInterested)) && (
+                  <div className="mt-2 space-y-1 text-gray-600 text-[11px]">
+                    {selectedReg.techEvent === 'PAPERQUEST' && selectedReg.checkmateInterested ? (
+                      <div>
+                        <div className="text-[10px] text-purple-700 font-bold mb-1">Checkmate Solo Participants (from PaperQuest team):</div>
+                        {(() => {
+                          const nums = selectedReg.checkmateInterested.split(',').map(s => parseInt(s.trim(), 10));
+                          const members = [selectedReg.techMember1 || selectedReg.fullName, selectedReg.techMember2, selectedReg.techMember3, selectedReg.techMember4];
+                          return nums.map(n => (
+                            <div key={n} className="flex items-center gap-1.5 py-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                              <span className="font-semibold text-gray-800">{members[n - 1] || `Member ${n}`}</span>
+                              <span className="text-[10px] text-gray-400">({n === 1 ? 'Main Participant' : `Member ${n}`})</span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -720,6 +1048,49 @@ export const AdminRegistrationsPage: React.FC = () => {
                   className="px-3.5 py-2 rounded-xl border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold text-xs flex items-center gap-1.5 transition-colors disabled:opacity-50"
                 >
                   <Clock className="w-3.5 h-3.5" /> MARK PENDING
+                </button>
+
+                <button
+                  onClick={() => {
+                    generateConfirmationPdf(
+                      {
+                        success: true,
+                        registrationId: selectedReg.registrationId,
+                        fullName: selectedReg.fullName,
+                        techEvent: selectedReg.techEvent,
+                        nonTechEvent: selectedReg.nonTechEvent,
+                        totalMembers: selectedReg.totalMembers,
+                        feePerHead: selectedReg.feePerHead,
+                        totalAmount: selectedReg.totalAmount,
+                        paymentStatus: selectedReg.paymentStatus,
+                        registrationStatus: selectedReg.registrationStatus,
+                        registeredAt: selectedReg.registeredAt
+                      },
+                      {
+                        college: selectedReg.college,
+                        department: selectedReg.department,
+                        phone: selectedReg.phone,
+                        email: selectedReg.email,
+                        paymentId: selectedReg.paymentId,
+                        techMembers: [
+                          selectedReg.techMember1 || selectedReg.fullName,
+                          selectedReg.techMember2,
+                          selectedReg.techMember3,
+                          selectedReg.techMember4
+                        ].filter(Boolean),
+                        nonTechMembers: [
+                          selectedReg.nonTechMember1 || selectedReg.fullName,
+                          selectedReg.nonTechMember2,
+                          selectedReg.nonTechMember3,
+                          selectedReg.nonTechMember4
+                        ].filter(Boolean)
+                      }
+                    );
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#FF6A00] font-bold text-xs flex items-center gap-1.5 transition-colors shadow-2xs"
+                  title="Download Official Participant ID Pass (PDF)"
+                >
+                  <Download className="w-3.5 h-3.5" /> ID PASS (PDF)
                 </button>
 
                 <button

@@ -14,9 +14,11 @@ import {
   Eye,
   Building,
   Phone,
-  Mail
+  Mail,
+  Download
 } from 'lucide-react';
 import { fetchAllRegistrations, getLocalRegistrations, subscribeToRegistrationUpdates, RegistrationRecord } from '../../lib/googleSheet';
+import { generateConfirmationPdf } from '../../lib/generateConfirmationPdf';
 import { useAdminAuth } from '../AdminAuthContext';
 
 export const AdminDashboardPage: React.FC = () => {
@@ -416,7 +418,26 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 )}
                 {selectedReg.techEvent === 'AI FILMFORGE' && (
-                  <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
+                  <div>
+                    {selectedReg.nonTechEvent === 'MINE RELAY' && selectedReg.filmforgeInterested ? (
+                      <div>
+                        <div className="text-[10px] text-[#FF6A00] font-bold mb-1">AI FilmForge Solo Participants (from Mine Relay team):</div>
+                        {(() => {
+                          const nums = selectedReg.filmforgeInterested.split(',').map(s => parseInt(s.trim(), 10));
+                          const members = [selectedReg.nonTechMember1 || selectedReg.fullName, selectedReg.nonTechMember2, selectedReg.nonTechMember3, selectedReg.nonTechMember4];
+                          return nums.map(n => (
+                            <div key={n} className="flex items-center gap-1.5 py-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#FF6A00]" />
+                              <span className="font-semibold text-gray-800">{members[n - 1] || `Member ${n}`}</span>
+                              <span className="text-[10px] text-gray-400">({n === 1 ? 'Main Participant' : `Member ${n}`})</span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -439,7 +460,26 @@ export const AdminDashboardPage: React.FC = () => {
                   </div>
                 )}
                 {selectedReg.nonTechEvent === 'CHECKMATE' && (
-                  <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
+                  <div>
+                    {selectedReg.techEvent === 'PAPERQUEST' && selectedReg.checkmateInterested ? (
+                      <div>
+                        <div className="text-[10px] text-purple-700 font-bold mb-1">Checkmate Solo Participants (from PaperQuest team):</div>
+                        {(() => {
+                          const nums = selectedReg.checkmateInterested.split(',').map(s => parseInt(s.trim(), 10));
+                          const members = [selectedReg.techMember1 || selectedReg.fullName, selectedReg.techMember2, selectedReg.techMember3, selectedReg.techMember4];
+                          return nums.map(n => (
+                            <div key={n} className="flex items-center gap-1.5 py-0.5">
+                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                              <span className="font-semibold text-gray-800">{members[n - 1] || `Member ${n}`}</span>
+                              <span className="text-[10px] text-gray-400">({n === 1 ? 'Main Participant' : `Member ${n}`})</span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    ) : (
+                      <div className="mt-1 text-[11px] text-gray-500">Solo: {selectedReg.fullName} (Main Participant)</div>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -475,7 +515,50 @@ export const AdminDashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+              <button
+                onClick={() => {
+                  generateConfirmationPdf(
+                    {
+                      success: true,
+                      registrationId: selectedReg.registrationId,
+                      fullName: selectedReg.fullName,
+                      techEvent: selectedReg.techEvent,
+                      nonTechEvent: selectedReg.nonTechEvent,
+                      totalMembers: selectedReg.totalMembers,
+                      feePerHead: selectedReg.feePerHead,
+                      totalAmount: selectedReg.totalAmount,
+                      paymentStatus: selectedReg.paymentStatus,
+                      registrationStatus: selectedReg.registrationStatus,
+                      registeredAt: selectedReg.registeredAt,
+                    },
+                    {
+                      college: selectedReg.college,
+                      department: selectedReg.department,
+                      phone: selectedReg.phone,
+                      email: selectedReg.email,
+                      paymentId: selectedReg.paymentId,
+                      techMembers: [
+                        selectedReg.techMember1 || selectedReg.fullName,
+                        selectedReg.techMember2,
+                        selectedReg.techMember3,
+                        selectedReg.techMember4
+                      ].filter(Boolean),
+                      nonTechMembers: [
+                        selectedReg.nonTechMember1 || selectedReg.fullName,
+                        selectedReg.nonTechMember2,
+                        selectedReg.nonTechMember3,
+                        selectedReg.nonTechMember4
+                      ].filter(Boolean),
+                    }
+                  );
+                }}
+                className="px-4 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-200 text-[#FF6A00] font-bold text-xs flex items-center gap-1.5 transition-colors"
+                title="Download Participant ID Pass (Official PDF)"
+              >
+                <Download className="w-3.5 h-3.5" /> ID PASS (PDF)
+              </button>
+
               <button
                 onClick={() => setSelectedReg(null)}
                 className="px-5 py-2.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 transition-colors"

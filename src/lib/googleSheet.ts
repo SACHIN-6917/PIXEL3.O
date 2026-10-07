@@ -1,15 +1,73 @@
 /// <reference types="vite/client" />
+import {
+  isSupabaseConfigured,
+  fetchAllSupabaseRegistrations,
+  insertSupabaseRegistration,
+  updateSupabasePaymentStatus,
+  updateSupabaseRegistrationStatus,
+  deleteSupabaseRegistration
+} from './supabase';
 
 export const REGISTRATION_DEADLINE = new Date('2026-10-13T22:00:00+05:30').getTime();
 export const FEE_PER_HEAD = 129;
 export const DEFAULT_UPI_ID = import.meta.env.VITE_UPI_ID || 'gokulkumar1406@okaxis';
-export const DEFAULT_UPI_NAME = 'PIXEL-3.O';
+export const DEFAULT_UPI_NAME = 'PIXEL 3.O';
 export const WHATSAPP_COMMUNITY_LINK = 'https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v';
 export const STATIC_QR_PATH = '/Payment-Qr.jpeg';
 
 export function isDeadlinePassed(): boolean {
   return Date.now() > REGISTRATION_DEADLINE;
 }
+
+/**
+ * Robust date/time parser for Registered_AT timestamps
+ * Handles Indian locale ("DD/MM/YYYY, HH:MM:SS am/pm"), GAS ("YYYY-MM-DD HH:MM:SS 'IST'"), and ISO formats.
+ */
+export function parseRegistrationTimestamp(dateStr?: string | null): number | null {
+  if (!dateStr || typeof dateStr !== 'string') return null;
+  const str = dateStr.trim();
+  if (!str || str === '—' || str === '-') return null;
+
+  // 1. Direct standard parse (with IST replacement if present)
+  const normalizedIst = str.replace(/\s+IST$/i, ' +05:30');
+  const direct = Date.parse(normalizedIst);
+  if (!isNaN(direct)) return direct;
+
+  // 2. Format: "DD/MM/YYYY, HH:MM:SS" or "DD/MM/YYYY, HH:MM:SS am/pm"
+  const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})(?:[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?(?:\s*([apAP][mM]))?)?/);
+  if (dmyMatch) {
+    const day = parseInt(dmyMatch[1], 10);
+    const month = parseInt(dmyMatch[2], 10) - 1;
+    const year = parseInt(dmyMatch[3], 10);
+    let hours = dmyMatch[4] ? parseInt(dmyMatch[4], 10) : 0;
+    const minutes = dmyMatch[5] ? parseInt(dmyMatch[5], 10) : 0;
+    const seconds = dmyMatch[6] ? parseInt(dmyMatch[6], 10) : 0;
+    const ampm = dmyMatch[7] ? dmyMatch[7].toLowerCase() : null;
+
+    if (ampm === 'pm' && hours < 12) hours += 12;
+    if (ampm === 'am' && hours === 12) hours = 0;
+
+    const d = new Date(year, month, day, hours, minutes, seconds);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+
+  // 3. Format: "YYYY-MM-DD HH:MM:SS"
+  const ymdMatch = str.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:[,\s]+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?/);
+  if (ymdMatch) {
+    const year = parseInt(ymdMatch[1], 10);
+    const month = parseInt(ymdMatch[2], 10) - 1;
+    const day = parseInt(ymdMatch[3], 10);
+    const hours = ymdMatch[4] ? parseInt(ymdMatch[4], 10) : 0;
+    const minutes = ymdMatch[5] ? parseInt(ymdMatch[5], 10) : 0;
+    const seconds = ymdMatch[6] ? parseInt(ymdMatch[6], 10) : 0;
+    const d = new Date(year, month, day, hours, minutes, seconds);
+    if (!isNaN(d.getTime())) return d.getTime();
+  }
+
+  const fallback = new Date(str).getTime();
+  return isNaN(fallback) ? null : fallback;
+}
+
 
 export type TechEvent = 'PaperQuest' | 'AI FilmForge' | null;
 export type NonTechEvent = 'Checkmate' | 'Mime Relay' | null;
@@ -325,7 +383,16 @@ export async function deleteRegistration(token: string, registrationId: string):
     localStorage.setItem(VAULT_STORAGE_KEY, dataStr);
     notifyRegistrationChange();
 
-    // 3. Delete from Google Apps Script if configured
+    // 3. Delete from Supabase if configured
+    if (isSupabaseConfigured()) {
+      try {
+        await deleteSupabaseRegistration(registrationId);
+      } catch (e) {
+        console.warn('Supabase delete error:', e);
+      }
+    }
+
+    // 4. Delete from Google Apps Script if configured
     const scriptUrl = getGoogleAppsScriptUrl();
     if (scriptUrl && !scriptUrl.includes('YOUR_DEPLOYMENT_ID')) {
       try {
@@ -441,11 +508,33 @@ export function createAndSaveLocalRecord(payload: RegistrationPayload): Registra
 }
 
 /**
- * Submits the registration to the Google Apps Script Web App
+ * Submits the registration to the Supabase Production DB and Google Apps Script Web App
  */
 export async function submitToGoogleSheet(payload: RegistrationPayload): Promise<RegistrationResult> {
   if (isDeadlinePassed()) {
     throw new Error('Registration closed on 13 October 2026 at 10:00 PM IST.');
+  }
+
+  // 1. Supabase Production Database (Permanent Source of Truth)
+  if (isSupabaseConfigured()) {
+    try {
+      const techM = [payload.technicalMember1, payload.technicalMember2, payload.technicalMember3, payload.technicalMember4].filter(Boolean);
+      const nonTechM = [payload.nonTechnicalMember1, payload.nonTechnicalMember2, payload.nonTechnicalMember3, payload.nonTechnicalMember4].filter(Boolean);
+      await insertSupabaseRegistration({
+        fullName: payload.fullName,
+        college: payload.college,
+        department: payload.department,
+        phone: payload.phone,
+        email: payload.email,
+        technicalEvent: payload.technicalEvent,
+        nonTechnicalEvent: payload.nonTechnicalEvent,
+        paymentId: payload.paymentId,
+        checkmateInterested: payload.checkmateInterested,
+        filmforgeInterested: payload.filmforgeInterested,
+      }, techM, nonTechM);
+    } catch (sbErr) {
+      console.warn('Supabase submission mirror warning:', sbErr);
+    }
   }
 
   const scriptUrl = getGoogleAppsScriptUrl();
@@ -479,16 +568,14 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
     const data: RegistrationResult = await response.json();
 
     if (!data.success) {
-      // If error is backend configuration (e.g. "Registrations sheet not found."), fallback gracefully
       if (data.message && data.message.toLowerCase().includes('sheet not found')) {
         console.warn('Google Sheet tab issue detected on remote script. Saving registration locally and returning confirmed pass.', data.message);
         return createAndSaveLocalRecord(payload);
       }
-      // If it's a real user validation error, throw it
       throw new Error(data.message || data.error || 'Registration failed to save in Google Sheet.');
     }
 
-    // Also mirror to local store for offline cache
+    // Mirror to local multi-vault store for offline cache
     saveLocalRegistration({
       registrationId: data.registrationId,
       fullName: data.fullName || payload.fullName,
@@ -513,13 +600,14 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
       paymentId: payload.paymentId,
       registrationStatus: (data.registrationStatus as any) || 'Confirmed',
       registeredAt: data.registeredAt || new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
+      checkmateInterested: payload.checkmateInterested || '',
+      filmforgeInterested: payload.filmforgeInterested || '',
     });
 
     return data;
   } catch (err: unknown) {
     clearTimeout(timeoutId);
     if (err instanceof Error) {
-      // If validation error was thrown by us, rethrow
       if (err.message && (err.message.includes('required') || err.message.includes('closed') || err.message.includes('valid'))) {
         throw err;
       }
@@ -530,63 +618,83 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
 }
 
 /**
- * Fetch all registrations for Admin Panel (Merged remote + local)
+ * Fetch all registrations for Admin Panel (Merged Supabase + Google Sheet + Local multi-vault)
  */
 export async function fetchAllRegistrations(token: string): Promise<RegistrationRecord[]> {
   const localList = getLocalRegistrations();
-  const scriptUrl = getGoogleAppsScriptUrl();
+  const deletedIds = new Set(getDeletedRegistrationIds());
+  const mergedMap = new Map<string, RegistrationRecord>();
 
-  if (!scriptUrl || scriptUrl.includes('YOUR_DEPLOYMENT_ID')) {
-    return localList;
-  }
-
-  try {
-    const response = await fetch(scriptUrl, {
-      method: 'POST',
-      body: JSON.stringify({
-        action: 'get_registrations',
-        token: token,
-      }),
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      redirect: 'follow',
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      if (data.success && Array.isArray(data.registrations)) {
-        const remoteList: RegistrationRecord[] = data.registrations;
-        const mergedMap = new Map<string, RegistrationRecord>();
-
-        const deletedIds = new Set(getDeletedRegistrationIds());
-
-        // Remote records first
-        remoteList.forEach(r => {
+  // 1. Try Supabase first if configured (Permanent Source of Truth)
+  if (isSupabaseConfigured()) {
+    try {
+      const sbList = await fetchAllSupabaseRegistrations();
+      if (sbList && Array.isArray(sbList)) {
+        sbList.forEach(r => {
           if (r.registrationId && !deletedIds.has(r.registrationId)) {
-            mergedMap.set(r.registrationId, r);
+            mergedMap.set(r.registrationId, r as any);
           }
         });
-
-        // Add local records if not present in remote
-        localList.forEach(l => {
-          if (l.registrationId && !deletedIds.has(l.registrationId) && !mergedMap.has(l.registrationId)) {
-            mergedMap.set(l.registrationId, l);
-          }
-        });
-
-        const mergedList = Array.from(mergedMap.values());
-        const dataStr = JSON.stringify(mergedList);
-        localStorage.setItem(LOCAL_STORAGE_KEY, dataStr);
-        localStorage.setItem(BACKUP_STORAGE_KEY, dataStr);
-        localStorage.setItem(VAULT_STORAGE_KEY, dataStr);
-
-        return mergedList;
       }
+    } catch (sbErr) {
+      console.warn('Could not read from Supabase:', sbErr);
     }
-  } catch (err) {
-    console.warn('Could not fetch from remote Google Sheet, using local cache:', err);
   }
 
-  return localList;
+  // 2. Fetch from Google Apps Script (Synchronized operational copy)
+  const scriptUrl = getGoogleAppsScriptUrl();
+  if (scriptUrl && !scriptUrl.includes('YOUR_DEPLOYMENT_ID')) {
+    try {
+      const response = await fetch(scriptUrl, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'get_registrations',
+          token: token,
+        }),
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        redirect: 'follow',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.registrations)) {
+          const remoteList: RegistrationRecord[] = data.registrations;
+          remoteList.forEach(r => {
+            if (r.registrationId && !deletedIds.has(r.registrationId)) {
+              if (!mergedMap.has(r.registrationId)) {
+                mergedMap.set(r.registrationId, r);
+              } else {
+                // If remote has 'Paid' or newer info, take it
+                const existing = mergedMap.get(r.registrationId)!;
+                if (r.paymentStatus === 'Paid' && existing.paymentStatus !== 'Paid') {
+                  mergedMap.set(r.registrationId, r);
+                }
+              }
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Could not fetch from remote Google Sheet, using cache:', err);
+    }
+  }
+
+  // 3. Merge local multi-vault records
+  localList.forEach(l => {
+    if (l.registrationId && !deletedIds.has(l.registrationId) && !mergedMap.has(l.registrationId)) {
+      mergedMap.set(l.registrationId, l);
+    }
+  });
+
+  const mergedList = Array.from(mergedMap.values());
+  if (mergedList.length > 0) {
+    const dataStr = JSON.stringify(mergedList);
+    localStorage.setItem(LOCAL_STORAGE_KEY, dataStr);
+    localStorage.setItem(BACKUP_STORAGE_KEY, dataStr);
+    localStorage.setItem(VAULT_STORAGE_KEY, dataStr);
+  }
+
+  return mergedList;
 }
 
 /**
@@ -607,6 +715,16 @@ export async function updatePaymentStatus(
     saveLocalRegistration(rec);
   }
 
+  // Update Supabase if configured
+  if (isSupabaseConfigured()) {
+    try {
+      await updateSupabasePaymentStatus(registrationId, status);
+    } catch (e) {
+      console.warn('Supabase status update error:', e);
+    }
+  }
+
+  // Update Google Sheet
   if (scriptUrl && !scriptUrl.includes('YOUR_DEPLOYMENT_ID')) {
     try {
       await fetch(scriptUrl, {
@@ -646,6 +764,16 @@ export async function updateRegistrationStatus(
     saveLocalRegistration(rec);
   }
 
+  // Update Supabase if configured
+  if (isSupabaseConfigured()) {
+    try {
+      await updateSupabaseRegistrationStatus(registrationId, status);
+    } catch (e) {
+      console.warn('Supabase status update error:', e);
+    }
+  }
+
+  // Update Google Sheet
   if (scriptUrl && !scriptUrl.includes('YOUR_DEPLOYMENT_ID')) {
     try {
       await fetch(scriptUrl, {
