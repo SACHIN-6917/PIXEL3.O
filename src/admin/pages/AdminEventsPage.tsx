@@ -37,7 +37,7 @@ export const AdminEventsPage: React.FC = () => {
   const paperQuestCount = registrations.filter(r => r.techEvent === 'PAPERQUEST').length;
   const filmForgeCount = registrations.filter(r => r.techEvent === 'AI FILMFORGE').length;
   const checkmateCount = registrations.filter(r => r.nonTechEvent === 'CHECKMATE').length;
-  const mimeRelayCount = registrations.filter(r => r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY').length;
+  const mimeRelayCount = registrations.filter(r => r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY').length;
 
   const EVENTS = [
     {

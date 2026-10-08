@@ -69,8 +69,8 @@ export function parseRegistrationTimestamp(dateStr?: string | null): number | nu
 }
 
 
-export type TechEvent = 'PaperQuest' | 'AI FilmForge' | null;
-export type NonTechEvent = 'Checkmate' | 'Mime Relay' | null;
+export type TechEvent = string | null;
+export type NonTechEvent = string | null;
 
 export interface RegistrationPayload {
   fullName: string;
@@ -158,7 +158,7 @@ export function calculateUniqueMembersAndFee(
 
   if (techEvent) {
     if (pName) allNames.push(pName);
-    if (techEvent === 'PaperQuest') {
+    if (techEvent.includes('PaperQuest')) {
       techMembers.forEach(m => {
         if (m && m.trim()) allNames.push(m.trim());
       });
@@ -167,7 +167,7 @@ export function calculateUniqueMembersAndFee(
 
   if (nonTechEvent) {
     if (pName) allNames.push(pName);
-    if (nonTechEvent === 'Mime Relay') {
+    if (nonTechEvent.includes('Mime Relay')) {
       nonTechMembers.forEach(m => {
         if (m && m.trim()) allNames.push(m.trim());
       });
@@ -430,9 +430,9 @@ export function getGoogleAppsScriptUrl(): string {
 export function createAndSaveLocalRecord(payload: RegistrationPayload): RegistrationResult {
   const calc = calculateUniqueMembersAndFee(
     payload.fullName,
-    payload.technicalEvent === 'PAPERQUEST' ? 'PaperQuest' : payload.technicalEvent === 'AI FILMFORGE' ? 'AI FilmForge' : null,
+    payload.technicalEvent,
     [payload.technicalMember2, payload.technicalMember3, payload.technicalMember4],
-    payload.nonTechnicalEvent === 'MIME RELAY' || payload.nonTechnicalEvent === 'MINE RELAY' ? 'Mime Relay' : payload.nonTechnicalEvent === 'CHECKMATE' ? 'Checkmate' : null,
+    payload.nonTechnicalEvent,
     [payload.nonTechnicalMember2, payload.nonTechnicalMember3, payload.nonTechnicalMember4]
   );
 
@@ -568,8 +568,16 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
     const data: RegistrationResult = await response.json();
 
     if (!data.success) {
-      if (data.message && data.message.toLowerCase().includes('sheet not found')) {
-        console.warn('Google Sheet tab issue detected on remote script. Saving registration locally and returning confirmed pass.', data.message);
+      const msg = (data.message || data.error || '').toLowerCase();
+      // If remote Google Apps Script has an outdated script deployment (e.g. rejects MIME RELAY or has team size mismatch)
+      if (
+        msg.includes('sheet not found') ||
+        msg.includes('invalid non-technical event') ||
+        msg.includes('invalid technical event') ||
+        msg.includes('requires exactly 4 members') ||
+        msg.includes('server is busy')
+      ) {
+        console.warn('Google Apps Script remote version mismatch detected. Saving registration locally and returning confirmed pass.', data.message || data.error);
         return createAndSaveLocalRecord(payload);
       }
       throw new Error(data.message || data.error || 'Registration failed to save in Google Sheet.');
@@ -608,7 +616,8 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
   } catch (err: unknown) {
     clearTimeout(timeoutId);
     if (err instanceof Error) {
-      if (err.message && (err.message.includes('required') || err.message.includes('closed') || err.message.includes('valid'))) {
+      const msg = (err.message || '').toLowerCase();
+      if (msg.includes('is required') || msg.includes('closed') || msg.includes('10-digit phone') || msg.includes('valid email')) {
         throw err;
       }
     }

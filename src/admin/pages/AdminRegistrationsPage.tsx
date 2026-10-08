@@ -131,16 +131,16 @@ export const AdminRegistrationsPage: React.FC = () => {
       let matchesEvent = true;
       if (eventFilter === 'PAPERQUEST') {
         matchesEvent = r.techEvent === 'PAPERQUEST';
-      } else if (eventFilter === 'MINE RELAY') {
-        matchesEvent = r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY';
+      } else if (eventFilter === 'MIME RELAY') {
+        matchesEvent = r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY';
       } else if (eventFilter === 'CHECKMATE') {
         const direct = r.nonTechEvent === 'CHECKMATE';
         const fromPaperQuest = r.techEvent === 'PAPERQUEST' && Boolean(r.checkmateInterested && r.checkmateInterested.trim().length > 0);
         matchesEvent = direct || fromPaperQuest;
       } else if (eventFilter === 'AI FILMFORGE') {
         const direct = r.techEvent === 'AI FILMFORGE';
-        const fromMineRelay = (r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY') && Boolean(r.filmforgeInterested && r.filmforgeInterested.trim().length > 0);
-        matchesEvent = direct || fromMineRelay;
+        const fromMimeRelay = (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY') && Boolean(r.filmforgeInterested && r.filmforgeInterested.trim().length > 0);
+        matchesEvent = direct || fromMimeRelay;
       }
 
       // 3. Payment Status filter
@@ -216,7 +216,7 @@ export const AdminRegistrationsPage: React.FC = () => {
       return;
     }
 
-    if (eventFilter === 'MINE RELAY') {
+    if (eventFilter === 'MIME RELAY') {
       const headers = [
         'Registration_ID',
         'College',
@@ -233,7 +233,7 @@ export const AdminRegistrationsPage: React.FC = () => {
         'Registered_At'
       ];
       const rows = filteredData
-        .filter(r => r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY')
+        .filter(r => r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY')
         .map(r => [
           r.registrationId,
           r.college,
@@ -249,7 +249,7 @@ export const AdminRegistrationsPage: React.FC = () => {
           r.registrationStatus,
           r.registeredAt
         ]);
-      exportToCsv('PIXEL_3.O_MineRelay_Teams', headers, rows);
+      exportToCsv('PIXEL_3.O_MimeRelay_Teams', headers, rows);
       return;
     }
 
@@ -344,7 +344,7 @@ export const AdminRegistrationsPage: React.FC = () => {
 
       filteredData.forEach(r => {
         // Direct solo AI FilmForge
-        if (r.techEvent === 'AI FILMFORGE' && r.nonTechEvent !== 'MINE RELAY' && r.nonTechEvent !== 'MIME RELAY') {
+        if (r.techEvent === 'AI FILMFORGE' && r.nonTechEvent !== 'MIME RELAY' && r.nonTechEvent !== 'MIME RELAY') {
           rows.push([
             r.registrationId,
             r.fullName,
@@ -360,8 +360,8 @@ export const AdminRegistrationsPage: React.FC = () => {
             r.registeredAt
           ]);
         }
-        // Members from Mine Relay who expressed interest
-        if ((r.nonTechEvent === 'MINE RELAY' || r.nonTechEvent === 'MIME RELAY') && r.filmforgeInterested) {
+        // Members from Mime Relay who expressed interest
+        if ((r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY') && r.filmforgeInterested) {
           const interestedNums = r.filmforgeInterested.split(',').map(s => s.trim());
           const membersList = [
             r.nonTechMember1 || r.fullName,
@@ -382,7 +382,7 @@ export const AdminRegistrationsPage: React.FC = () => {
                   r.department,
                   idx === 1 ? r.phone : `${r.phone} (c/o ${r.fullName})`,
                   idx === 1 ? r.email : '—',
-                  `Mine Relay Team (Member ${idx})`,
+                  `Mime Relay Team (Member ${idx})`,
                   r.paymentStatus,
                   r.paymentId,
                   r.registrationStatus,
@@ -614,7 +614,7 @@ export const AdminRegistrationsPage: React.FC = () => {
               <option value="PAPERQUEST">PaperQuest</option>
               <option value="AI FILMFORGE">AI FilmForge</option>
               <option value="CHECKMATE">Checkmate</option>
-              <option value="MINE RELAY">Mine Relay</option>
+              <option value="MIME RELAY">Mime Relay</option>
             </select>
           </div>
 
@@ -962,7 +962,7 @@ export const AdminRegistrationsPage: React.FC = () => {
                 <div className="font-bold text-gray-900 text-sm">
                   {selectedReg.nonTechEvent || (selectedReg.checkmateInterested ? 'CHECKMATE (via PaperQuest)' : 'None')}
                 </div>
-                {(selectedReg.nonTechEvent === 'MINE RELAY' || selectedReg.nonTechEvent === 'MIME RELAY') && (
+                {(selectedReg.nonTechEvent === 'MIME RELAY' || selectedReg.nonTechEvent === 'MIME RELAY') && (
                   <div className="mt-2 space-y-1 text-gray-600 text-[11px]">
                     <div>1. {selectedReg.nonTechMember1 || selectedReg.fullName} <span className="text-[10px] text-purple-600 font-semibold">(Main Participant)</span></div>
                     <div>2. {selectedReg.nonTechMember2 || '—'}</div>

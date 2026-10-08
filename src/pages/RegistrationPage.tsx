@@ -60,8 +60,7 @@ interface MimeRelayMember {
 
 interface FormState {
   step1: Step1Data;
-  techEvent: TechEvent;
-  nonTechEvent: NonTechEvent;
+  selectedEvents: string[];
   // PaperQuest: exactly 4 members (member[0] = main participant auto-locked)
   paperQuestMembers: PaperQuestMember[];
   // Mime Relay: exactly 4 members (member[0] = main participant auto-locked)
@@ -355,18 +354,16 @@ const Step1Participant: React.FC<{
 // STEP 2 — EVENTS SELECTION
 // ═══════════════════════════════════════════════════════════════════
 const Step2Events: React.FC<{
-  techEvent: TechEvent;
-  nonTechEvent: NonTechEvent;
-  onTechChange: (e: TechEvent) => void;
-  onNonTechChange: (e: NonTechEvent) => void;
+  selectedEvents: string[];
+  onToggleEvent: (e: string) => void;
   onNext: () => void;
   onBack: () => void;
-}> = ({ techEvent, nonTechEvent, onTechChange, onNonTechChange, onNext, onBack }) => {
+}> = ({ selectedEvents, onToggleEvent, onNext, onBack }) => {
   const [error, setError] = useState('');
 
   const validate = () => {
-    if (!techEvent && !nonTechEvent) {
-      setError('Please select at least ONE event (Technical or Non-Technical) to proceed.');
+    if (selectedEvents.length === 0) {
+      setError('Please select at least ONE event to proceed.');
       return false;
     }
     setError('');
@@ -378,7 +375,7 @@ const Step2Events: React.FC<{
       <div className="mb-4">
         <h3 className="text-xl font-bold tracking-tight text-foreground mb-1">SELECT YOUR EVENTS</h3>
         <p className="text-xs sm:text-sm text-foreground-secondary">
-          You can participate in max 1 Technical and max 1 Non-Technical event. At least one event is required.
+          Select all events you wish to participate in.
         </p>
       </div>
 
@@ -392,13 +389,8 @@ const Step2Events: React.FC<{
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold tracking-[0.2em] text-phoenix-orange uppercase">
-            TECHNICAL EVENT (MAX 1)
+            TECHNICAL EVENTS
           </span>
-          {techEvent && (
-            <span className="text-[10px] font-bold text-phoenix-orange bg-phoenix-orange/10 px-2 py-0.5 rounded-full">
-              Selected: {techEvent}
-            </span>
-          )}
         </div>
 
         <EventSelectCard
@@ -406,8 +398,8 @@ const Step2Events: React.FC<{
           sub="Team of 4 Members"
           venue="Main Auditorium"
           icon={<Cpu className="w-5 h-5" />}
-          selected={techEvent === 'PaperQuest'}
-          onClick={() => { setError(''); onTechChange('PaperQuest'); }}
+          selected={selectedEvents.includes('PaperQuest')}
+          onClick={() => { setError(''); onToggleEvent('PaperQuest'); }}
         />
 
         <EventSelectCard
@@ -415,14 +407,8 @@ const Step2Events: React.FC<{
           sub="Solo Event (1 Member)"
           venue="Main CSE Lab"
           icon={<Film className="w-5 h-5" />}
-          selected={techEvent === 'AI FilmForge'}
-          onClick={() => { setError(''); onTechChange('AI FilmForge'); }}
-        />
-
-        <SkipOptionBtn
-          label="No Technical Event"
-          selected={techEvent === null}
-          onClick={() => { setError(''); onTechChange(null); }}
+          selected={selectedEvents.includes('AI FilmForge')}
+          onClick={() => { setError(''); onToggleEvent('AI FilmForge'); }}
         />
       </div>
 
@@ -432,13 +418,8 @@ const Step2Events: React.FC<{
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold tracking-[0.2em] text-phoenix-magenta uppercase">
-            NON-TECHNICAL EVENT (MAX 1)
+            NON-TECHNICAL EVENTS
           </span>
-          {nonTechEvent && (
-            <span className="text-[10px] font-bold text-phoenix-magenta bg-phoenix-magenta/10 px-2 py-0.5 rounded-full">
-              Selected: {nonTechEvent}
-            </span>
-          )}
         </div>
 
         <EventSelectCard
@@ -446,8 +427,8 @@ const Step2Events: React.FC<{
           sub="Solo Event (1 Member) · Chess"
           venue="Main CSE Lab"
           icon={<Swords className="w-5 h-5" />}
-          selected={nonTechEvent === 'Checkmate'}
-          onClick={() => { setError(''); onNonTechChange('Checkmate'); }}
+          selected={selectedEvents.includes('Checkmate')}
+          onClick={() => { setError(''); onToggleEvent('Checkmate'); }}
         />
 
         <EventSelectCard
@@ -455,14 +436,8 @@ const Step2Events: React.FC<{
           sub="Team of 4 Members"
           venue="Auditorium"
           icon={<Zap className="w-5 h-5" />}
-          selected={nonTechEvent === 'Mime Relay'}
-          onClick={() => { setError(''); onNonTechChange('Mime Relay'); }}
-        />
-
-        <SkipOptionBtn
-          label="No Non-Technical Event"
-          selected={nonTechEvent === null}
-          onClick={() => { setError(''); onNonTechChange(null); }}
+          selected={selectedEvents.includes('Mime Relay')}
+          onClick={() => { setError(''); onToggleEvent('Mime Relay'); }}
         />
       </div>
 
@@ -497,7 +472,8 @@ const PaperQuestTeamForm: React.FC<{
   onMembersChange: (m: PaperQuestMember[]) => void;
   errors: string[];
   interestErrors: string[];
-}> = ({ mainParticipantName, members, onMembersChange, errors, interestErrors }) => {
+  showCheckmateInterest: boolean;
+}> = ({ mainParticipantName, members, onMembersChange, errors, interestErrors, showCheckmateInterest }) => {
   const updateName = (idx: number, name: string) => {
     const updated = [...members];
     updated[idx] = { ...updated[idx], name };
@@ -590,20 +566,22 @@ const PaperQuestTeamForm: React.FC<{
             </Field>
           )}
 
-          {/* Checkmate interest toggle */}
-          <div>
-            <InterestToggle
-              eventName="Checkmate (Chess)"
-              value={member.checkmateInterest}
-              onChange={v => updateInterest(idx, v)}
-              color="magenta"
-            />
-            {interestErrors[idx] && (
-              <p className="mt-1 text-xs text-red-500 font-medium flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" /> {interestErrors[idx]}
-              </p>
-            )}
-          </div>
+          {/* Checkmate interest toggle — only when Checkmate is selected */}
+          {showCheckmateInterest && (
+            <div>
+              <InterestToggle
+                eventName="Checkmate (Chess)"
+                value={member.checkmateInterest}
+                onChange={v => updateInterest(idx, v)}
+                color="magenta"
+              />
+              {interestErrors[idx] && (
+                <p className="mt-1 text-xs text-red-500 font-medium flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> {interestErrors[idx]}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       ))}
 
@@ -627,7 +605,8 @@ const MimeRelayTeamForm: React.FC<{
   onMembersChange: (m: MimeRelayMember[]) => void;
   errors: string[];
   interestErrors: string[];
-}> = ({ mainParticipantName, members, onMembersChange, errors, interestErrors }) => {
+  showFilmforgeInterest: boolean;
+}> = ({ mainParticipantName, members, onMembersChange, errors, interestErrors, showFilmforgeInterest }) => {
   const updateName = (idx: number, name: string) => {
     const updated = [...members];
     updated[idx] = { ...updated[idx], name };
@@ -718,20 +697,22 @@ const MimeRelayTeamForm: React.FC<{
             </Field>
           )}
 
-          {/* AI FilmForge interest toggle */}
-          <div>
-            <InterestToggle
-              eventName="AI FilmForge"
-              value={member.filmforgeInterest}
-              onChange={v => updateInterest(idx, v)}
-              color="orange"
-            />
-            {interestErrors[idx] && (
-              <p className="mt-1 text-xs text-red-500 font-medium flex items-center gap-1">
-                <AlertCircle className="w-3.5 h-3.5" /> {interestErrors[idx]}
-              </p>
-            )}
-          </div>
+          {/* AI FilmForge interest toggle — only when AI FilmForge is selected */}
+          {showFilmforgeInterest && (
+            <div>
+              <InterestToggle
+                eventName="AI FilmForge"
+                value={member.filmforgeInterest}
+                onChange={v => updateInterest(idx, v)}
+                color="orange"
+              />
+              {interestErrors[idx] && (
+                <p className="mt-1 text-xs text-red-500 font-medium flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> {interestErrors[idx]}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       ))}
 
@@ -766,8 +747,7 @@ const SoloParticipantCard: React.FC<{ eventName: string; mainName: string; color
 
 // ── Main Step 3 Component ──
 const Step3Team: React.FC<{
-  techEvent: TechEvent;
-  nonTechEvent: NonTechEvent;
+  selectedEvents: string[];
   step1: Step1Data;
   paperQuestMembers: PaperQuestMember[];
   onPaperQuestChange: (m: PaperQuestMember[]) => void;
@@ -776,8 +756,7 @@ const Step3Team: React.FC<{
   onNext: () => void;
   onBack: () => void;
 }> = ({
-  techEvent,
-  nonTechEvent,
+  selectedEvents,
   step1,
   paperQuestMembers,
   onPaperQuestChange,
@@ -796,15 +775,14 @@ const Step3Team: React.FC<{
 
   // Both events are solo
   const isBothSolo =
-    (techEvent === 'AI FilmForge' || !techEvent) &&
-    (nonTechEvent === 'Checkmate' || !nonTechEvent);
+    (!selectedEvents.includes('PaperQuest') && !selectedEvents.includes('Mime Relay'));
 
   const validate = (): boolean => {
     setGlobalError('');
     let valid = true;
 
     // Validate PaperQuest members
-    if (techEvent === 'PaperQuest') {
+    if (selectedEvents.includes('PaperQuest')) {
       const nameErrs = ['', '', '', ''];
       const intErrs = ['', '', '', ''];
       paperQuestMembers.forEach((m, idx) => {
@@ -813,7 +791,7 @@ const Step3Team: React.FC<{
           nameErrs[idx] = `Member ${idx + 1} name is required`;
           valid = false;
         }
-        if (!m.checkmateInterest) {
+        if (selectedEvents.includes('Checkmate') && !m.checkmateInterest) {
           intErrs[idx] = `Please select Interested or Not Interested for Member ${idx + 1}`;
           valid = false;
         }
@@ -823,7 +801,7 @@ const Step3Team: React.FC<{
     }
 
     // Validate Mime Relay members
-    if (nonTechEvent === 'Mime Relay') {
+    if (selectedEvents.includes('Mime Relay')) {
       const nameErrs = ['', '', '', ''];
       const intErrs = ['', '', '', ''];
       mimeRelayMembers.forEach((m, idx) => {
@@ -832,7 +810,7 @@ const Step3Team: React.FC<{
           nameErrs[idx] = `Member ${idx + 1} name is required`;
           valid = false;
         }
-        if (!m.filmforgeInterest) {
+        if (selectedEvents.includes('AI FilmForge') && !m.filmforgeInterest) {
           intErrs[idx] = `Please select Interested or Not Interested for Member ${idx + 1}`;
           valid = false;
         }
@@ -866,7 +844,7 @@ const Step3Team: React.FC<{
       {/* Both solo */}
       {isBothSolo && (
         <div className="space-y-3">
-          {techEvent === 'AI FilmForge' && (
+          {selectedEvents.includes('AI FilmForge') && (
             <SoloParticipantCard
               eventName="AI FilmForge"
               mainName={mainName || 'You'}
@@ -874,7 +852,7 @@ const Step3Team: React.FC<{
               icon={<Film className="w-5 h-5" />}
             />
           )}
-          {nonTechEvent === 'Checkmate' && (
+          {selectedEvents.includes('Checkmate') && (
             <SoloParticipantCard
               eventName="Checkmate (Chess)"
               mainName={mainName || 'You'}
@@ -882,7 +860,7 @@ const Step3Team: React.FC<{
               icon={<Swords className="w-5 h-5" />}
             />
           )}
-          {!techEvent && !nonTechEvent && (
+          {selectedEvents.length === 0 && (
             <div className="p-6 rounded-2xl bg-background-warm border border-border text-center text-foreground-secondary text-sm">
               No team members required.
             </div>
@@ -891,18 +869,19 @@ const Step3Team: React.FC<{
       )}
 
       {/* PaperQuest team form */}
-      {techEvent === 'PaperQuest' && (
+      {selectedEvents.includes('PaperQuest') && (
         <PaperQuestTeamForm
           mainParticipantName={mainName}
           members={paperQuestMembers}
           onMembersChange={m => { setPqNameErrors(['','','','']); setPqInterestErrors(['','','','']); onPaperQuestChange(m); }}
           errors={pqNameErrors}
           interestErrors={pqInterestErrors}
+          showCheckmateInterest={selectedEvents.includes('Checkmate')}
         />
       )}
 
-      {/* AI FilmForge solo (when only AI FilmForge selected without Mime Relay) */}
-      {techEvent === 'AI FilmForge' && !isBothSolo && (
+      {/* AI FilmForge solo — show only when AI FilmForge selected AND Mime Relay NOT selected (since Mime Relay handles it via interest toggles) */}
+      {selectedEvents.includes('AI FilmForge') && !isBothSolo && !selectedEvents.includes('Mime Relay') && (
         <SoloParticipantCard
           eventName="AI FilmForge"
           mainName={mainName || 'You'}
@@ -912,18 +891,19 @@ const Step3Team: React.FC<{
       )}
 
       {/* Mime Relay team form */}
-      {nonTechEvent === 'Mime Relay' && (
+      {selectedEvents.includes('Mime Relay') && (
         <MimeRelayTeamForm
           mainParticipantName={mainName}
           members={mimeRelayMembers}
           onMembersChange={m => { setMrNameErrors(['','','','']); setMrInterestErrors(['','','','']); onMimeRelayChange(m); }}
           errors={mrNameErrors}
           interestErrors={mrInterestErrors}
+          showFilmforgeInterest={selectedEvents.includes('AI FilmForge')}
         />
       )}
 
-      {/* Checkmate solo (when only Checkmate selected without PaperQuest) */}
-      {nonTechEvent === 'Checkmate' && !isBothSolo && (
+      {/* Checkmate solo — show only when Checkmate selected AND PaperQuest NOT selected (since PaperQuest handles it via interest toggles) */}
+      {selectedEvents.includes('Checkmate') && !isBothSolo && !selectedEvents.includes('PaperQuest') && (
         <SoloParticipantCard
           eventName="Checkmate (Chess)"
           mainName={mainName || 'You'}
@@ -959,11 +939,11 @@ function deriveNamesForFee(form: FormState) {
   let techMembersForCalc: string[] = [];
   let nonTechMembersForCalc: string[] = [];
 
-  if (form.techEvent === 'PaperQuest') {
+  if (form.selectedEvents.includes('PaperQuest')) {
     // Members 2,3,4 (index 1,2,3)
     techMembersForCalc = form.paperQuestMembers.slice(1).map(m => m.name.trim());
   }
-  if (form.nonTechEvent === 'Mime Relay') {
+  if (form.selectedEvents.includes('Mime Relay')) {
     nonTechMembersForCalc = form.mimeRelayMembers.slice(1).map(m => m.name.trim());
   }
 
@@ -978,39 +958,39 @@ const Step4Review: React.FC<{
   onNext: () => void;
   onBack: () => void;
 }> = ({ form, onNext, onBack }) => {
-  const { step1, techEvent, nonTechEvent, paperQuestMembers, mimeRelayMembers } = form;
+  const { step1, selectedEvents, paperQuestMembers, mimeRelayMembers } = form;
   const mainName = step1.fullName.trim();
 
   const { mainName: mn, techMembersForCalc, nonTechMembersForCalc } = deriveNamesForFee(form);
 
   const calculation = calculateUniqueMembersAndFee(
     mn,
-    techEvent,
+    selectedEvents.join(', '),
     techMembersForCalc,
-    nonTechEvent,
+    selectedEvents.join(', '),
     nonTechMembersForCalc
   );
 
   // Build PaperQuest member list for display
-  const pqNames: string[] = techEvent === 'PaperQuest'
+  const pqNames: string[] = selectedEvents.includes('PaperQuest')
     ? paperQuestMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
-    : techEvent === 'AI FilmForge' ? [mainName] : [];
+    : selectedEvents.includes('AI FilmForge') ? [mainName] : [];
 
   // Build Mime Relay member list for display
-  const mrNames: string[] = nonTechEvent === 'Mime Relay'
+  const mrNames: string[] = selectedEvents.includes('Mime Relay')
     ? mimeRelayMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
-    : nonTechEvent === 'Checkmate' ? [mainName] : [];
+    : selectedEvents.includes('Checkmate') ? [mainName] : [];
 
-  // Checkmate interested members (from PaperQuest team)
-  const checkmateInterestedNames: string[] = techEvent === 'PaperQuest'
+  // Checkmate interested members (from PaperQuest team) — only relevant when both PaperQuest AND Checkmate selected
+  const checkmateInterestedNames: string[] = (selectedEvents.includes('PaperQuest') && selectedEvents.includes('Checkmate'))
     ? paperQuestMembers
         .map((m, i) => ({ name: i === 0 ? mainName : m.name.trim(), interest: m.checkmateInterest }))
         .filter(x => x.interest === 'interested' && x.name)
         .map(x => x.name)
     : [];
 
-  // AI FilmForge interested members (from Mime Relay team)
-  const filmforgeInterestedNames: string[] = nonTechEvent === 'Mime Relay'
+  // AI FilmForge interested members (from Mime Relay team) — only relevant when both Mime Relay AND AI FilmForge selected
+  const filmforgeInterestedNames: string[] = (selectedEvents.includes('Mime Relay') && selectedEvents.includes('AI FilmForge'))
     ? mimeRelayMembers
         .map((m, i) => ({ name: i === 0 ? mainName : m.name.trim(), interest: m.filmforgeInterest }))
         .filter(x => x.interest === 'interested' && x.name)
@@ -1058,7 +1038,7 @@ const Step4Review: React.FC<{
       {/* Events Breakdown according to user's exact specification */}
       <div className="space-y-4">
         {/* Technical Event Card */}
-        {techEvent === 'PaperQuest' && (
+        {form.selectedEvents.includes('PaperQuest') && (
           <div className="p-5 rounded-2xl bg-white border border-border space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1111,14 +1091,16 @@ const Step4Review: React.FC<{
               })}
             </div>
 
-            <div className="pt-2 text-[11px] text-foreground-muted flex items-center justify-between border-t border-border/60">
-              <span>Team Size: <strong className="text-foreground">4 Members</strong></span>
-              <span>Checkmate: <strong className="text-phoenix-magenta">{checkmateInterestedNames.length} Individual Participant{checkmateInterestedNames.length === 1 ? '' : 's'}</strong></span>
-            </div>
+            {selectedEvents.includes('Checkmate') && (
+              <div className="pt-2 text-[11px] text-foreground-muted flex items-center justify-between border-t border-border/60">
+                <span>Team Size: <strong className="text-foreground">4 Members</strong></span>
+                <span>Checkmate: <strong className="text-phoenix-magenta">{checkmateInterestedNames.length} Individual Participant{checkmateInterestedNames.length === 1 ? '' : 's'}</strong></span>
+              </div>
+            )}
           </div>
         )}
 
-        {techEvent === 'AI FilmForge' && (
+        {form.selectedEvents.includes('AI FilmForge') && !form.selectedEvents.includes('Mime Relay') && (
           <div className="p-4 rounded-2xl bg-white border border-border">
             <div className="flex items-center gap-2 mb-2">
               <Film className="w-4 h-4 text-phoenix-orange" />
@@ -1134,7 +1116,7 @@ const Step4Review: React.FC<{
         )}
 
         {/* Non-Technical Event Card */}
-        {nonTechEvent === 'Mime Relay' && (
+        {form.selectedEvents.includes('Mime Relay') && (
           <div className="p-5 rounded-2xl bg-white border border-border space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -1187,14 +1169,16 @@ const Step4Review: React.FC<{
               })}
             </div>
 
-            <div className="pt-2 text-[11px] text-foreground-muted flex items-center justify-between border-t border-border/60">
-              <span>Team Size: <strong className="text-foreground">4 Members</strong></span>
-              <span>AI FilmForge: <strong className="text-phoenix-orange">{filmforgeInterestedNames.length} Individual Participant{filmforgeInterestedNames.length === 1 ? '' : 's'}</strong></span>
-            </div>
+            {selectedEvents.includes('AI FilmForge') && (
+              <div className="pt-2 text-[11px] text-foreground-muted flex items-center justify-between border-t border-border/60">
+                <span>Team Size: <strong className="text-foreground">4 Members</strong></span>
+                <span>AI FilmForge: <strong className="text-phoenix-orange">{filmforgeInterestedNames.length} Individual Participant{filmforgeInterestedNames.length === 1 ? '' : 's'}</strong></span>
+              </div>
+            )}
           </div>
         )}
 
-        {nonTechEvent === 'Checkmate' && (
+        {selectedEvents.includes('Checkmate') && !selectedEvents.includes('PaperQuest') && (
           <div className="p-4 rounded-2xl bg-white border border-border">
             <div className="flex items-center gap-2 mb-2">
               <Swords className="w-4 h-4 text-phoenix-magenta" />
@@ -1308,9 +1292,9 @@ const Step5Payment: React.FC<{
 
   const calculation = calculateUniqueMembersAndFee(
     mainName,
-    form.techEvent,
+    form.selectedEvents.join(', '),
     techMembersForCalc,
-    form.nonTechEvent,
+    form.selectedEvents.join(', '),
     nonTechMembersForCalc
   );
 
@@ -1415,21 +1399,7 @@ const Step5Payment: React.FC<{
             <ExternalLink className="w-3.5 h-3.5" /> PAY VIA ANY UPI APP
           </button>
 
-          <div className="pt-4 text-center">
-            <div className="text-[11px] font-semibold text-foreground-muted mb-2 uppercase tracking-wider">
-              Scan Official QR Code (Fallback)
-            </div>
-            <div className="p-3 bg-white rounded-2xl border border-border inline-block shadow-sm">
-              <img
-                src="/Payment-Qr.jpeg"
-                alt="Organizer Reference UPI QR"
-                className="w-44 h-44 object-contain mx-auto rounded-lg"
-              />
-              <p className="text-[10px] text-foreground-muted mt-2 max-w-[200px] mx-auto leading-tight">
-                Scan this QR if the dynamic QR above fails. Ensure the UPI ID is <strong>{upiId}</strong> and enter the exact amount.
-              </p>
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -1503,13 +1473,13 @@ const Step6Confirmed: React.FC<{
   const mainName = form.step1.fullName.trim();
 
   // Build tech members array for PDF/QR
-  const techMembersForDisplay: string[] = form.techEvent === 'PaperQuest'
+  const techMembersForDisplay: string[] = form.selectedEvents.includes('PaperQuest')
     ? form.paperQuestMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
-    : form.techEvent === 'AI FilmForge' ? [mainName] : [];
+    : form.selectedEvents.includes('AI FilmForge') ? [mainName] : [];
 
-  const nonTechMembersForDisplay: string[] = form.nonTechEvent === 'Mime Relay'
+  const nonTechMembersForDisplay: string[] = form.selectedEvents.includes('Mime Relay')
     ? form.mimeRelayMembers.map((m, i) => (i === 0 ? mainName : m.name.trim())).filter(Boolean)
-    : form.nonTechEvent === 'Checkmate' ? [mainName] : [];
+    : form.selectedEvents.includes('Checkmate') ? [mainName] : [];
 
   useEffect(() => {
     confetti({
@@ -1741,8 +1711,7 @@ export const RegistrationPage: React.FC = () => {
 
   const [form, setForm] = useState<FormState>({
     step1: { fullName: '', college: '', department: '', phone: '', email: '' },
-    techEvent: null,
-    nonTechEvent: null,
+    selectedEvents: [],
     paperQuestMembers: defaultPaperQuestMembers(''),
     mimeRelayMembers: defaultMimeRelayMembers(''),
     paymentId: '',
@@ -1769,24 +1738,32 @@ export const RegistrationPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  // When tech event changes
-  const handleTechEventChange = (e: TechEvent) => {
+  const handleToggleEvent = (eventName: string) => {
     setForm(f => {
-      // Reset PaperQuest members when switching away from PaperQuest
-      const pqMembers = e === 'PaperQuest'
-        ? defaultPaperQuestMembers(f.step1.fullName)
-        : f.paperQuestMembers;
-      return { ...f, techEvent: e, paperQuestMembers: pqMembers };
-    });
-  };
-
-  // When non-tech event changes
-  const handleNonTechEventChange = (e: NonTechEvent) => {
-    setForm(f => {
-      const mrMembers = e === 'Mime Relay'
-        ? defaultMimeRelayMembers(f.step1.fullName)
-        : f.mimeRelayMembers;
-      return { ...f, nonTechEvent: e, mimeRelayMembers: mrMembers };
+      let newEvents = [...f.selectedEvents];
+      const isTech = eventName === 'PaperQuest' || eventName === 'AI FilmForge';
+      
+      if (newEvents.includes(eventName)) {
+        newEvents = newEvents.filter(e => e !== eventName);
+      } else {
+        // Enforce max 1 per category by removing any existing event of the same category
+        if (isTech) {
+          newEvents = newEvents.filter(e => e !== 'PaperQuest' && e !== 'AI FilmForge');
+        } else {
+          newEvents = newEvents.filter(e => e !== 'Mime Relay' && e !== 'Checkmate');
+        }
+        newEvents.push(eventName);
+      }
+      return {
+        ...f,
+        selectedEvents: newEvents,
+        paperQuestMembers: newEvents.includes('PaperQuest') && !f.selectedEvents.includes('PaperQuest') 
+          ? defaultPaperQuestMembers(f.step1.fullName) 
+          : f.paperQuestMembers,
+        mimeRelayMembers: newEvents.includes('Mime Relay') && !f.selectedEvents.includes('Mime Relay')
+          ? defaultMimeRelayMembers(f.step1.fullName)
+          : f.mimeRelayMembers,
+      };
     });
   };
 
@@ -1797,7 +1774,7 @@ export const RegistrationPage: React.FC = () => {
       return;
     }
 
-    if (!form.techEvent && !form.nonTechEvent) {
+    if (form.selectedEvents.length === 0) {
       setError('Please select at least one event.');
       return;
     }
@@ -1815,28 +1792,28 @@ export const RegistrationPage: React.FC = () => {
 
       // Build PaperQuest member names
       let techM1 = '', techM2 = '', techM3 = '', techM4 = '';
-      if (form.techEvent === 'PaperQuest') {
+      if (form.selectedEvents.includes('PaperQuest')) {
         techM1 = mainName;
         techM2 = form.paperQuestMembers[1]?.name.trim() || '';
         techM3 = form.paperQuestMembers[2]?.name.trim() || '';
         techM4 = form.paperQuestMembers[3]?.name.trim() || '';
-      } else if (form.techEvent === 'AI FilmForge') {
+      } else if (form.selectedEvents.includes('AI FilmForge')) {
         techM1 = mainName;
       }
 
       // Build Mime Relay member names
       let nonTechM1 = '', nonTechM2 = '', nonTechM3 = '', nonTechM4 = '';
-      if (form.nonTechEvent === 'Mime Relay') {
+      if (form.selectedEvents.includes('Mime Relay')) {
         nonTechM1 = mainName;
         nonTechM2 = form.mimeRelayMembers[1]?.name.trim() || '';
         nonTechM3 = form.mimeRelayMembers[2]?.name.trim() || '';
         nonTechM4 = form.mimeRelayMembers[3]?.name.trim() || '';
-      } else if (form.nonTechEvent === 'Checkmate') {
+      } else if (form.selectedEvents.includes('Checkmate')) {
         nonTechM1 = mainName;
       }
 
       // Build Checkmate interested member numbers (1-indexed, comma-separated)
-      const checkmateInterested = form.techEvent === 'PaperQuest'
+      const checkmateInterested = (form.selectedEvents.includes('PaperQuest') && form.selectedEvents.includes('Checkmate'))
         ? form.paperQuestMembers
             .map((m, i) => ({ idx: i + 1, interest: m.checkmateInterest }))
             .filter(x => x.interest === 'interested')
@@ -1845,7 +1822,7 @@ export const RegistrationPage: React.FC = () => {
         : '';
 
       // Build AI FilmForge interested member numbers (1-indexed, comma-separated)
-      const filmforgeInterested = form.nonTechEvent === 'Mime Relay'
+      const filmforgeInterested = (form.selectedEvents.includes('Mime Relay') && form.selectedEvents.includes('AI FilmForge'))
         ? form.mimeRelayMembers
             .map((m, i) => ({ idx: i + 1, interest: m.filmforgeInterest }))
             .filter(x => x.interest === 'interested')
@@ -1859,12 +1836,12 @@ export const RegistrationPage: React.FC = () => {
         department: form.step1.department.trim(),
         phone: form.step1.phone.trim(),
         email: form.step1.email.trim(),
-        technicalEvent: form.techEvent === 'PaperQuest' ? 'PAPERQUEST' : form.techEvent === 'AI FilmForge' ? 'AI FILMFORGE' : '',
+        technicalEvent: form.selectedEvents.includes('PaperQuest') ? 'PAPERQUEST' : form.selectedEvents.includes('AI FilmForge') ? 'AI FILMFORGE' : '',
         technicalMember1: techM1,
         technicalMember2: techM2,
         technicalMember3: techM3,
         technicalMember4: techM4,
-        nonTechnicalEvent: form.nonTechEvent === 'Mime Relay' ? 'MIME RELAY' : form.nonTechEvent === 'Checkmate' ? 'CHECKMATE' : '',
+        nonTechnicalEvent: form.selectedEvents.includes('Mime Relay') ? 'MIME RELAY' : form.selectedEvents.includes('Checkmate') ? 'CHECKMATE' : '',
         nonTechnicalMember1: nonTechM1,
         nonTechnicalMember2: nonTechM2,
         nonTechnicalMember3: nonTechM3,
@@ -1960,10 +1937,8 @@ export const RegistrationPage: React.FC = () => {
 
               {step === 1 && (
                 <Step2Events
-                  techEvent={form.techEvent}
-                  nonTechEvent={form.nonTechEvent}
-                  onTechChange={handleTechEventChange}
-                  onNonTechChange={handleNonTechEventChange}
+                  selectedEvents={form.selectedEvents}
+                  onToggleEvent={handleToggleEvent}
                   onNext={() => setStep(2)}
                   onBack={() => setStep(0)}
                 />
@@ -1971,8 +1946,7 @@ export const RegistrationPage: React.FC = () => {
 
               {step === 2 && (
                 <Step3Team
-                  techEvent={form.techEvent}
-                  nonTechEvent={form.nonTechEvent}
+                  selectedEvents={form.selectedEvents}
                   step1={form.step1}
                   paperQuestMembers={form.paperQuestMembers}
                   onPaperQuestChange={m => setForm(f => ({ ...f, paperQuestMembers: m }))}

@@ -33,6 +33,8 @@
 var CONFIG = {
   SHEET_NAME: "Registrations",
   FEE_PER_HEAD: 129,
+  UPI_ID: "gokulkumar1406@okaxis",
+  UPI_NAME: "PIXEL-3.O",
   // Deadline: 13 October 2026, 10:00 PM IST (GMT+05:30)
   DEADLINE_EPOCH: new Date("2026-10-13T22:00:00+05:30").getTime(),
   HEADERS: [
@@ -171,13 +173,26 @@ function handlePublicRegistration(data) {
   var nonTechEvent = cleanStr(data.nonTechnicalEvent).toUpperCase();
 
   // Normalize event names
-  if (techEvent === "PAPERQUEST") techEvent = "PAPERQUEST";
-  else if (techEvent === "AI FILMFORGE" || techEvent === "AI_FILMFORGE") techEvent = "AI FILMFORGE";
-  else techEvent = "";
+  if (techEvent === "PAPERQUEST" || techEvent.indexOf("PAPER") !== -1) {
+    techEvent = "PAPERQUEST";
+  } else if (techEvent === "AI FILMFORGE" || techEvent === "AI_FILMFORGE" || techEvent.indexOf("FILM") !== -1 || techEvent.indexOf("AI") !== -1) {
+    techEvent = "AI FILMFORGE";
+  } else {
+    techEvent = "";
+  }
 
-  if (nonTechEvent === "CHECKMATE") nonTechEvent = "CHECKMATE";
-  else if (nonTechEvent === "MIME RELAY" || nonTechEvent === "MIME_RELAY" || nonTechEvent === "MINE RELAY" || nonTechEvent === "MINE_RELAY") nonTechEvent = "MIME RELAY";
-  else nonTechEvent = "";
+  if (nonTechEvent === "CHECKMATE" || nonTechEvent.indexOf("CHECKMATE") !== -1 || nonTechEvent.indexOf("CHESS") !== -1) {
+    nonTechEvent = "CHECKMATE";
+  } else if (
+    nonTechEvent === "MIME RELAY" || 
+    nonTechEvent === "MIME_RELAY" || 
+    nonTechEvent.indexOf("MIME") !== -1 ||
+    nonTechEvent.indexOf("MIME") !== -1
+  ) {
+    nonTechEvent = "MIME RELAY";
+  } else {
+    nonTechEvent = "";
+  }
 
   if (!techEvent && !nonTechEvent) {
     return createErrorResponse("At least one event (Technical or Non-Technical) must be selected.");
@@ -341,6 +356,9 @@ function handlePublicRegistration(data) {
     techEvent: techEvent,
     nonTechEvent: nonTechEvent,
     paymentStatus: "Submitted",
+    paymentUpiId: CONFIG.UPI_ID,
+    upiUrl: "upi://pay?pa=" + CONFIG.UPI_ID + "&pn=" + encodeURIComponent(CONFIG.UPI_NAME) + "&am=" + totalAmount + "&cu=INR&tn=" + registrationId,
+    whatsappGroup: "https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v",
     registrationStatus: "Confirmed",
     registeredAt: timestamp
   });

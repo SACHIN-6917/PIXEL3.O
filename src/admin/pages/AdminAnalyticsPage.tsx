@@ -67,7 +67,7 @@ export const AdminAnalyticsPage: React.FC = () => {
       if (r.techEvent === 'PAPERQUEST') counts.PaperQuest++;
       if (r.techEvent === 'AI FILMFORGE') counts.AIFilmForge++;
       if (r.nonTechEvent === 'CHECKMATE') counts.Checkmate++;
-      if (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY') counts.MimeRelay++;
+      if (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY') counts.MimeRelay++;
     });
     return counts;
   }, [registrations]);

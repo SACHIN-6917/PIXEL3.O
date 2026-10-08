@@ -53,7 +53,7 @@ Once deployed:
    - **PAPERQUEST**: Exactly 4 members
    - **AI FILMFORGE**: Exactly 1 member (Solo)
    - **CHECKMATE**: Exactly 1 member (Solo)
-   - **MINE RELAY**: Exactly 4 members
+   - **MIME RELAY**: Exactly 4 members
 4. ₹129 fee per unique participant with cross-event deduplication.
 5. Dynamic UPI QR with UPI ID `gokulkumar1406@okaxis` and pre-filled amount.
 6. Static fallback/reference QR available from `/Payment-Qr.jpeg`.

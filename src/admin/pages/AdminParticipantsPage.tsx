@@ -65,7 +65,7 @@ export const AdminParticipantsPage: React.FC = () => {
         if (r.techEvent === 'PAPERQUEST' && (r.checkmateInterested || '').split(',').map(s => s.trim()).includes('1')) {
           mainNonTech = 'CHECKMATE';
         }
-        if ((r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY') && (r.filmforgeInterested || '').split(',').map(s => s.trim()).includes('1')) {
+        if ((r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY') && (r.filmforgeInterested || '').split(',').map(s => s.trim()).includes('1')) {
           mainTech = 'AI FILMFORGE';
         }
 
@@ -135,17 +135,17 @@ export const AdminParticipantsPage: React.FC = () => {
         addTeammate(r.techMember4, 'PAPERQUEST', true, checkmateSet.has('4') ? 'CHECKMATE' : undefined);
       }
 
-      // Non-technical teammates (Mine Relay) - Member 2, 3, 4 with optional AI FilmForge solo interest
-      if (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MINE RELAY') {
+      // Non-technical teammates (Mime Relay) - Member 2, 3, 4 with optional AI FilmForge solo interest
+      if (r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY') {
         const filmforgeSet = new Set(
           (r.filmforgeInterested || '')
             .split(',')
             .map(s => s.trim())
             .filter(Boolean)
         );
-        addTeammate(r.nonTechMember2, 'MINE RELAY', false, filmforgeSet.has('2') ? 'AI FILMFORGE' : undefined);
-        addTeammate(r.nonTechMember3, 'MINE RELAY', false, filmforgeSet.has('3') ? 'AI FILMFORGE' : undefined);
-        addTeammate(r.nonTechMember4, 'MINE RELAY', false, filmforgeSet.has('4') ? 'AI FILMFORGE' : undefined);
+        addTeammate(r.nonTechMember2, 'MIME RELAY', false, filmforgeSet.has('2') ? 'AI FILMFORGE' : undefined);
+        addTeammate(r.nonTechMember3, 'MIME RELAY', false, filmforgeSet.has('3') ? 'AI FILMFORGE' : undefined);
+        addTeammate(r.nonTechMember4, 'MIME RELAY', false, filmforgeSet.has('4') ? 'AI FILMFORGE' : undefined);
       }
     });
 
