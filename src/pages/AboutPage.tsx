@@ -1,11 +1,9 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { PageTransition } from '../components/PageTransition';
 import { ScrollReveal } from '../components/ScrollReveal';
-import { ArrowRight, Cpu, Film, Swords, Zap, BookOpen, Users, Trophy } from 'lucide-react';
+import { Cpu, Film, Swords, Zap, BookOpen, Users, Trophy } from 'lucide-react';
 
 export const AboutPage: React.FC = () => {
-  const navigate = useNavigate();
   return (
     <PageTransition>
       <div className="min-h-screen bg-white pt-24">
@@ -101,15 +99,6 @@ export const AboutPage: React.FC = () => {
               <p className="text-foreground-secondary max-w-2xl mx-auto">
                 PIXEL-3.O is proudly conducted in association with the <strong className="text-foreground">CSI – Kanchipuram Chapter</strong>, bringing the credibility and network of India's premier computer science professional body to the symposium.
               </p>
-            </div>
-          </ScrollReveal>
-
-          {/* CTA */}
-          <ScrollReveal animation="up">
-            <div className="text-center">
-              <button onClick={() => navigate('/registration')} className="phoenix-gradient-btn px-10 py-4 rounded-full text-white font-bold tracking-wider uppercase text-sm inline-flex items-center gap-2">
-                REGISTER NOW <ArrowRight className="w-4 h-4" />
-              </button>
             </div>
           </ScrollReveal>
         </div>

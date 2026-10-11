@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import {
   ShieldCheck,
   CheckCircle2,
@@ -26,7 +26,6 @@ import { generateConfirmationPdf } from '../lib/generateConfirmationPdf';
 
 export const VerificationPassPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
   const [generatingPdf, setGeneratingPdf] = useState(false);
@@ -180,12 +179,12 @@ export const VerificationPassPage: React.FC = () => {
           <p className="text-xs text-foreground-secondary">
             Please scan the official QR code found on your symposium registration badge or enter a valid pass link.
           </p>
-          <button
-            onClick={() => navigate('/')}
-            className="px-6 py-3 rounded-full bg-foreground text-white text-xs font-bold uppercase tracking-wider hover:bg-phoenix-orange transition-colors"
+          <Link
+            to="/"
+            className="px-6 py-3 rounded-full bg-foreground text-white text-xs font-bold uppercase tracking-wider hover:bg-phoenix-orange transition-colors inline-block"
           >
             Return to Home
-          </button>
+          </Link>
         </div>
       </div>
     );
@@ -372,6 +371,12 @@ export const VerificationPassPage: React.FC = () => {
                   <FileText className="w-4 h-4" />
                   <span>{generatingPdf ? 'GENERATING OFFICIAL PDF...' : 'DOWNLOAD OFFICIAL PDF PASS'}</span>
                 </button>
+
+                <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+                  <p className="text-xs text-emerald-800 font-semibold">
+                    💬 Join our official WhatsApp group to get live updates, venue timings, and event information!
+                  </p>
+                </div>
 
                 <a
                   href="https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v"

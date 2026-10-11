@@ -8,7 +8,7 @@ import {
   deleteSupabaseRegistration
 } from './supabase';
 
-export const REGISTRATION_DEADLINE = new Date('2026-10-13T22:00:00+05:30').getTime();
+export const REGISTRATION_DEADLINE = new Date('2026-10-13T21:00:00+05:30').getTime();
 export const FEE_PER_HEAD = 129;
 export const DEFAULT_UPI_ID = import.meta.env.VITE_UPI_ID || 'gokulkumar1406@okaxis';
 export const DEFAULT_UPI_NAME = 'PIXEL 3.O';
@@ -538,136 +538,24 @@ export function createAndSaveLocalRecord(payload: RegistrationPayload): Registra
 }
 
 /**
- * Submits the registration to the Supabase Production DB and Google Apps Script Web App
+ * Retired: Google Sheets integration has been decommissioned in favor of Google Forms.
+ * This function returns a safe response without making any network calls to Google Sheets or mutating records.
  */
 export async function submitToGoogleSheet(payload: RegistrationPayload): Promise<RegistrationResult> {
-  if (isDeadlinePassed()) {
-    throw new Error('Registration closed on 13 October 2026 at 10:00 PM IST.');
-  }
-
-  // 1. Supabase Production Database (Permanent Source of Truth)
-  if (isSupabaseConfigured()) {
-    try {
-      const techM = [payload.technicalMember1, payload.technicalMember2, payload.technicalMember3, payload.technicalMember4].filter(Boolean);
-      const nonTechM = [payload.nonTechnicalMember1, payload.nonTechnicalMember2, payload.nonTechnicalMember3, payload.nonTechnicalMember4].filter(Boolean);
-      await insertSupabaseRegistration({
-        fullName: payload.fullName,
-        college: payload.college,
-        department: payload.department,
-        phone: payload.phone,
-        email: payload.email,
-        technicalEvent: payload.technicalEvent,
-        nonTechnicalEvent: payload.nonTechnicalEvent,
-        paymentId: payload.paymentId,
-        checkmateInterested: payload.checkmateInterested,
-        filmforgeInterested: payload.filmforgeInterested,
-      }, techM, nonTechM);
-    } catch (sbErr) {
-      console.warn('Supabase submission mirror warning:', sbErr);
-    }
-  }
-
-  const scriptUrl = getGoogleAppsScriptUrl();
-
-  // If script URL is not configured yet or has placeholder, save to local store so system works
-  if (!scriptUrl || scriptUrl.includes('YOUR_DEPLOYMENT_ID')) {
-    return createAndSaveLocalRecord(payload);
-  }
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-  try {
-    const response = await fetch(scriptUrl, {
-      method: 'POST',
-      body: JSON.stringify(payload),
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8',
-      },
-      redirect: 'follow',
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      console.warn(`Google Apps Script returned HTTP ${response.status}. Using guaranteed local fallback.`);
-      return createAndSaveLocalRecord(payload);
-    }
-
-    const data: RegistrationResult = await response.json();
-
-    if (!data.success) {
-      const msg = (data.message || data.error || '').toLowerCase();
-      // If remote Google Apps Script has an outdated script deployment (e.g. rejects MIME/MINE RELAY or has team size mismatch)
-      if (
-        msg.includes('sheet not found') ||
-        msg.includes('invalid non-technical event') ||
-        msg.includes('invalid technical event') ||
-        msg.includes('requires exactly 4 members') ||
-        msg.includes('server is busy')
-      ) {
-        console.warn('Google Apps Script remote version mismatch detected. Saving registration locally and returning confirmed pass.', data.message || data.error);
-        return createAndSaveLocalRecord(payload);
-      }
-      throw new Error(data.message || data.error || 'Registration failed to save in Google Sheet.');
-    }
-
-    // Authoritative calculation for local multi-vault store cache
-    const calc = calculateUniqueMembersAndFee(
-      payload.fullName,
-      payload.technicalEvent,
-      [payload.technicalMember2, payload.technicalMember3, payload.technicalMember4],
-      payload.nonTechnicalEvent,
-      [payload.nonTechnicalMember2, payload.nonTechnicalMember3, payload.nonTechnicalMember4]
-    );
-    const resolvedTotalMembers = Math.max(data.totalMembers || 0, calc.totalMembers);
-    const resolvedTotalAmount = Math.max(data.totalAmount || 0, calc.totalAmount);
-
-    saveLocalRegistration({
-      registrationId: data.registrationId,
-      fullName: data.fullName || payload.fullName,
-      college: payload.college,
-      department: payload.department,
-      phone: payload.phone,
-      email: payload.email,
-      techEvent: payload.technicalEvent,
-      techMember1: payload.technicalMember1,
-      techMember2: payload.technicalMember2,
-      techMember3: payload.technicalMember3,
-      techMember4: payload.technicalMember4,
-      nonTechEvent: payload.nonTechnicalEvent,
-      nonTechMember1: payload.nonTechnicalMember1,
-      nonTechMember2: payload.nonTechnicalMember2,
-      nonTechMember3: payload.nonTechnicalMember3,
-      nonTechMember4: payload.nonTechnicalMember4,
-      totalMembers: resolvedTotalMembers,
-      feePerHead: data.feePerHead || FEE_PER_HEAD,
-      totalAmount: resolvedTotalAmount,
-      paymentStatus: (data.paymentStatus as any) || 'Submitted',
-      paymentId: payload.paymentId,
-      registrationStatus: (data.registrationStatus as any) || 'Confirmed',
-      registeredAt: data.registeredAt || new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }),
-      checkmateInterested: payload.checkmateInterested || '',
-      filmforgeInterested: payload.filmforgeInterested || '',
-    });
-
-    return {
-      ...data,
-      totalMembers: resolvedTotalMembers,
-      totalAmount: resolvedTotalAmount,
-    };
-  } catch (err: unknown) {
-    clearTimeout(timeoutId);
-    if (err instanceof Error) {
-      const msg = (err.message || '').toLowerCase();
-      if (msg.includes('is required') || msg.includes('closed') || msg.includes('10-digit phone') || msg.includes('valid email')) {
-        throw err;
-      }
-    }
-    console.warn('Remote Google Sheet submission had an issue. Saving registration to local store to guarantee pass generation:', err);
-    return createAndSaveLocalRecord(payload);
-  }
+  console.warn('submitToGoogleSheet called on retired workflow. Google Forms is the active registration method.');
+  return {
+    success: false,
+    registrationId: 'RETIRED',
+    fullName: payload.fullName,
+    totalMembers: 1,
+    feePerHead: FEE_PER_HEAD,
+    totalAmount: 0,
+    techEvent: payload.technicalEvent,
+    nonTechEvent: payload.nonTechnicalEvent,
+    paymentStatus: 'Submitted',
+    registrationStatus: 'Confirmed',
+    registeredAt: new Date().toISOString(),
+  };
 }
 
 /**

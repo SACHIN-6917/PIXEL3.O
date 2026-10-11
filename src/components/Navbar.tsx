@@ -68,16 +68,6 @@ export const Navbar: React.FC = () => {
           ))}
         </nav>
 
-        {/* Register CTA */}
-        <div className="hidden lg:flex items-center">
-          <NavLink
-            to="/registration"
-            className="phoenix-gradient-btn px-5 py-2.5 rounded-full text-white text-xs font-bold tracking-wider uppercase shadow-sm"
-          >
-            REGISTER NOW
-          </NavLink>
-        </div>
-
         {/* Mobile menu toggle */}
         <button
           className="lg:hidden p-2 rounded-lg hover:bg-background-secondary transition-colors"
@@ -106,13 +96,6 @@ export const Navbar: React.FC = () => {
               {link.label}
             </NavLink>
           ))}
-          <NavLink
-            to="/registration"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block w-full mt-3 phoenix-gradient-btn px-5 py-3 rounded-full text-white text-xs font-bold tracking-wider uppercase text-center"
-          >
-            REGISTER NOW
-          </NavLink>
         </div>
       )}
     </header>

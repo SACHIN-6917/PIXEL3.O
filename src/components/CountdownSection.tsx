@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-const DEADLINE = new Date('2026-10-13T22:00:00+05:30').getTime();
+const DEADLINE = new Date('2026-10-13T21:00:00+05:30').getTime();
 
 function getTimeLeft() {
   const diff = DEADLINE - Date.now();
@@ -33,7 +33,7 @@ export const CountdownSection: React.FC = () => {
         ) : (
           <>
             <h2 className="text-base sm:text-lg font-semibold tracking-wider text-white/70 uppercase mb-8">
-              REGISTRATION CLOSES IN — 13 OCTOBER 2026 · 10:00 PM
+              REGISTRATION CLOSES IN — 13 OCTOBER 2026 · 09:00 PM
             </h2>
             <div className="grid grid-cols-4 gap-4 sm:gap-8">
               {[

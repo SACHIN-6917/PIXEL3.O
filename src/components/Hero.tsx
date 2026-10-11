@@ -56,15 +56,8 @@ export const Hero: React.FC = () => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
           <button
-            onClick={() => navigate('/registration')}
-            className="w-full sm:w-auto phoenix-gradient-btn px-9 py-4 rounded-full text-white text-sm sm:text-base font-bold tracking-wider uppercase flex items-center justify-center gap-2 shadow-phoenix-glow group cursor-pointer"
-          >
-            <span>REGISTER NOW</span>
-            <ArrowUpRight className="w-5 h-5 group-hover:rotate-45 transition-transform duration-300" />
-          </button>
-          <button
             onClick={() => navigate('/about')}
-            className="w-full sm:w-auto px-8 py-4 rounded-full bg-white/10 text-white border border-white/30 hover:border-phoenix-orange hover:bg-white/20 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base font-bold tracking-wider uppercase shadow-sm cursor-pointer"
+            className="w-full sm:w-auto px-9 py-4 rounded-full bg-white/10 text-white border border-white/30 hover:border-phoenix-orange hover:bg-white/20 backdrop-blur-sm transition-all duration-300 text-sm sm:text-base font-bold tracking-wider uppercase shadow-sm cursor-pointer"
           >
             EXPLORE EVENTS
           </button>

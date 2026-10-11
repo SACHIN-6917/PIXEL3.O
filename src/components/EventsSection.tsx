@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { CONFIRMED_EVENTS, PixeloEvent } from '../data/pixeloData';
-import { ArrowUpRight, MapPin, Clock, Users, CheckCircle2, ChevronRight, X } from 'lucide-react';
+import { ArrowUpRight, MapPin, Clock, Users, CheckCircle2, X } from 'lucide-react';
 import { ScrollReveal } from './ScrollReveal';
 
 interface EventsSectionProps {
-  onRegisterEvent: (eventId: string) => void;
+  onRegisterEvent?: (eventId: string) => void;
 }
 
-export const EventsSection: React.FC<EventsSectionProps> = ({ onRegisterEvent }) => {
+export const EventsSection: React.FC<EventsSectionProps> = () => {
   const [selectedEvent, setSelectedEvent] = useState<PixeloEvent | null>(null);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
 
@@ -124,10 +124,6 @@ export const EventsSection: React.FC<EventsSectionProps> = ({ onRegisterEvent })
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-end gap-3 pt-4 border-t border-border">
               <button onClick={() => setSelectedEvent(null)} className="w-full sm:w-auto px-6 py-3 rounded-full border border-border text-foreground-secondary hover:text-darkAccent text-xs font-bold uppercase tracking-wider transition-colors">CLOSE</button>
-              <button onClick={() => { setSelectedEvent(null); onRegisterEvent(selectedEvent.id); }} className="w-full sm:w-auto phoenix-gradient-btn px-8 py-3 rounded-full text-white text-xs font-bold uppercase tracking-wider shadow-sm flex items-center justify-center gap-2">
-                <span>REGISTER FOR {selectedEvent.name}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
             </div>
           </div>
         </div>

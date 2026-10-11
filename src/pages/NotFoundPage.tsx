@@ -133,13 +133,6 @@ export const NotFoundPage: React.FC = () => {
           >
             <Home className="w-4 h-4" /> Return to Homepage
           </Link>
-
-          <Link
-            to="/registration"
-            className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-darkAccent hover:bg-black text-white text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-2xs"
-          >
-            <Sparkles className="w-4 h-4 text-phoenix-gold" /> Register Now
-          </Link>
         </div>
 
         {/* Quick Links Navigator */}

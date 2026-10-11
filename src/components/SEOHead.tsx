@@ -16,12 +16,12 @@ const ROUTE_SEO_MAP: Record<string, RouteSEO> = {
   },
   '/registration': {
     title: 'Registration | PIXEL 3.O 2026 Technical Symposium',
-    description: 'Register online for PIXEL 3.O 2026 symposium events: PaperQuest, AI FilmForge, Checkmate, and Mine Relay. ₹129 per unique participant.',
+    description: 'Register for PIXEL 3.O 2026 symposium events: PaperQuest, AI FilmForge, Checkmate, and Mine Relay via the official Google Form.',
     canonicalPath: '/registration',
   },
   '/register': {
     title: 'Registration | PIXEL 3.O 2026 Technical Symposium',
-    description: 'Register online for PIXEL 3.O 2026 symposium events: PaperQuest, AI FilmForge, Checkmate, and Mine Relay. ₹129 per unique participant.',
+    description: 'Register for PIXEL 3.O 2026 symposium events: PaperQuest, AI FilmForge, Checkmate, and Mine Relay via the official Google Form.',
     canonicalPath: '/registration',
   },
   '/about': {
@@ -68,23 +68,11 @@ export const SEOHead: React.FC = () => {
 
   useEffect(() => {
     const path = location.pathname;
-    const isAdmin = path.startsWith('/admin');
-    
-    let seo: RouteSEO;
-    if (isAdmin) {
-      seo = {
-        title: 'Admin Management Portal | PIXEL 3.O 2026',
-        description: 'Restricted administrative management portal for PIXEL 3.O registration and event oversight.',
-        canonicalPath: path,
-        noIndex: true,
-      };
-    } else {
-      seo = ROUTE_SEO_MAP[path] || {
-        title: 'PIXEL 3.O 2026 | National Level Technical Symposium',
-        description: 'Join PIXEL 3.O on 14 October 2026 at Adhiparasakthi Engineering College, Melmaruvathur. Explore technical and non-technical symposium events.',
-        canonicalPath: path,
-      };
-    }
+    const seo: RouteSEO = ROUTE_SEO_MAP[path] || {
+      title: 'PIXEL 3.O 2026 | National Level Technical Symposium',
+      description: 'Join PIXEL 3.O on 14 October 2026 at Adhiparasakthi Engineering College, Melmaruvathur. Explore technical and non-technical symposium events.',
+      canonicalPath: path,
+    };
 
     // Set document title
     document.title = seo.title;
@@ -115,7 +103,7 @@ export const SEOHead: React.FC = () => {
     setMeta('meta[name="twitter:description"]', seo.description);
 
     // Robots directive
-    const robotsDirective = (seo.noIndex || isAdmin)
+    const robotsDirective = seo.noIndex
       ? 'noindex, nofollow'
       : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
     setMeta('meta[name="robots"]', robotsDirective);

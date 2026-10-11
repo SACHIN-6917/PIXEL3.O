@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 
 // Public Components & Pages
@@ -7,7 +7,6 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
-import { RegistrationPage } from './pages/RegistrationPage';
 import { AgendaPage } from './pages/AgendaPage';
 import { VenuesPage } from './pages/VenuesPage';
 import { StaffCoordinatorsPage } from './pages/StaffCoordinatorsPage';
@@ -16,73 +15,12 @@ import { VerificationPassPage } from './pages/VerificationPassPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { SEOHead } from './components/SEOHead';
-
-// Admin System
-import { AdminAuthProvider } from './admin/AdminAuthContext';
-import { AdminProtectedRoute } from './admin/AdminProtectedRoute';
-import { AdminLayout } from './admin/AdminLayout';
-import { AdminLoginPage } from './admin/pages/AdminLoginPage';
-import { AdminDashboardPage } from './admin/pages/AdminDashboardPage';
-import { AdminRegistrationsPage } from './admin/pages/AdminRegistrationsPage';
-import { AdminParticipantsPage } from './admin/pages/AdminParticipantsPage';
-import { AdminPaymentsPage } from './admin/pages/AdminPaymentsPage';
-import { AdminEventsPage } from './admin/pages/AdminEventsPage';
-import { AdminAnalyticsPage } from './admin/pages/AdminAnalyticsPage';
-import { AdminSettingsPage } from './admin/pages/AdminSettingsPage';
+import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 
 function AppRoutes() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const isAdmin = location.pathname.startsWith('/admin');
 
-  // Global Shortcut: Ctrl + F1 opens Admin Portal
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'F1' || e.code === 'F1')) {
-        e.preventDefault();
-        navigate('/admin/login');
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
-
-  // If navigating through Admin routes, render dedicated admin container
-  if (isAdmin) {
-    return (
-      <>
-        <SEOHead />
-        <Routes>
-          {/* Unprotected Admin Login */}
-          <Route path="/admin/login" element={<AdminLoginPage />} />
-
-          {/* Protected Admin Routes within AdminLayout */}
-          <Route
-            path="/admin"
-            element={
-              <AdminProtectedRoute>
-                <AdminLayout />
-              </AdminProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/admin/dashboard" replace />} />
-            <Route path="dashboard" element={<AdminDashboardPage />} />
-            <Route path="registrations" element={<AdminRegistrationsPage />} />
-            <Route path="participants" element={<AdminParticipantsPage />} />
-            <Route path="payments" element={<AdminPaymentsPage />} />
-            <Route path="events" element={<AdminEventsPage />} />
-            <Route path="analytics" element={<AdminAnalyticsPage />} />
-            <Route path="settings" element={<AdminSettingsPage />} />
-          </Route>
-
-          {/* Fallback redirect */}
-          <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
-        </Routes>
-      </>
-    );
-  }
-
-  // Public Symposium Website (Preserves existing layout, Phoenix, Navigation, and Footer)
+  // Public Symposium Website (Preserves existing layout, Phoenix graphic, Navigation, and Footer)
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <SEOHead />
@@ -92,8 +30,8 @@ function AppRoutes() {
           <Routes location={location} key={location.pathname}>
             <Route path="/"                     element={<HomePage />} />
             <Route path="/about"                element={<AboutPage />} />
-            <Route path="/registration"         element={<RegistrationPage />} />
-            <Route path="/register"             element={<RegistrationPage />} />
+            <Route path="/registration"         element={<Navigate to="/" replace />} />
+            <Route path="/register"             element={<Navigate to="/" replace />} />
             <Route path="/verify"               element={<VerificationPassPage />} />
             <Route path="/pass"                 element={<VerificationPassPage />} />
             <Route path="/agenda"               element={<AgendaPage />} />
@@ -105,6 +43,7 @@ function AppRoutes() {
           </Routes>
         </AnimatePresence>
       </main>
+      <FloatingWhatsApp />
       <Footer />
     </div>
   );
@@ -114,9 +53,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <AdminAuthProvider>
-          <AppRoutes />
-        </AdminAuthProvider>
+        <AppRoutes />
       </BrowserRouter>
     </ErrorBoundary>
   );

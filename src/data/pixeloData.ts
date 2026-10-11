@@ -331,8 +331,12 @@ export const WHAT_AWAITS_YOU = [
   }
 ];
 
-export const REGISTRATION_DEADLINE = '2026-10-13T22:00:00';
+export const REGISTRATION_DEADLINE = '2026-10-13T21:00:00';
 export const EVENT_DATE_STRING = '14 OCTOBER 2026';
 export const REPORTING_TIME = '09:00 AM';
 export const VENUE_COLLEGE = 'Adhiparasakthi Engineering College, Melmaruvathur';
+export const GOOGLE_FORM_URL = 'https://forms.gle/YEnqBNgS6VuzYjJe6';
 export const WHATSAPP_GROUP_LINK = 'https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v';
+// Official WhatsApp Contact with prefilled message for guidance
+export const WHATSAPP_CONTACT_URL = 'https://chat.whatsapp.com/EcA1kG8VThJFx58Qmr2l1v';
+

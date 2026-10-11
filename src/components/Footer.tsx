@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { ArrowUp, Mail, Globe } from 'lucide-react';
 
 const IconInstagram = () => (
@@ -26,7 +26,6 @@ const SocialLink: React.FC<{ href: string; title: string; children: React.ReactN
 );
 
 export const Footer: React.FC = () => {
-  const navigate = useNavigate();
   return (
     <footer className="bg-darkAccent text-white pt-16 pb-12 border-t border-white/10">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,7 +87,6 @@ export const Footer: React.FC = () => {
                 { label: 'VENUES',               to: '/venues' },
                 { label: 'STAFF COORDINATORS',   to: '/staff-coordinators' },
                 { label: 'STUDENT COORDINATORS', to: '/student-coordinators' },
-                { label: 'REGISTER NOW',         to: '/registration' },
               ].map(link => (
                 <li key={link.to}>
                   <NavLink to={link.to} end={link.to === '/'} className={({ isActive }) => `hover:text-phoenix-orange transition-colors ${isActive ? 'text-phoenix-orange' : ''}`}>
@@ -99,14 +97,11 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* CTA */}
+          {/* Event Date Info */}
           <div className="md:col-span-4 space-y-4">
-            <h4 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">REGISTER FOR PIXEL-3.O</h4>
-            <p className="text-xs text-neutral-500 leading-relaxed">Registration closes 13 October 2026 at 10:00 PM. Secure your spot now.</p>
-            <button onClick={() => navigate('/registration')} className="w-full phoenix-gradient-btn py-3 rounded-full text-white text-xs font-bold tracking-wider uppercase">
-              REGISTER NOW
-            </button>
-            <div className="pt-3 space-y-1.5">
+            <h4 className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">PIXEL-3.O SCHEDULE</h4>
+            <p className="text-xs text-neutral-500 leading-relaxed">Registration closes 13 October 2026 at 09:00 PM.</p>
+            <div className="pt-1 space-y-1.5">
               <p className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">EVENT DATE</p>
               <p className="text-sm font-bold text-neutral-200">14 OCTOBER 2026</p>
               <p className="text-xs text-neutral-500">09:00 AM · Melmaruvathur</p>
