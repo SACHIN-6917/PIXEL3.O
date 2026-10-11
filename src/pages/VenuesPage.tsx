@@ -5,15 +5,15 @@ import { MapPin, Clock } from 'lucide-react';
 
 const VENUES = [
   { session: 'MORNING SESSION', time: '10:30 AM – 12:10 PM', events: [
-    { name: 'PAPERQUEST',   venue: 'Main Auditorium', cat: 'Technical', color: 'from-phoenix-orange to-phoenix-red', desc: 'Large seating, projector, presentation setup for paper reading.' },
-    { name: 'AI FILMFORGE', venue: 'Main CSE Lab',  cat: 'Technical', color: 'from-phoenix-red to-phoenix-magenta', desc: 'Main CSE Lab with high-speed systems for AI content creation and screening.' },
+    { name: 'PAPERQUEST',   venue: 'Central Library', cat: 'Technical', color: 'from-phoenix-orange to-phoenix-red', desc: 'Presentation setup and seating for research paper presentation.' },
+    { name: 'AI FILMFORGE', venue: 'Lab PG Block',    cat: 'Technical', color: 'from-phoenix-red to-phoenix-magenta', desc: 'High-speed systems for AI video creation and screening in PG Block.' },
   ]},
   { session: 'AFTERNOON SESSION', time: '01:40 PM – 03:30 PM', events: [
-    { name: 'CHECKMATE',  venue: 'Main CSE Lab',  cat: 'Non-Technical', color: 'from-phoenix-magenta to-phoenix-purple', desc: 'Spacious lab set up with chess boards for tournament play.' },
-    { name: 'MIME RELAY', venue: 'Auditorium',    cat: 'Non-Technical', color: 'from-phoenix-purple to-phoenix-orange', desc: 'Open floor in the auditorium for the team relay challenge.' },
+    { name: 'CHECKMATE',  venue: 'Lab PG Block',   cat: 'Non-Technical', color: 'from-phoenix-magenta to-phoenix-purple', desc: 'Spacious setup with chess boards for tournament play in PG Block.' },
+    { name: 'MINE RELAY', venue: 'Central Library', cat: 'Non-Technical', color: 'from-phoenix-purple to-phoenix-orange', desc: 'Open floor space in Central Library for the team relay challenge.' },
   ]},
   { session: 'LUNCH BREAK', time: '12:20 PM – 01:40 PM', events: [
-    { name: 'LUNCH & REFRESHMENTS', venue: 'College Canteen', cat: 'Meal', color: 'from-phoenix-gold to-phoenix-orange', desc: 'Complimentary vegetarian lunch and refreshments for all participants.' },
+    { name: 'LUNCH & REFRESHMENTS', venue: 'Central Library', cat: 'Meal', color: 'from-phoenix-gold to-phoenix-orange', desc: 'Complimentary vegetarian lunch and refreshments will be provided to all participants at the Central Library.' },
   ]},
 ];
 

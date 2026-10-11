@@ -49,10 +49,10 @@ The symposium features **EXACTLY FOUR** authorized arenas. Old events (`CODESPRI
 
 | # | Event Name | Category | Exact Team Size | Venue | Time Slot | Description |
 |:---:|:---|:---:|:---:|:---|:---:|:---|
-| **01** | **PAPERQUEST** | Technical | **EXACTLY 4 MEMBERS** | Main Auditorium | 10:30 AM – 12:10 PM | Research paper presentation symposium arena before expert faculty evaluators. |
-| **02** | **AI FILMFORGE** | Technical | **EXACTLY 1 MEMBER (Solo)** | Main CSE Lab | 10:30 AM – 12:10 PM | Generative AI short film creation and prompt engineering challenge. |
-| **03** | **CHECKMATE** | Non-Technical | **EXACTLY 1 MEMBER (Solo)** | Main CSE Lab | 01:40 PM – 03:30 PM | FIDE rapid / blitz knockout chess arena. |
-| **04** | **MIME RELAY** | Non-Technical | **EXACTLY 4 MEMBERS** | Auditorium | 01:40 PM – 03:30 PM | Timed puzzle deciphering and obstacle navigation relay race. |
+| **01** | **PAPERQUEST** | Technical | **EXACTLY 4 MEMBERS** | Central Library | 10:30 AM – 12:10 PM | Research paper presentation symposium arena before expert faculty evaluators. |
+| **02** | **AI FILMFORGE** | Technical | **EXACTLY 1 MEMBER (Solo)** | Lab PG Block | 10:30 AM – 12:10 PM | Generative AI short film creation and prompt engineering challenge. |
+| **03** | **CHECKMATE** | Non-Technical | **EXACTLY 1 MEMBER (Solo)** | Lab PG Block | 01:40 PM – 03:30 PM | FIDE rapid / blitz knockout chess arena. |
+| **04** | **MINE RELAY** | Non-Technical | **EXACTLY 4 MEMBERS** | Central Library | 01:40 PM – 03:30 PM | Three Monkeys sensory communication game: Eyes, Ears, and Mouth. |
 
 ### Strict Team Size Rule:
 - ONLY **1 participant (Solo)** OR **4 participants (Team)** are allowed.

@@ -11,7 +11,7 @@ import {
   Clock,
   Award
 } from 'lucide-react';
-import { fetchAllRegistrations, RegistrationRecord } from '../../lib/googleSheet';
+import { fetchAllRegistrations, RegistrationRecord, isMineRelay } from '../../lib/googleSheet';
 import { useAdminAuth } from '../AdminAuthContext';
 
 export const AdminEventsPage: React.FC = () => {
@@ -37,7 +37,7 @@ export const AdminEventsPage: React.FC = () => {
   const paperQuestCount = registrations.filter(r => r.techEvent === 'PAPERQUEST').length;
   const filmForgeCount = registrations.filter(r => r.techEvent === 'AI FILMFORGE').length;
   const checkmateCount = registrations.filter(r => r.nonTechEvent === 'CHECKMATE').length;
-  const mimeRelayCount = registrations.filter(r => r.nonTechEvent === 'MIME RELAY' || r.nonTechEvent === 'MIME RELAY').length;
+  const mineRelayCount = registrations.filter(r => isMineRelay(r.nonTechEvent)).length;
 
   const EVENTS = [
     {
@@ -45,7 +45,7 @@ export const AdminEventsPage: React.FC = () => {
       name: 'PAPERQUEST',
       category: 'Technical',
       participation: 'EXACTLY 4 MEMBERS',
-      venue: 'Main Auditorium',
+      venue: 'Central Library',
       timing: '10:30 AM – 12:10 PM',
       icon: Cpu,
       color: 'border-orange-500/30 text-[#FF6A00] bg-orange-50/20',
@@ -64,7 +64,7 @@ export const AdminEventsPage: React.FC = () => {
       name: 'AI FILMFORGE',
       category: 'Technical',
       participation: 'EXACTLY 1 MEMBER (Solo)',
-      venue: 'Main CSE Lab',
+      venue: 'Lab PG Block',
       timing: '10:30 AM – 12:10 PM',
       icon: Film,
       color: 'border-blue-500/30 text-blue-600 bg-blue-50/20',
@@ -83,7 +83,7 @@ export const AdminEventsPage: React.FC = () => {
       name: 'CHECKMATE',
       category: 'Non-Technical',
       participation: 'EXACTLY 1 MEMBER (Solo)',
-      venue: 'Main CSE Lab',
+      venue: 'Lab PG Block',
       timing: '01:40 PM – 03:30 PM',
       icon: Swords,
       color: 'border-emerald-500/30 text-emerald-600 bg-emerald-50/20',
@@ -98,17 +98,17 @@ export const AdminEventsPage: React.FC = () => {
       ],
     },
     {
-      id: 'mime-relay',
-      name: 'MIME RELAY',
+      id: 'mine-relay',
+      name: 'MINE RELAY',
       category: 'Non-Technical',
       participation: 'EXACTLY 4 MEMBERS',
-      venue: 'Auditorium',
+      venue: 'Central Library',
       timing: '01:40 PM – 03:30 PM',
       icon: Zap,
       color: 'border-purple-500/30 text-purple-600 bg-purple-50/20',
       tagColor: 'bg-purple-50 text-purple-600 border-purple-200',
-      registeredTeams: mimeRelayCount,
-      estimatedParticipants: mimeRelayCount * 4,
+      registeredTeams: mineRelayCount,
+      estimatedParticipants: mineRelayCount * 4,
       rules: [
         'Team composition: Exactly 4 members per team (Strict Rule)',
         'Fast-paced multi-stage relay format with timed obstacles and puzzle checkpoints',

@@ -41,7 +41,7 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     number: '01',
     name: 'PAPERQUEST',
     category: 'Technical Event',
-    venue: 'MAIN AUDITORIUM',
+    venue: 'CENTRAL LIBRARY',
     timing: '10:30 AM – 12:10 PM',
     description: 'A prestigious technical paper presentation symposium arena to showcase novel research, analytical insights, and engineering breakthroughs before expert evaluators.',
     rules: [
@@ -58,7 +58,7 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     number: '02',
     name: 'AI FILMFORGE',
     category: 'Technical Event',
-    venue: 'MAIN CSE LAB',
+    venue: 'LAB PG BLOCK',
     timing: '10:30 AM – 12:10 PM',
     description: 'Unleash next-generation generative AI, cinematic storytelling, and multimedia prompt engineering to architect creative short films and visual narratives.',
     rules: [
@@ -75,7 +75,7 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     number: '03',
     name: 'CHECKMATE',
     category: 'Non-Technical Event',
-    venue: 'MAIN CSE LAB',
+    venue: 'LAB PG BLOCK',
     timing: '01:40 PM – 03:30 PM',
     description: 'The ultimate battle of intellect, tactical calculation, and foresight on the 64-square battlefield. Compete in high-stakes blitz and rapid matches.',
     rules: [
@@ -88,11 +88,11 @@ export const CONFIRMED_EVENTS: PixeloEvent[] = [
     coordinators: 'Chess & Strategy Arena Leads'
   },
   {
-    id: 'mime-relay',
+    id: 'mine-relay',
     number: '04',
-    name: 'MIME RELAY',
+    name: 'MINE RELAY',
     category: 'Non-Technical Event',
-    venue: 'AUDITORIUM',
+    venue: 'CENTRAL LIBRARY',
     timing: '01:40 PM – 03:30 PM',
     description: 'Three Monkeys: Eyes, Ears, Mouth. This is the game!',
     rules: [
@@ -124,21 +124,21 @@ export const AGENDA_ITEMS: AgendaItem[] = [
     time: '10:30 AM – 12:10 PM',
     title: 'TECHNICAL EVENTS',
     subtitle: 'PaperQuest · AI FilmForge',
-    description: 'Simultaneous technical sessions: PaperQuest paper presentations in the Main Auditorium and AI FilmForge in the Main CSE Lab.',
+    description: 'Simultaneous technical sessions: PaperQuest paper presentations in the Central Library and AI FilmForge in the Lab PG Block.',
     badge: 'Morning Session'
   },
   {
     time: '12:20 PM – 01:20 PM',
     title: 'LUNCH BREAK',
-    subtitle: 'College Canteen',
-    description: 'Delightful Vegetarian Food + Refreshments provided to all registered participants and faculty mentors.',
+    subtitle: 'Central Library',
+    description: 'Complimentary vegetarian lunch and refreshments will be provided to all participants at the Central Library.',
     badge: 'Hospitality'
   },
   {
     time: '01:40 PM – 03:30 PM',
     title: 'NON-TECHNICAL EVENTS',
-    subtitle: 'Checkmate · Mime Relay',
-    description: 'High-energy afternoon arena: Checkmate chess battles in Main CSE Lab and thrilling Mime Relay in Auditorium.',
+    subtitle: 'Checkmate · Mine Relay',
+    description: 'High-energy afternoon arena: Checkmate chess battles in Lab PG Block and thrilling Mine Relay in Central Library.',
     badge: 'Afternoon Session'
   },
   {
@@ -190,8 +190,7 @@ export const STUDENT_COMMITTEE: CommitteeItem[] = [
   { role: 'Prize & Memento Committee', members: ['Mr. Sanjaikumar', 'Mr. Kiranraj'] },
   { role: 'Photography Committee', members: ['Mr. Dhilip'] },
   { role: 'Stage & Saami Committee', members: ['Ms. Harini'] },
-  { role: 'Design & Decoration Committee', members: ['Ms. Lavanya'] },
-  { role: 'Outreach Committee', members: ['Mr. Pranav Kumaran'] },
+  { role: 'Design & Decoration Committee', members: ['Ms. Keerthana'] },
   { role: 'Discipline Committee', members: ['Mr. Bharath'] },
   { role: 'Banner Committee', members: ['Mr. Kalaiyarasan'] }
 ];
@@ -219,7 +218,7 @@ export const EVENT_COORDINATORS: EventCoordinatorGroup[] = [
     coordinators: ['Mr. Gokul Raju', 'Mr. Anandh', 'Mr. Surendar'],
   },
   {
-    event: 'MIME RELAY',
+    event: 'MINE RELAY',
     category: 'Non-Technical',
     coordinators: ['Ms. Yuvashree', 'Ms. Vijayalakshmi'],
   },
@@ -248,16 +247,16 @@ export const VENUES_DATA = [
       {
         eventName: 'PAPERQUEST',
         category: 'Technical Event',
-        venueName: 'Main Auditorium',
-        floor: 'Ground Floor, Admin Block',
-        capacity: '400+ Seating · Audio/Visual Presentation Facility',
+        venueName: 'Central Library',
+        floor: 'Central Library Block',
+        capacity: 'Audio/Visual Presentation Facility & Seating',
         icon: 'Presentation'
       },
       {
         eventName: 'AI FILMFORGE',
         category: 'Technical Event',
-        venueName: 'Main CSE Lab',
-        floor: 'First Floor, CSE Department Wing',
+        venueName: 'Lab PG Block',
+        floor: 'PG Block Lab',
         capacity: 'High-Performance Workstations · AI/Generative Tools Lab',
         icon: 'Video'
       }
@@ -269,17 +268,17 @@ export const VENUES_DATA = [
       {
         eventName: 'CHECKMATE',
         category: 'Non-Technical Event',
-        venueName: 'Main CSE Lab',
-        floor: 'First Floor, CSE Department',
-        capacity: 'Climatic Tournament Arena · Digital Match Boards',
+        venueName: 'Lab PG Block',
+        floor: 'PG Block Lab',
+        capacity: 'Tournament Arena · Match Boards',
         icon: 'Swords'
       },
       {
-        eventName: 'MIME RELAY',
+        eventName: 'MINE RELAY',
         category: 'Non-Technical Event',
-        venueName: 'Auditorium',
-        floor: 'Ground Floor, Main Campus Arena',
-        capacity: 'Dynamic Obstacle Course & Relay Track',
+        venueName: 'Central Library',
+        floor: 'Central Library Arena',
+        capacity: 'Relay Challenge & Activity Space',
         icon: 'Zap'
       }
     ]

@@ -15,6 +15,7 @@ import { StudentCoordinatorsPage } from './pages/StudentCoordinatorsPage';
 import { VerificationPassPage } from './pages/VerificationPassPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SEOHead } from './components/SEOHead';
 
 // Admin System
 import { AdminAuthProvider } from './admin/AdminAuthContext';
@@ -49,38 +50,42 @@ function AppRoutes() {
   // If navigating through Admin routes, render dedicated admin container
   if (isAdmin) {
     return (
-      <Routes>
-        {/* Unprotected Admin Login */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+      <>
+        <SEOHead />
+        <Routes>
+          {/* Unprotected Admin Login */}
+          <Route path="/admin/login" element={<AdminLoginPage />} />
 
-        {/* Protected Admin Routes within AdminLayout */}
-        <Route
-          path="/admin"
-          element={
-            <AdminProtectedRoute>
-              <AdminLayout />
-            </AdminProtectedRoute>
-          }
-        >
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard" element={<AdminDashboardPage />} />
-          <Route path="registrations" element={<AdminRegistrationsPage />} />
-          <Route path="participants" element={<AdminParticipantsPage />} />
-          <Route path="payments" element={<AdminPaymentsPage />} />
-          <Route path="events" element={<AdminEventsPage />} />
-          <Route path="analytics" element={<AdminAnalyticsPage />} />
-          <Route path="settings" element={<AdminSettingsPage />} />
-        </Route>
+          {/* Protected Admin Routes within AdminLayout */}
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminLayout />
+              </AdminProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="registrations" element={<AdminRegistrationsPage />} />
+            <Route path="participants" element={<AdminParticipantsPage />} />
+            <Route path="payments" element={<AdminPaymentsPage />} />
+            <Route path="events" element={<AdminEventsPage />} />
+            <Route path="analytics" element={<AdminAnalyticsPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
+          </Route>
 
-        {/* Fallback redirect */}
-        <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
-      </Routes>
+          {/* Fallback redirect */}
+          <Route path="/admin/*" element={<Navigate to="/admin/dashboard" replace />} />
+        </Routes>
+      </>
     );
   }
 
   // Public Symposium Website (Preserves existing layout, Phoenix, Navigation, and Footer)
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <SEOHead />
       <Navbar />
       <main className="flex-1">
         <AnimatePresence mode="wait">

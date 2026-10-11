@@ -80,7 +80,7 @@ export const VerificationPassPage: React.FC = () => {
           nonTechMember4: paramNonTechMembers[3] || '',
           totalMembers: paramMembers || 1,
           feePerHead: 129,
-          totalAmount: paramAmount || 129,
+          totalAmount: Math.max(paramAmount || 0, (paramMembers || 1) * 129),
           paymentStatus: (paramStatus as any) || 'Paid',
           paymentId: paramPaymentId || 'VERIFIED',
           registrationStatus: 'Confirmed',

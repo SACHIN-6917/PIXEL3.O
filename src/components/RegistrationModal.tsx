@@ -201,13 +201,17 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
       const tech = formData.selectedEvents.find(e => e.toLowerCase().includes('paper') || e.toLowerCase().includes('film')) || '';
       const nonTech = formData.selectedEvents.find(e => e.toLowerCase().includes('relay') || e.toLowerCase().includes('check')) || '';
 
+      const isTeam = tech.toLowerCase().includes('paper') || nonTech.toLowerCase().includes('relay');
+      const membersCount = isTeam ? 4 : 1;
+      const totalAmount = membersCount * 129;
+
       await generateConfirmationPdf({
         success: true,
         registrationId: registrationId,
         fullName: formData.fullName,
-        totalMembers: 1,
+        totalMembers: membersCount,
         feePerHead: 129,
-        totalAmount: 129,
+        totalAmount: totalAmount,
         techEvent: tech,
         nonTechEvent: nonTech,
         paymentStatus: 'Submitted',

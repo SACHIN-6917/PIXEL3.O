@@ -85,7 +85,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     return {
       success: false,
-      message: 'Invalid credentials. Please enter Username: PIXEL3.O and Password: PIXEL@26',
+      message: 'Invalid username or password. Please try again.',
     };
   };
 

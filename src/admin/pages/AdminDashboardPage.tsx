@@ -17,7 +17,7 @@ import {
   Mail,
   Download
 } from 'lucide-react';
-import { fetchAllRegistrations, getLocalRegistrations, subscribeToRegistrationUpdates, RegistrationRecord } from '../../lib/googleSheet';
+import { fetchAllRegistrations, getLocalRegistrations, subscribeToRegistrationUpdates, RegistrationRecord, isMineRelay, isPaperQuest } from '../../lib/googleSheet';
 import { generateConfirmationPdf } from '../../lib/generateConfirmationPdf';
 import { useAdminAuth } from '../AdminAuthContext';
 
@@ -419,9 +419,9 @@ export const AdminDashboardPage: React.FC = () => {
                 )}
                 {selectedReg.techEvent === 'AI FILMFORGE' && (
                   <div>
-                    {selectedReg.nonTechEvent === 'MIME RELAY' && selectedReg.filmforgeInterested ? (
+                    {isMineRelay(selectedReg.nonTechEvent) && selectedReg.filmforgeInterested ? (
                       <div>
-                        <div className="text-[10px] text-[#FF6A00] font-bold mb-1">AI FilmForge Solo Participants (from Mime Relay team):</div>
+                        <div className="text-[10px] text-[#FF6A00] font-bold mb-1">AI FilmForge Solo Participants (from Mine Relay team):</div>
                         {(() => {
                           const nums = selectedReg.filmforgeInterested.split(',').map(s => parseInt(s.trim(), 10));
                           const members = [selectedReg.nonTechMember1 || selectedReg.fullName, selectedReg.nonTechMember2, selectedReg.nonTechMember3, selectedReg.nonTechMember4];
@@ -446,7 +446,7 @@ export const AdminDashboardPage: React.FC = () => {
                   Non-Technical Event
                 </span>
                 <div className="font-bold text-gray-900 text-sm">{selectedReg.nonTechEvent || 'None'}</div>
-                {(selectedReg.nonTechEvent === 'MIME RELAY' || selectedReg.nonTechEvent === 'MIME RELAY') && (
+                {(isMineRelay(selectedReg.nonTechEvent) || isMineRelay(selectedReg.nonTechEvent)) && (
                   <div className="mt-2 space-y-1 text-gray-600 text-[11px]">
                     <div>1. {selectedReg.nonTechMember1 || selectedReg.fullName} <span className="text-[10px] text-purple-600 font-semibold">(Main Participant)</span></div>
                     <div>2. {selectedReg.nonTechMember2 || '—'}</div>
@@ -525,9 +525,9 @@ export const AdminDashboardPage: React.FC = () => {
                       fullName: selectedReg.fullName,
                       techEvent: selectedReg.techEvent,
                       nonTechEvent: selectedReg.nonTechEvent,
-                      totalMembers: selectedReg.totalMembers,
-                      feePerHead: selectedReg.feePerHead,
-                      totalAmount: selectedReg.totalAmount,
+                      totalMembers: selectedReg.totalMembers || 1,
+                      feePerHead: selectedReg.feePerHead || 129,
+                      totalAmount: Math.max(selectedReg.totalAmount || 0, (selectedReg.totalMembers || 1) * 129),
                       paymentStatus: selectedReg.paymentStatus,
                       registrationStatus: selectedReg.registrationStatus,
                       registeredAt: selectedReg.registeredAt,

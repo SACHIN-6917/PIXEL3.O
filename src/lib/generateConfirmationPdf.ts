@@ -1,6 +1,13 @@
 import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
-import { RegistrationResult } from './googleSheet';
+import {
+  RegistrationResult,
+  isPaperQuest,
+  isMineRelay,
+  isCheckmate,
+  isAiFilmForge,
+  FEE_PER_HEAD
+} from './googleSheet';
 
 export interface PassParticipantDetails {
   college?: string;
@@ -10,10 +17,23 @@ export interface PassParticipantDetails {
   paymentId?: string;
   techMembers?: string[];
   nonTechMembers?: string[];
+  checkmateInterested?: string;
+  filmforgeInterested?: string;
+}
+
+/**
+ * Helper to safely draw Rupee currency text or clean "Rs. " fallback
+ * In standard jsPDF core Helvetica font, character '₹' (U+20B9) is often unmapped in standard WinAnsi.
+ * We render "Rs. " prefix or drawn currency for guaranteed 100% universal PDF rendering.
+ */
+function formatCurrency(amount: number | string): string {
+  const num = typeof amount === 'number' ? amount : parseInt(String(amount), 10) || 0;
+  return `Rs. ${num.toLocaleString('en-IN')}`;
 }
 
 /**
  * Generates an ultra-premium, high-resolution official PDF Registration Pass for PIXEL-3.O
+ * Guaranteed single-page, responsive text wrapping, dynamic fee calculation, and zero text overflow.
  */
 export async function generateConfirmationPdf(
   result: RegistrationResult,
@@ -30,17 +50,25 @@ export async function generateConfirmationPdf(
   const margin = 12;
   const contentWidth = pageWidth - margin * 2;
 
+  // ─── 0. Authoritative Calculation ───
+  const totalUniqueCount = Math.max(result.totalMembers || 1, 1);
+  const feePerHead = result.feePerHead || FEE_PER_HEAD || 129;
+  const calculatedTotal = totalUniqueCount * feePerHead;
+  const finalTotalAmount = result.totalAmount && result.totalAmount >= feePerHead
+    ? result.totalAmount
+    : calculatedTotal;
+
   // ─── Generate Scannable Verification URL for QR Code ───
   let qrDataUrl = '';
   try {
-    const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pixel3-o.vercel.app';
+    const origin = typeof window !== 'undefined' && window.location.origin ? window.location.origin : 'https://pixel-3-o.vercel.app';
     const techMembersStr = extraDetails?.techMembers ? extraDetails.techMembers.join(',') : '';
     const nonTechMembersStr = extraDetails?.nonTechMembers ? extraDetails.nonTechMembers.join(',') : '';
 
-    const verifyUrl = `${origin}/verify?id=${encodeURIComponent(result.registrationId)}&name=${encodeURIComponent(result.fullName)}&college=${encodeURIComponent(extraDetails?.college || '')}&dept=${encodeURIComponent(extraDetails?.department || '')}&tech=${encodeURIComponent(result.techEvent || '')}&nontech=${encodeURIComponent(result.nonTechEvent || '')}&members=${result.totalMembers}&amount=${result.totalAmount}&status=${encodeURIComponent(result.paymentStatus || 'Paid')}&phone=${encodeURIComponent(extraDetails?.phone || '')}&payid=${encodeURIComponent(extraDetails?.paymentId || '')}&techm=${encodeURIComponent(techMembersStr)}&nontechm=${encodeURIComponent(nonTechMembersStr)}`;
+    const verifyUrl = `${origin}/verify?id=${encodeURIComponent(result.registrationId || 'PIXEL-3.O')}&name=${encodeURIComponent(result.fullName || '')}&college=${encodeURIComponent(extraDetails?.college || '')}&dept=${encodeURIComponent(extraDetails?.department || '')}&tech=${encodeURIComponent(result.techEvent || '')}&nontech=${encodeURIComponent(result.nonTechEvent || '')}&members=${totalUniqueCount}&amount=${finalTotalAmount}&status=${encodeURIComponent(result.paymentStatus || 'Submitted')}&phone=${encodeURIComponent(extraDetails?.phone || '')}&payid=${encodeURIComponent(extraDetails?.paymentId || '')}&techm=${encodeURIComponent(techMembersStr)}&nontechm=${encodeURIComponent(nonTechMembersStr)}`;
 
     qrDataUrl = await QRCode.toDataURL(verifyUrl, {
-      width: 250,
+      width: 300,
       margin: 1,
       color: { dark: '#171717', light: '#ffffff' },
     });
@@ -52,370 +80,421 @@ export async function generateConfirmationPdf(
   doc.setFillColor(253, 252, 250); // Warm ivory background
   doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
-  // Outer Border
-  doc.setDrawColor(255, 106, 0); // Phoenix Orange
+  // Outer Border (Phoenix Orange)
+  doc.setDrawColor(255, 106, 0);
   doc.setLineWidth(1.2);
   doc.roundedRect(margin, margin, contentWidth, pageHeight - margin * 2, 4, 4, 'S');
 
-  // Inner Accent Border
-  doc.setDrawColor(229, 27, 35); // Phoenix Red
+  // Inner Accent Border (Phoenix Red)
+  doc.setDrawColor(229, 27, 35);
   doc.setLineWidth(0.4);
   doc.roundedRect(margin + 2, margin + 2, contentWidth - 4, pageHeight - margin * 2 - 4, 3, 3, 'S');
 
   // ─── 2. Top Header Banner ───
+  let curY = margin + 3;
+  const headerHeight = 31;
   doc.setFillColor(23, 23, 23); // Dark charcoal header block
-  doc.roundedRect(margin + 3, margin + 3, contentWidth - 6, 32, 2.5, 2.5, 'F');
+  doc.roundedRect(margin + 3, curY, contentWidth - 6, headerHeight, 2.5, 2.5, 'F');
 
   // Top flame line
   doc.setFillColor(255, 106, 0);
-  doc.rect(margin + 3, margin + 3, contentWidth - 6, 2, 'F');
+  doc.rect(margin + 3, curY, contentWidth - 6, 2, 'F');
 
   // Institution Title
   doc.setTextColor(255, 184, 0); // Gold
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('ADHIPARASAKTHI ENGINEERING COLLEGE', pageWidth / 2, margin + 10, { align: 'center' });
+  doc.setFontSize(10.5);
+  doc.text('ADHIPARASAKTHI ENGINEERING COLLEGE', pageWidth / 2, curY + 8.5, { align: 'center' });
 
   doc.setTextColor(220, 220, 220);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
-  doc.text('Department of Computer Science and Engineering', pageWidth / 2, margin + 15, { align: 'center' });
-  doc.text('In Association with CSI Kanchipuram Chapter', pageWidth / 2, margin + 19.5, { align: 'center' });
+  doc.setFontSize(8);
+  doc.text('Department of Computer Science and Engineering', pageWidth / 2, curY + 13.5, { align: 'center' });
+  doc.text('In Association with CSI Kanchipuram Chapter', pageWidth / 2, curY + 17.5, { align: 'center' });
 
   // Symposium Brand Title
   doc.setTextColor(255, 255, 255);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text('PIXEL-3.O · NATIONAL LEVEL TECHNICAL SYMPOSIUM', pageWidth / 2, margin + 26.5, { align: 'center' });
+  doc.setFontSize(12.5);
+  doc.text('PIXEL 3.O · NATIONAL LEVEL TECHNICAL SYMPOSIUM', pageWidth / 2, curY + 23.5, { align: 'center' });
 
   doc.setTextColor(255, 106, 0);
-  doc.setFontSize(8);
-  doc.text('OFFICIAL EVENT ADMISSION & REGISTRATION PASS', pageWidth / 2, margin + 31, { align: 'center' });
+  doc.setFontSize(7.5);
+  doc.text('OFFICIAL EVENT ADMISSION & REGISTRATION PASS · 14 OCT 2026', pageWidth / 2, curY + 28, { align: 'center' });
 
-  let y = margin + 40;
+  curY += headerHeight + 3.5;
 
   // ─── 3. Required Highlight Quote Banner ───
-  // "Early Registration Helps Us Ensure Smooth Arrangements"
-  doc.setFillColor(255, 247, 237); // Light peach/orange fill
+  doc.setFillColor(255, 247, 237);
   doc.setDrawColor(255, 106, 0);
-  doc.setLineWidth(0.5);
-  doc.roundedRect(margin + 5, y, contentWidth - 10, 10, 2, 2, 'FD');
+  doc.setLineWidth(0.4);
+  doc.roundedRect(margin + 4, curY, contentWidth - 8, 8, 2, 2, 'FD');
 
-  doc.setTextColor(194, 65, 12); // Deep amber text
+  doc.setTextColor(194, 65, 12);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9);
-  doc.text('★  "Early Registration Helps Us Ensure Smooth Arrangements"  ★', pageWidth / 2, y + 6.5, { align: 'center' });
+  doc.setFontSize(8);
+  doc.text('★  "Early Registration Helps Us Ensure Smooth Arrangements"  ★', pageWidth / 2, curY + 5.2, { align: 'center' });
 
-  y += 14;
+  curY += 10.5;
 
-  // ─── 4. Registration ID & Verification Badge ───
-  const regBoxWidth = contentWidth - 10;
+  // ─── 4. Registration ID & Badges Box ───
+  const idBoxH = 21;
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(220, 220, 220);
   doc.setLineWidth(0.4);
-  doc.roundedRect(margin + 5, y, regBoxWidth, 24, 2, 2, 'FD');
+  doc.roundedRect(margin + 4, curY, contentWidth - 8, idBoxH, 2, 2, 'FD');
 
-  // Left Column: Official Registration ID
+  // Left side: Registration ID
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text('OFFICIAL REGISTRATION ID', margin + 9, y + 6);
-
-  doc.setTextColor(229, 27, 35); // Crimson
-  doc.setFont('courier', 'bold');
-  doc.setFontSize(16);
-  doc.text(result.registrationId, margin + 9, y + 14);
-
-  doc.setTextColor(80, 80, 80);
-  doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
-  doc.text(`Recorded: ${result.registeredAt || new Date().toLocaleString('en-IN')}`, margin + 9, y + 19.5);
+  doc.text('OFFICIAL REGISTRATION ID', margin + 8, curY + 5.5);
 
-  // Right Column: Status Badges
-  const badgeRight = margin + regBoxWidth + 1;
-  doc.setFillColor(236, 253, 245); // Emerald light
+  doc.setTextColor(229, 27, 35);
+  doc.setFont('courier', 'bold');
+  doc.setFontSize(15);
+  doc.text(result.registrationId || 'PIXEL-3.O-PASS', margin + 8, curY + 12.5);
+
+  doc.setTextColor(100, 100, 100);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6.5);
+  const recordedTime = result.registeredAt || new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+  doc.text(`Recorded: ${recordedTime}`, margin + 8, curY + 17.5);
+
+  // Right side: Badges
+  const badgeRight = margin + contentWidth - 8;
+  doc.setFillColor(236, 253, 245);
   doc.setDrawColor(52, 211, 153);
-  doc.roundedRect(badgeRight - 48, y + 4, 44, 7, 1.5, 1.5, 'FD');
+  doc.roundedRect(badgeRight - 46, curY + 3.5, 42, 6.5, 1.5, 1.5, 'FD');
   doc.setTextColor(5, 150, 105);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text('✓ STATUS: CONFIRMED', badgeRight - 26, y + 8.5, { align: 'center' });
+  doc.setFontSize(7);
+  doc.text('✓ STATUS: CONFIRMED', badgeRight - 25, curY + 7.8, { align: 'center' });
 
-  doc.setFillColor(254, 243, 199); // Amber light
+  doc.setFillColor(254, 243, 199);
   doc.setDrawColor(251, 191, 36);
-  doc.roundedRect(badgeRight - 48, y + 13, 44, 7, 1.5, 1.5, 'FD');
+  doc.roundedRect(badgeRight - 46, curY + 11.5, 42, 6.5, 1.5, 1.5, 'FD');
   doc.setTextColor(180, 83, 9);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text(`PAYMENT: ${result.paymentStatus || 'Submitted'}`, badgeRight - 26, y + 17.5, { align: 'center' });
+  doc.setFontSize(7);
+  const payStatus = result.paymentStatus || 'Submitted';
+  doc.text(`PAYMENT: ${payStatus.toUpperCase()}`, badgeRight - 25, curY + 15.8, { align: 'center' });
 
-  y += 28;
+  curY += idBoxH + 3.5;
 
-  // ─── 5. Participant Profile Card ───
+  // ─── 5. Participant Profile Card (Dynamic Line Wrapping & Spacing) ───
+  const profileCardStartY = curY;
+  const col1X = margin + 10;
+  const col1ValX = col1X + 22;
+  const col1MaxW = 60;
+
+  const col2X = margin + 98;
+  const col2ValX = col2X + 18;
+  const col2MaxW = 56;
+
+  // Pre-calculate line wraps
+  const nameLines = doc.splitTextToSize(result.fullName || '—', col1MaxW);
+  const collegeLines = doc.splitTextToSize(extraDetails?.college || '—', col1MaxW);
+  const deptLines = doc.splitTextToSize(extraDetails?.department || '—', col1MaxW);
+
+  const phoneStr = extraDetails?.phone || '—';
+  const emailLines = doc.splitTextToSize(extraDetails?.email || '—', col2MaxW);
+  const upiLines = doc.splitTextToSize(extraDetails?.paymentId || 'Submitted', col2MaxW);
+
+  // Dynamic row positions
+  let row1Y = profileCardStartY + 11;
+  const row1H = Math.max(nameLines.length, 1) * 3.8;
+
+  let row2Y = row1Y + Math.max(row1H, 5.5);
+  const row2H = Math.max(collegeLines.length, emailLines.length, 1) * 3.8;
+
+  let row3Y = row2Y + Math.max(row2H, 5.5);
+  const row3H = Math.max(deptLines.length, upiLines.length, 1) * 3.8;
+
+  const profileCardH = (row3Y + row3H) - profileCardStartY + 3.5;
+
+  // Draw Profile Card Background
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(margin + 5, y, contentWidth - 10, 36, 2, 2, 'FD');
+  doc.roundedRect(margin + 4, profileCardStartY, contentWidth - 8, profileCardH, 2, 2, 'FD');
 
+  // Left orange accent strip
   doc.setFillColor(255, 106, 0);
-  doc.rect(margin + 5, y, 2.5, 36, 'F'); // Left accent bar
+  doc.rect(margin + 4, profileCardStartY, 2.5, profileCardH, 'F');
+
+  doc.setTextColor(23, 23, 23);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.text('PRIMARY PARTICIPANT INFORMATION', margin + 10, profileCardStartY + 5.5);
+
+  // Render Row 1: Name & Phone
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(110, 110, 110);
+  doc.setFontSize(7.5);
+  doc.text('Full Name:', col1X, row1Y);
+  doc.setTextColor(23, 23, 23);
+  doc.setFont('helvetica', 'bold');
+  doc.text(nameLines, col1ValX, row1Y);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(110, 110, 110);
+  doc.text('Phone:', col2X, row1Y);
+  doc.setTextColor(23, 23, 23);
+  doc.setFont('helvetica', 'normal');
+  doc.text(phoneStr, col2ValX, row1Y);
+
+  // Render Row 2: College & Email
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(110, 110, 110);
+  doc.text('College:', col1X, row2Y);
+  doc.setTextColor(23, 23, 23);
+  doc.setFont('helvetica', 'normal');
+  doc.text(collegeLines, col1ValX, row2Y);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(110, 110, 110);
+  doc.text('Email:', col2X, row2Y);
+  doc.setTextColor(23, 23, 23);
+  doc.setFont('helvetica', 'normal');
+  doc.text(emailLines, col2ValX, row2Y);
+
+  // Render Row 3: Department & UPI Ref
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(110, 110, 110);
+  doc.text('Department:', col1X, row3Y);
+  doc.setTextColor(23, 23, 23);
+  doc.setFont('helvetica', 'normal');
+  doc.text(deptLines, col1ValX, row3Y);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(110, 110, 110);
+  doc.text('UPI Ref ID:', col2X, row3Y);
+  doc.setTextColor(23, 23, 23);
+  doc.setFont('courier', 'bold');
+  doc.text(upiLines, col2ValX, row3Y);
+
+  curY = profileCardStartY + profileCardH + 3.5;
+
+  // ─── 6. Events & Team Breakdown (Dynamic Content & Wrapping) ───
+  const eventBoxW = (contentWidth - 11) / 2;
+  const eventCardStartY = curY;
+  const eventCardH = 38;
+
+  // 6A. Technical Event Card
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(255, 106, 0);
+  doc.setLineWidth(0.35);
+  doc.roundedRect(margin + 4, eventCardStartY, eventBoxW, eventCardH, 2, 2, 'FD');
+
+  doc.setFillColor(255, 247, 237);
+  doc.roundedRect(margin + 4, eventCardStartY, eventBoxW, 6.5, 2, 2, 'F');
+  doc.setTextColor(194, 65, 12);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.text('TECHNICAL EVENT', margin + 7, eventCardStartY + 4.5);
+
+  const techEventName = (result.techEvent || '').trim();
+  const hasPaperQuest = isPaperQuest(techEventName);
+  const hasAiFilmForge = isAiFilmForge(techEventName);
 
   doc.setTextColor(23, 23, 23);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
-  doc.text('PARTICIPANT DETAILS', margin + 11, y + 6);
-
-  doc.setFontSize(8);
-  const col1 = margin + 11;
-  const col2 = margin + 95;
-  const col1MaxW = 60; // max width for col1 value text
-  const col2MaxW = 58; // max width for col2 value text
-
-  // Row 1
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Full Name:', col1, y + 12);
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(23, 23, 23);
-  const nameLines = doc.splitTextToSize(result.fullName || '—', col1MaxW);
-  doc.text(nameLines.slice(0, 2), col1 + 22, y + 12);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Phone:', col2, y + 12);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(23, 23, 23);
-  doc.text(extraDetails?.phone || '—', col2 + 15, y + 12);
-
-  // Row 2
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(100, 100, 100);
-  doc.text('College:', col1, y + 18);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(23, 23, 23);
-  const collegeText = doc.splitTextToSize(extraDetails?.college || '—', col1MaxW);
-  doc.text(collegeText.slice(0, 2), col1 + 22, y + 18);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Email:', col2, y + 18);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(23, 23, 23);
-  const emailLines = doc.splitTextToSize(extraDetails?.email || '—', col2MaxW);
-  doc.text(emailLines.slice(0, 2), col2 + 15, y + 18);
-
-  // Row 3
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Department:', col1, y + 26);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(23, 23, 23);
-  const deptLines = doc.splitTextToSize(extraDetails?.department || '—', col1MaxW);
-  doc.text(deptLines.slice(0, 2), col1 + 22, y + 26);
-
-  doc.setFont('helvetica', 'bold');
-  doc.setTextColor(100, 100, 100);
-  doc.text('UPI Ref ID:', col2, y + 26);
-  doc.setFont('courier', 'bold');
-  doc.setTextColor(23, 23, 23);
-  const upiLines = doc.splitTextToSize(extraDetails?.paymentId || 'Submitted', col2MaxW);
-  doc.text(upiLines.slice(0, 2), col2 + 18, y + 26);
-
-  y += 40;
-
-  // ─── 6. Events & Team Breakdown ───
-  const eventBoxWidth = (contentWidth - 14) / 2;
-
-  // Technical Event Card
-  doc.setFillColor(255, 255, 255);
-  doc.setDrawColor(255, 106, 0);
-  doc.setLineWidth(0.35);
-  doc.roundedRect(margin + 5, y, eventBoxWidth, 38, 2, 2, 'FD');
-
-  doc.setFillColor(255, 247, 237);
-  doc.roundedRect(margin + 5, y, eventBoxWidth, 7, 2, 2, 'F');
-  doc.setTextColor(194, 65, 12);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text('TECHNICAL EVENT', margin + 8, y + 5);
-
-  doc.setTextColor(23, 23, 23);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.text(result.techEvent || 'None Selected', margin + 8, y + 13);
+  doc.text(hasPaperQuest ? 'PAPERQUEST' : hasAiFilmForge ? 'AI FILMFORGE' : (techEventName || 'None Selected'), margin + 7, eventCardStartY + 11.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.8);
   doc.setTextColor(100, 100, 100);
-  if (result.techEvent === 'PaperQuest' || result.techEvent === 'PAPERQUEST') {
-    doc.text('Team (4 Members):', margin + 8, y + 18);
-    const mList = extraDetails?.techMembers && extraDetails.techMembers.length > 0
+
+  if (hasPaperQuest) {
+    doc.text('Team (Exactly 4 Members) · Central Library:', margin + 7, eventCardStartY + 16);
+    const mList = extraDetails?.techMembers && extraDetails.techMembers.length >= 4
       ? extraDetails.techMembers
       : [result.fullName, 'Member 2', 'Member 3', 'Member 4'];
+
     mList.slice(0, 4).forEach((m, idx) => {
-      doc.text(`${idx + 1}. ${m}`, margin + 11, y + 22 + idx * 3.8);
+      const truncated = doc.splitTextToSize(`${idx + 1}. ${m}`, eventBoxW - 10);
+      doc.text(truncated[0] || '', margin + 9, eventCardStartY + 20.5 + idx * 4);
     });
-  } else if (result.techEvent) {
-    doc.text('Solo Participant (1 Member):', margin + 8, y + 18);
-    doc.text(`1. ${result.fullName}`, margin + 11, y + 23);
+  } else if (hasAiFilmForge) {
+    doc.text('Solo Event (1 Participant) · Lab PG Block:', margin + 7, eventCardStartY + 16.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(23, 23, 23);
+    const tSolo = doc.splitTextToSize(`1. ${result.fullName}`, eventBoxW - 10);
+    doc.text(tSolo[0] || '', margin + 9, eventCardStartY + 21.5);
   } else {
-    doc.text('No Technical Event Registered', margin + 8, y + 19);
+    doc.text('No Technical Event Registered', margin + 7, eventCardStartY + 18);
   }
 
-  // Non-Technical Event Card
-  const nonTechX = margin + 5 + eventBoxWidth + 4;
+  // 6B. Non-Technical Event Card
+  const nonTechX = margin + 4 + eventBoxW + 3;
   doc.setFillColor(255, 255, 255);
   doc.setDrawColor(208, 18, 87);
   doc.setLineWidth(0.35);
-  doc.roundedRect(nonTechX, y, eventBoxWidth, 38, 2, 2, 'FD');
+  doc.roundedRect(nonTechX, eventCardStartY, eventBoxW, eventCardH, 2, 2, 'FD');
 
   doc.setFillColor(253, 242, 248);
-  doc.roundedRect(nonTechX, y, eventBoxWidth, 7, 2, 2, 'F');
+  doc.roundedRect(nonTechX, eventCardStartY, eventBoxW, 6.5, 2, 2, 'F');
   doc.setTextColor(190, 24, 93);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text('NON-TECHNICAL EVENT', nonTechX + 3, y + 5);
+  doc.setFontSize(7);
+  doc.text('NON-TECHNICAL EVENT', nonTechX + 3, eventCardStartY + 4.5);
+
+  const nonTechEventName = (result.nonTechEvent || '').trim();
+  const hasMineRelay = isMineRelay(nonTechEventName);
+  const hasCheckmate = isCheckmate(nonTechEventName);
 
   doc.setTextColor(23, 23, 23);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(9.5);
-  doc.text(result.nonTechEvent || 'None Selected', nonTechX + 3, y + 13);
+  doc.setFontSize(8.5);
+  doc.text(hasMineRelay ? 'MINE RELAY' : hasCheckmate ? 'CHECKMATE' : (nonTechEventName || 'None Selected'), nonTechX + 3, eventCardStartY + 11.5);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
+  doc.setFontSize(6.8);
   doc.setTextColor(100, 100, 100);
-  if (result.nonTechEvent === 'Mime Relay' || result.nonTechEvent === 'MIME RELAY' || result.nonTechEvent === 'Mime Relay' || result.nonTechEvent === 'MIME RELAY') {
-    doc.text('Team (4 Members):', nonTechX + 3, y + 18);
-    const mList = extraDetails?.nonTechMembers && extraDetails.nonTechMembers.length > 0
+
+  if (hasMineRelay) {
+    doc.text('Team (Exactly 4 Members) · Central Library:', nonTechX + 3, eventCardStartY + 16);
+    const mList = extraDetails?.nonTechMembers && extraDetails.nonTechMembers.length >= 4
       ? extraDetails.nonTechMembers
       : [result.fullName, 'Member 2', 'Member 3', 'Member 4'];
+
     mList.slice(0, 4).forEach((m, idx) => {
-      doc.text(`${idx + 1}. ${m}`, nonTechX + 6, y + 22 + idx * 3.8);
+      const truncated = doc.splitTextToSize(`${idx + 1}. ${m}`, eventBoxW - 10);
+      doc.text(truncated[0] || '', nonTechX + 5, eventCardStartY + 20.5 + idx * 4);
     });
-  } else if (result.nonTechEvent) {
-    doc.text('Solo Participant (1 Member):', nonTechX + 3, y + 18);
-    doc.text(`1. ${result.fullName}`, nonTechX + 6, y + 23);
+  } else if (hasCheckmate) {
+    doc.text('Solo Event (1 Participant) · Lab PG Block:', nonTechX + 3, eventCardStartY + 16.5);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(23, 23, 23);
+    const cSolo = doc.splitTextToSize(`1. ${result.fullName}`, eventBoxW - 10);
+    doc.text(cSolo[0] || '', nonTechX + 5, eventCardStartY + 21.5);
   } else {
-    doc.text('No Non-Technical Event Registered', nonTechX + 3, y + 19);
+    doc.text('No Non-Technical Event Registered', nonTechX + 3, eventCardStartY + 18);
   }
 
-  y += 42;
+  curY = eventCardStartY + eventCardH + 3.5;
 
-  // ─── 7. Fee & QR Verification Section ───
+  // ─── 7. Fee & QR Verification Section (Accurate Authoritative Calculation) ───
+  const feeBoxH = 34;
   doc.setFillColor(248, 250, 252);
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(margin + 5, y, contentWidth - 10, 36, 2, 2, 'FD');
+  doc.roundedRect(margin + 4, curY, contentWidth - 8, feeBoxH, 2, 2, 'FD');
 
   // Embed QR Code
   if (qrDataUrl) {
-    doc.addImage(qrDataUrl, 'PNG', margin + 8, y + 3, 30, 30);
+    doc.addImage(qrDataUrl, 'PNG', margin + 7, curY + 2.5, 29, 29);
   }
 
-  // QR info text
-  const feeInfoX = margin + 42;
+  const feeInfoX = margin + 40;
   doc.setTextColor(100, 100, 100);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
-  doc.text('PAYMENT SUMMARY & VERIFICATION', feeInfoX, y + 7);
+  doc.text('PAYMENT SUMMARY & DESK VERIFICATION', feeInfoX, curY + 6);
 
-  doc.setFontSize(8);
+  // Unique Members
+  doc.setFontSize(7.5);
   doc.setFont('helvetica', 'normal');
-  doc.text('Total Unique Participants:', feeInfoX, y + 13);
+  doc.text('Total Unique Participants:', feeInfoX, curY + 11.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(23, 23, 23);
-  doc.text(`${result.totalMembers} Member${result.totalMembers > 1 ? 's' : ''}`, feeInfoX + 45, y + 13);
+  doc.text(`${totalUniqueCount} Member${totalUniqueCount > 1 ? 's' : ''}`, feeInfoX + 44, curY + 11.5);
 
+  // Fee Per Head
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text('Fee Per Participant:', feeInfoX, y + 18);
+  doc.text('Fee Per Unique Participant:', feeInfoX, curY + 16.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(23, 23, 23);
-  doc.text(`₹${result.feePerHead || 129}`, feeInfoX + 45, y + 18);
+  doc.text(formatCurrency(feePerHead), feeInfoX + 44, curY + 16.5);
 
+  // Total Registration Amount
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(100, 100, 100);
-  doc.text('Total Amount Recorded:', feeInfoX, y + 24);
+  doc.text('Total Registration Amount:', feeInfoX, curY + 22);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(5, 150, 105); // Emerald
-  doc.setFontSize(11);
-  doc.text(`₹${result.totalAmount}`, feeInfoX + 45, y + 24);
+  doc.setTextColor(5, 150, 105); // Emerald Green
+  doc.setFontSize(10.5);
+  doc.text(formatCurrency(finalTotalAmount), feeInfoX + 44, curY + 22);
 
+  // Fast track notice
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
-  doc.setTextColor(140, 140, 140);
-  doc.text('Scan this QR code at the desk for fast-track badge issuance.', feeInfoX, y + 31);
+  doc.setTextColor(130, 130, 130);
+  doc.text('Scan QR code at the desk for fast-track verified badge issuance.', feeInfoX, curY + 29);
 
-  y += 40;
+  curY += feeBoxH + 3.5;
 
   // ─── 8. Event Schedule, Reporting & Venue Details ───
+  const schedBoxH = 21;
   doc.setFillColor(23, 23, 23);
-  doc.roundedRect(margin + 5, y, contentWidth - 10, 24, 2, 2, 'F');
+  doc.roundedRect(margin + 4, curY, contentWidth - 8, schedBoxH, 2, 2, 'F');
 
-  // 3 Grid columns inside black bar
-  const third = (contentWidth - 10) / 3;
+  const thirdW = (contentWidth - 8) / 3;
 
-  // Date
+  // Column 1: Date
   doc.setTextColor(255, 184, 0); // Gold
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.text('DATE OF EVENT', margin + 5 + third * 0.5, y + 6, { align: 'center' });
+  doc.setFontSize(6.8);
+  doc.text('DATE OF EVENT', margin + 4 + thirdW * 0.5, curY + 5.5, { align: 'center' });
   doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('14 OCTOBER 2026', margin + 5 + third * 0.5, y + 12, { align: 'center' });
-  doc.setTextColor(200, 200, 200);
-  doc.setFontSize(7);
-  doc.text('Wednesday', margin + 5 + third * 0.5, y + 17, { align: 'center' });
-
-  // Reporting Time
-  doc.setTextColor(255, 184, 0);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.text('REPORTING TIME', margin + 5 + third * 1.5, y + 6, { align: 'center' });
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('09:00 AM IST', margin + 5 + third * 1.5, y + 12, { align: 'center' });
-  doc.setTextColor(200, 200, 200);
-  doc.setFontSize(7);
-  doc.text('Welcome Desk Registration', margin + 5 + third * 1.5, y + 17, { align: 'center' });
-
-  // Venue
-  doc.setTextColor(255, 184, 0);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
-  doc.text('VENUE LOCATION', margin + 5 + third * 2.5, y + 6, { align: 'center' });
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(7.5);
-  doc.text('Adhiparasakthi Eng. College', margin + 5 + third * 2.5, y + 11.5, { align: 'center' });
+  doc.setFontSize(8.5);
+  doc.text('14 OCTOBER 2026', margin + 4 + thirdW * 0.5, curY + 11, { align: 'center' });
   doc.setTextColor(200, 200, 200);
   doc.setFontSize(6.5);
-  doc.text('Melmaruvathur - 603319', margin + 5 + third * 2.5, y + 16.5, { align: 'center' });
+  doc.text('Wednesday · Full Day', margin + 4 + thirdW * 0.5, curY + 15.5, { align: 'center' });
 
-  y += 27;
+  // Column 2: Reporting Time
+  doc.setTextColor(255, 184, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.8);
+  doc.text('REPORTING TIME', margin + 4 + thirdW * 1.5, curY + 5.5, { align: 'center' });
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8.5);
+  doc.text('09:00 AM IST', margin + 4 + thirdW * 1.5, curY + 11, { align: 'center' });
+  doc.setTextColor(200, 200, 200);
+  doc.setFontSize(6.5);
+  doc.text('Welcome Desk Registration', margin + 4 + thirdW * 1.5, curY + 15.5, { align: 'center' });
 
-  // ─── 9. Guidelines & Instructions ───
+  // Column 3: Venue Location
+  doc.setTextColor(255, 184, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(6.8);
+  doc.text('VENUE LOCATION', margin + 4 + thirdW * 2.5, curY + 5.5, { align: 'center' });
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(7.5);
+  doc.text('Adhiparasakthi Eng. College', margin + 4 + thirdW * 2.5, curY + 10.5, { align: 'center' });
+  doc.setTextColor(200, 200, 200);
+  doc.setFontSize(6.2);
+  doc.text('Melmaruvathur - 603319', margin + 4 + thirdW * 2.5, curY + 15, { align: 'center' });
+
+  curY += schedBoxH + 3.5;
+
+  // ─── 9. Participant Guidelines & Instructions ───
   doc.setTextColor(23, 23, 23);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7.5);
-  doc.text('IMPORTANT PARTICIPANT INSTRUCTIONS:', margin + 6, y);
+  doc.setFontSize(7.2);
+  doc.text('IMPORTANT PARTICIPANT INSTRUCTIONS:', margin + 6, curY + 1);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6.5);
-  doc.setTextColor(80, 80, 80);
-  doc.text('1. Please show this digital or printed pass along with your valid College ID card at the entry gate.', margin + 6, y + 4);
-  doc.text('2. Symposium kit, refreshment, and participation lunch are provided for all registered participants.', margin + 6, y + 7.5);
-  doc.text('3. Official Certificates of Participation and Winner Trophies will be awarded at the Valedictory Ceremony.', margin + 6, y + 11);
-  doc.text('4. For queries or urgent assistance, reach out to Student / Staff Coordinators or our WhatsApp support.', margin + 6, y + 14.5);
+  doc.setFontSize(6.4);
+  doc.setTextColor(70, 70, 70);
+  doc.text('1. Present this digital or printed pass along with your valid College ID card at the entry gate.', margin + 6, curY + 5);
+  doc.text('2. Symposium kit, refreshment, and vegetarian lunch are provided for all registered participants.', margin + 6, curY + 8.5);
+  doc.text('3. Official Certificates of Participation and Cash Prizes/Trophies awarded at the Valedictory Ceremony.', margin + 6, curY + 12);
+  doc.text('4. For urgent queries, reach out to Student / Staff Coordinators or our official WhatsApp community.', margin + 6, curY + 15.5);
 
-  // ─── 10. Footer Security Stamp & Disclaimer ───
-  const footerY = pageHeight - margin - 5;
+  // ─── 10. Footer Security Stamp ───
+  const footerY = pageHeight - margin - 4;
   doc.setDrawColor(220, 220, 220);
   doc.setLineWidth(0.3);
-  doc.line(margin + 5, footerY - 4, pageWidth - margin - 5, footerY - 4);
+  doc.line(margin + 4, footerY - 3.5, pageWidth - margin - 4, footerY - 3.5);
 
   doc.setTextColor(140, 140, 140);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6);
   doc.text(
-    'PIXEL-3.O Master System · Automated Verified Pass · Department of CSE, Adhiparasakthi Engineering College',
+    'PIXEL 3.O Master System · Official Verified Admission Pass · Department of CSE, Adhiparasakthi Engineering College',
     pageWidth / 2,
     footerY,
     { align: 'center' }

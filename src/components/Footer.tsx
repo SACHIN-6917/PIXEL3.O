@@ -115,7 +115,10 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-neutral-500 gap-4">
-          <p>© 2026 PIXEL-3.O · Adhiparasakthi Engineering College. All rights reserved.</p>
+          <div className="text-center sm:text-left space-y-1">
+            <p>© 2026 PIXEL-3.O · Adhiparasakthi Engineering College. All rights reserved.</p>
+            <p className="text-xs text-neutral-400">Developed by Sachin | DUDU STUDIO</p>
+          </div>
           <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-1.5 hover:text-white transition-colors">
             <span>BACK TO TOP</span>
             <ArrowUp className="w-3.5 h-3.5 text-phoenix-orange" />

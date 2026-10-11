@@ -184,12 +184,15 @@ function handlePublicRegistration(data) {
   if (nonTechEvent === "CHECKMATE" || nonTechEvent.indexOf("CHECKMATE") !== -1 || nonTechEvent.indexOf("CHESS") !== -1) {
     nonTechEvent = "CHECKMATE";
   } else if (
+    nonTechEvent === "MINE RELAY" || 
+    nonTechEvent === "MINE_RELAY" || 
+    nonTechEvent.indexOf("MINE") !== -1 ||
     nonTechEvent === "MIME RELAY" || 
     nonTechEvent === "MIME_RELAY" || 
     nonTechEvent.indexOf("MIME") !== -1 ||
-    nonTechEvent.indexOf("MIME") !== -1
+    nonTechEvent.indexOf("RELAY") !== -1
   ) {
-    nonTechEvent = "MIME RELAY";
+    nonTechEvent = "MINE RELAY";
   } else {
     nonTechEvent = "";
   }
@@ -203,7 +206,7 @@ function handlePublicRegistration(data) {
   // PAPERQUEST: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
   // AI FILMFORGE: EXACTLY 1 MEMBER (Member 1 [main participant] only)
   // CHECKMATE: EXACTLY 1 MEMBER (Member 1 [main participant] only)
-  // MIME RELAY: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
+  // MINE RELAY: EXACTLY 4 MEMBERS (Member 1 [main participant], 2, 3, 4 mandatory)
   var techM1 = "", techM2 = "", techM3 = "", techM4 = "";
   if (techEvent === "PAPERQUEST") {
     techM1 = cleanStr(data.technicalMember1 || data.techMember1 || data.member1) || fullName;
@@ -219,13 +222,13 @@ function handlePublicRegistration(data) {
   }
 
   var nonTechM1 = "", nonTechM2 = "", nonTechM3 = "", nonTechM4 = "";
-  if (nonTechEvent === "MIME RELAY") {
+  if (nonTechEvent === "MINE RELAY" || nonTechEvent === "MIME RELAY") {
     nonTechM1 = cleanStr(data.nonTechnicalMember1 || data.nonTechMember1 || data.member1) || fullName;
     nonTechM2 = cleanStr(data.nonTechnicalMember2 || data.nonTechMember2 || data.member2);
     nonTechM3 = cleanStr(data.nonTechnicalMember3 || data.nonTechMember3 || data.member3);
     nonTechM4 = cleanStr(data.nonTechnicalMember4 || data.nonTechMember4 || data.member4);
     if (!nonTechM1 || !nonTechM2 || !nonTechM3 || !nonTechM4) {
-      return createErrorResponse("Mime Relay requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
+      return createErrorResponse("Mine Relay requires Member 1, Member 2, Member 3, and Member 4 names (Team of exactly 4).");
     }
   } else if (nonTechEvent === "CHECKMATE") {
     nonTechM1 = cleanStr(data.nonTechnicalMember1 || data.nonTechMember1 || data.member1) || fullName;

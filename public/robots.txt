@@ -1,0 +1,22 @@
+# PIXEL 3.O Robots Configuration
+# https://pixel-3-o.vercel.app/
+
+User-agent: *
+Allow: /
+Allow: /about
+Allow: /agenda
+Allow: /venues
+Allow: /staff-coordinators
+Allow: /student-coordinators
+Allow: /registration
+
+# Disallow private administrative & personal verification pass routes
+Disallow: /admin
+Disallow: /admin/
+Disallow: /verify
+Disallow: /verify/
+Disallow: /pass
+
+# Host & Sitemap specification
+Host: https://pixel-3-o.vercel.app
+Sitemap: https://pixel-3-o.vercel.app/sitemap.xml

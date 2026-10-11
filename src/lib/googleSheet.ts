@@ -72,6 +72,30 @@ export function parseRegistrationTimestamp(dateStr?: string | null): number | nu
 export type TechEvent = string | null;
 export type NonTechEvent = string | null;
 
+export function isPaperQuest(event?: string | null): boolean {
+  if (!event) return false;
+  const s = event.trim().toLowerCase();
+  return s.includes('paper');
+}
+
+export function isMineRelay(event?: string | null): boolean {
+  if (!event) return false;
+  const s = event.trim().toLowerCase();
+  return s.includes('mine') || s.includes('mime') || s.includes('relay');
+}
+
+export function isCheckmate(event?: string | null): boolean {
+  if (!event) return false;
+  const s = event.trim().toLowerCase();
+  return s.includes('check') || s.includes('chess');
+}
+
+export function isAiFilmForge(event?: string | null): boolean {
+  if (!event) return false;
+  const s = event.trim().toLowerCase();
+  return s.includes('film') || s.includes('forge') || s.includes('ai');
+}
+
 export interface RegistrationPayload {
   fullName: string;
   college: string;
@@ -83,7 +107,7 @@ export interface RegistrationPayload {
   technicalMember2: string;
   technicalMember3: string;
   technicalMember4: string;
-  nonTechnicalEvent: string; // 'CHECKMATE' | 'MIME RELAY' | ''
+  nonTechnicalEvent: string; // 'CHECKMATE' | 'MINE RELAY' | ''
   nonTechnicalMember1: string;
   nonTechnicalMember2: string;
   nonTechnicalMember3: string;
@@ -92,7 +116,7 @@ export interface RegistrationPayload {
   // Per-member cross-event interest (stored as comma-separated 1-indexed member numbers)
   // For PaperQuest members who are Interested in Checkmate (e.g. "1,2,4")
   checkmateInterested?: string;
-  // For Mime Relay members who are Interested in AI FilmForge (e.g. "1,3,4")
+  // For Mine Relay members who are Interested in AI FilmForge (e.g. "1,3,4")
   filmforgeInterested?: string;
 }
 
@@ -142,36 +166,34 @@ export interface RegistrationResult {
 }
 
 /**
- * Calculates unique participants and total fee:
+ * Authoritative Unique Participant & Dynamic Fee Calculation:
  * ₹129 per unique participant.
- * If the same person participates in both selected events, count that person only once.
+ * The same person participating in multiple events is only counted once.
  */
 export function calculateUniqueMembersAndFee(
   mainParticipant: string,
   techEvent: TechEvent,
   techMembers: string[], // [member2, member3, member4] for PaperQuest
   nonTechEvent: NonTechEvent,
-  nonTechMembers: string[] // [member2, member3, member4] for Mime Relay
+  nonTechMembers: string[] // [member2, member3, member4] for Mine Relay
 ) {
-  const pName = mainParticipant.trim();
+  const pName = (mainParticipant || '').trim();
   const allNames: string[] = [];
 
-  if (techEvent) {
-    if (pName) allNames.push(pName);
-    if (techEvent.includes('PaperQuest')) {
-      techMembers.forEach(m => {
-        if (m && m.trim()) allNames.push(m.trim());
-      });
-    }
+  if (pName) {
+    allNames.push(pName);
   }
 
-  if (nonTechEvent) {
-    if (pName) allNames.push(pName);
-    if (nonTechEvent.includes('Mime Relay')) {
-      nonTechMembers.forEach(m => {
-        if (m && m.trim()) allNames.push(m.trim());
-      });
-    }
+  if (techEvent && isPaperQuest(techEvent)) {
+    (techMembers || []).forEach(m => {
+      if (m && m.trim()) allNames.push(m.trim());
+    });
+  }
+
+  if (nonTechEvent && isMineRelay(nonTechEvent)) {
+    (nonTechMembers || []).forEach(m => {
+      if (m && m.trim()) allNames.push(m.trim());
+    });
   }
 
   // Deduplicate case-insensitively
@@ -458,7 +480,15 @@ export function createAndSaveLocalRecord(payload: RegistrationPayload): Registra
     };
   }
 
-  const nextNum = existingList.length + 1;
+  let maxNum = existingList.length;
+  for (const r of existingList) {
+    const match = (r.registrationId || '').match(/\d+$/);
+    if (match) {
+      const n = parseInt(match[0], 10);
+      if (!isNaN(n) && n > maxNum) maxNum = n;
+    }
+  }
+  const nextNum = maxNum + 1;
   const regId = `PIXEL-3.O-${String(nextNum).padStart(3, '0')}`;
   const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
@@ -569,7 +599,7 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
 
     if (!data.success) {
       const msg = (data.message || data.error || '').toLowerCase();
-      // If remote Google Apps Script has an outdated script deployment (e.g. rejects MIME RELAY or has team size mismatch)
+      // If remote Google Apps Script has an outdated script deployment (e.g. rejects MIME/MINE RELAY or has team size mismatch)
       if (
         msg.includes('sheet not found') ||
         msg.includes('invalid non-technical event') ||
@@ -583,7 +613,17 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
       throw new Error(data.message || data.error || 'Registration failed to save in Google Sheet.');
     }
 
-    // Mirror to local multi-vault store for offline cache
+    // Authoritative calculation for local multi-vault store cache
+    const calc = calculateUniqueMembersAndFee(
+      payload.fullName,
+      payload.technicalEvent,
+      [payload.technicalMember2, payload.technicalMember3, payload.technicalMember4],
+      payload.nonTechnicalEvent,
+      [payload.nonTechnicalMember2, payload.nonTechnicalMember3, payload.nonTechnicalMember4]
+    );
+    const resolvedTotalMembers = Math.max(data.totalMembers || 0, calc.totalMembers);
+    const resolvedTotalAmount = Math.max(data.totalAmount || 0, calc.totalAmount);
+
     saveLocalRegistration({
       registrationId: data.registrationId,
       fullName: data.fullName || payload.fullName,
@@ -601,9 +641,9 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
       nonTechMember2: payload.nonTechnicalMember2,
       nonTechMember3: payload.nonTechnicalMember3,
       nonTechMember4: payload.nonTechnicalMember4,
-      totalMembers: data.totalMembers,
+      totalMembers: resolvedTotalMembers,
       feePerHead: data.feePerHead || FEE_PER_HEAD,
-      totalAmount: data.totalAmount,
+      totalAmount: resolvedTotalAmount,
       paymentStatus: (data.paymentStatus as any) || 'Submitted',
       paymentId: payload.paymentId,
       registrationStatus: (data.registrationStatus as any) || 'Confirmed',
@@ -612,7 +652,11 @@ export async function submitToGoogleSheet(payload: RegistrationPayload): Promise
       filmforgeInterested: payload.filmforgeInterested || '',
     });
 
-    return data;
+    return {
+      ...data,
+      totalMembers: resolvedTotalMembers,
+      totalAmount: resolvedTotalAmount,
+    };
   } catch (err: unknown) {
     clearTimeout(timeoutId);
     if (err instanceof Error) {
